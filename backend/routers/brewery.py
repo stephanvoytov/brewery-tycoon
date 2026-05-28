@@ -6,6 +6,8 @@ from backend.schemas import BrewerySchema, UpgradeBreweryRequest, RenameBreweryR
 from backend.config import UpgradeCosts
 from backend.dependencies import get_current_user, resolve_game
 
+ACHIEVEMENT_UPGRADE_DISCOUNT = 0.1
+
 router = APIRouter(prefix="/api/brewery", tags=["brewery"])
 
 UPGRADE_COSTS = {
@@ -26,6 +28,13 @@ def get_brewery(game_id: int = None, current_user: User = Depends(get_current_us
     return brewery
 
 
+def _get_upgrade_discount(game) -> float:
+    achievements = game.achievements or []
+    discount = 0.0
+    if "first_upgrade" in achievements:
+        discount += ACHIEVEMENT_UPGRADE_DISCOUNT
+    return discount
+
 @router.post("/upgrade")
 def upgrade_brewery(req: UpgradeBreweryRequest, game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     game = resolve_game(game_id, current_user, db)
@@ -33,17 +42,23 @@ def upgrade_brewery(req: UpgradeBreweryRequest, game_id: int = None, current_use
     if not brewery:
         raise HTTPException(404, "Пивоварня не найдена")
 
+    discount = _get_upgrade_discount(game)
+    def apply_cost(base_cost):
+        final_cost = int(base_cost * (1 - discount))
+        if game.money < final_cost:
+            raise HTTPException(400, f"Недостаточно средств. Нужно ${final_cost}")
+        game.money -= final_cost
+        return final_cost
+
     upgrade_type = req.upgrade_type
     if upgrade_type == "tanks":
         current = brewery.tank_count
         next_level = current + 1
-        cost = UPGRADE_COSTS["tanks"].get(next_level, 999999)
-        if game.money < cost:
-            raise HTTPException(400, "Недостаточно средств")
-        game.money -= cost
+        base_cost = UPGRADE_COSTS["tanks"].get(next_level, 999999)
+        cost = apply_cost(base_cost)
         brewery.tank_count = next_level
         db.commit()
-        return {"message": f"Варочных котлов теперь {next_level}", "cost": cost}
+        return {"message": f"Варочных котлов теперь {next_level}", "cost": cost, "base_cost": base_cost}
 
     elif upgrade_type == "fermenters":
         current = brewery.fermenter_count
@@ -51,13 +66,11 @@ def upgrade_brewery(req: UpgradeBreweryRequest, game_id: int = None, current_use
         next_val = upgrade_map.get(current)
         if not next_val:
             raise HTTPException(400, "Максимальный уровень")
-        cost = UPGRADE_COSTS["fermenters"].get(current, 999999)
-        if game.money < cost:
-            raise HTTPException(400, "Недостаточно средств")
-        game.money -= cost
+        base_cost = UPGRADE_COSTS["fermenters"].get(current, 999999)
+        cost = apply_cost(base_cost)
         brewery.fermenter_count = next_val
         db.commit()
-        return {"message": f"Ферментеров теперь {next_val}", "cost": cost}
+        return {"message": f"Ферментеров теперь {next_val}", "cost": cost, "base_cost": base_cost}
 
     elif upgrade_type == "storage":
         current = brewery.storage_capacity
@@ -65,36 +78,30 @@ def upgrade_brewery(req: UpgradeBreweryRequest, game_id: int = None, current_use
         next_val = upgrade_map.get(current)
         if not next_val:
             raise HTTPException(400, "Максимальный уровень")
-        cost = UPGRADE_COSTS["storage"].get(current, 999999)
-        if game.money < cost:
-            raise HTTPException(400, "Недостаточно средств")
-        game.money -= cost
+        base_cost = UPGRADE_COSTS["storage"].get(current, 999999)
+        cost = apply_cost(base_cost)
         brewery.storage_capacity = next_val
         db.commit()
-        return {"message": f"Вместимость хранилища: {next_val}л", "cost": cost}
+        return {"message": f"Вместимость хранилища: {next_val}л", "cost": cost, "base_cost": base_cost}
 
     elif upgrade_type == "taproom":
         current = brewery.taproom_level
         next_level = current + 1
-        cost = UPGRADE_COSTS["taproom"].get(next_level, 999999)
-        if game.money < cost:
-            raise HTTPException(400, "Недостаточно средств")
-        game.money -= cost
+        base_cost = UPGRADE_COSTS["taproom"].get(next_level, 999999)
+        cost = apply_cost(base_cost)
         brewery.taproom_level = next_level
         brewery.has_taproom = True
         db.commit()
-        return {"message": f"Тапрум улучшен до уровня {next_level}", "cost": cost}
+        return {"message": f"Тапрум улучшен до уровня {next_level}", "cost": cost, "base_cost": base_cost}
 
     elif upgrade_type == "marketing":
         current = brewery.marketing_level
         next_level = current + 1
-        cost = UPGRADE_COSTS["marketing"].get(next_level, 999999)
-        if game.money < cost:
-            raise HTTPException(400, "Недостаточно средств")
-        game.money -= cost
+        base_cost = UPGRADE_COSTS["marketing"].get(next_level, 999999)
+        cost = apply_cost(base_cost)
         brewery.marketing_level = next_level
         db.commit()
-        return {"message": f"Маркетинг улучшен до уровня {next_level}", "cost": cost}
+        return {"message": f"Маркетинг улучшен до уровня {next_level}", "cost": cost, "base_cost": base_cost}
 
     raise HTTPException(400, f"Неизвестный тип улучшения: {upgrade_type}")
 

@@ -692,6 +692,29 @@ input:focus, select:focus {
     cursor: help;
 }
 
+.toast-notification {
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 0.85rem;
+    z-index: 10001;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    animation: slideInRight 0.3s ease;
+    transition: opacity 0.3s, transform 0.3s;
+    max-width: 400px;
+    line-height: 1.4;
+}
+
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(100px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
 @media (max-width: 768px) {
     .sidebar { width: 60px; }
     .sidebar-header h1, .sidebar-header span, .nav-btn span, .game-id-bar { display: none; }

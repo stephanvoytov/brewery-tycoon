@@ -118,6 +118,16 @@ function renderDashboard() {
     }
 }
 
+function classifyEvent(e) {
+    if (e.includes('🎉')) return 'achievement';
+    if (e.includes('💀') || e.includes('БАНКРОТСТВО')) return 'danger';
+    if (e.includes('готова к продаже')) return 'success';
+    if (e.includes('завершено')) return 'info';
+    if (e.includes('просрочен') || e.includes('Штраф')) return 'warning';
+    if (e.includes('КРИТИЧЕСКИЙ')) return 'danger';
+    return null;
+}
+
 async function doTick() {
     try {
         const result = await API.tick(1);
@@ -128,6 +138,13 @@ async function doTick() {
             eventsList.innerHTML = result.events.slice(-10).map(e =>
                 `<p>📌 День ${result.day}: ${e}</p>`
             ).join('');
+
+            result.events.forEach(e => {
+                const type = classifyEvent(e);
+                if (type) {
+                    showNotification(e, type);
+                }
+            });
         }
         if (result.events.length === 0 && eventsList) {
             eventsList.innerHTML = '<p class="empty-state">Ничего особенного не произошло</p>';
@@ -136,7 +153,7 @@ async function doTick() {
         if (result.game_over) {
             const modal = document.getElementById('gameOverModal');
             if (modal) modal.style.display = 'flex';
-            showError('💀 БАНКРОТСТВО! Игра окончена.');
+            showNotification('💀 БАНКРОТСТВО! Игра окончена.', 'danger');
         } else {
             showSuccess(`День ${result.day}`);
         }

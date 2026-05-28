@@ -192,15 +192,15 @@ def init_new_game(db: Session) -> GameState:
 
 
 ACHIEVEMENT_DEFS = [
-    {"id": "first_batch", "name": "Первая партия", "desc": "Сварите первую партию пива", "icon": "🍺"},
-    {"id": "first_staff", "name": "Кадровое пополнение", "desc": "Наймите первого сотрудника", "icon": "👤"},
-    {"id": "first_contract", "name": "Первая сделка", "desc": "Выполните первый контракт", "icon": "📋"},
-    {"id": "first_upgrade", "name": "Модернизация", "desc": "Купите первое улучшение пивоварни", "icon": "🔧"},
-    {"id": "revenue_10k", "name": "Первая выручка", "desc": "Достигните $10,000 общей выручки", "icon": "💰"},
-    {"id": "revenue_50k", "name": "Серьёзный пивовар", "desc": "Достигните $50,000 общей выручки", "icon": "💵"},
-    {"id": "revenue_100k", "name": "Пивной магнат", "desc": "Достигните $100,000 общей выручки", "icon": "🏆"},
-    {"id": "staff_3", "name": "Дружная команда", "desc": "Наймите 3 сотрудников", "icon": "👥"},
-    {"id": "reputation_90", "name": "Народная любовь", "desc": "Достигните 90% репутации", "icon": "⭐"},
+    {"id": "first_batch", "name": "Первая партия", "desc": "Сварите первую партию пива", "icon": "🍺", "bonus": {"reputation": 5}},
+    {"id": "first_staff", "name": "Кадровое пополнение", "desc": "Наймите первого сотрудника", "icon": "👤", "bonus": {"reputation": 5}},
+    {"id": "first_contract", "name": "Первая сделка", "desc": "Выполните первый контракт", "icon": "📋", "bonus": {"reputation": 5}},
+    {"id": "first_upgrade", "name": "Модернизация", "desc": "Купите первое улучшение пивоварни", "icon": "🔧", "bonus": {"upgrade_discount": 0.1}},
+    {"id": "revenue_10k", "name": "Первая выручка", "desc": "Достигните $10,000 общей выручки", "icon": "💰", "bonus": {"reputation": 5}},
+    {"id": "revenue_50k", "name": "Серьёзный пивовар", "desc": "Достигните $50,000 общей выручки", "icon": "💵", "bonus": {"reputation": 10}},
+    {"id": "revenue_100k", "name": "Пивной магнат", "desc": "Достигните $100,000 общей выручки", "icon": "🏆", "bonus": {"reputation": 15}},
+    {"id": "staff_3", "name": "Дружная команда", "desc": "Наймите 3 сотрудников", "icon": "👥", "bonus": {"reputation": 5}},
+    {"id": "reputation_90", "name": "Народная любовь", "desc": "Достигните 90% репутации", "icon": "⭐", "bonus": {"demand_bonus": 0.1}},
 ]
 
 def check_achievements(game: GameState, db: Session) -> list:
@@ -229,7 +229,19 @@ def check_achievements(game: GameState, db: Session) -> list:
         if ach["id"] not in unlocked and checks.get(ach["id"]):
             unlocked.add(ach["id"])
             game.achievements = list(unlocked)
-            events.append(f"🎉 Достижение: {ach['icon']} {ach['name']} — {ach['desc']}")
+            bonus = ach.get("bonus", {})
+            bonus_parts = []
+            if "reputation" in bonus:
+                game.reputation = min(100, game.reputation + bonus["reputation"])
+                bonus_parts.append(f"репутация +{bonus['reputation']}")
+            if "upgrade_discount" in bonus and brewery:
+                brewery.quality_bonus += 0.05
+                bonus_parts.append("скидка на улучшения 10%")
+            if "demand_bonus" in bonus and brewery:
+                brewery.marketing_level += 1
+                bonus_parts.append(f"спрос +{int(bonus['demand_bonus'] * 100)}%")
+            bonus_text = f" ({', '.join(bonus_parts)})" if bonus_parts else ""
+            events.append(f"🎉 Достижение: {ach['icon']} {ach['name']} — {ach['desc']}{bonus_text}")
 
     return events
 
@@ -342,6 +354,9 @@ def process_tick(game: GameState, db: Session) -> dict:
                 if batch.batch_size_liters <= 0:
                     batch.stage = BatchStage.sold
                 events.append(f"Продажа {deliver_amount:.0f}л по контракту с {contract.buyer_name} (+${revenue:.0f})")
+
+        if contract.days_left == 3 and contract.delivered_liters < contract.quantity_liters:
+            events.append(f"⚠️ Внимание! Контракт с {contract.buyer_name} истекает через 3 дня!")
 
         if contract.days_left <= 0 and contract.delivered_liters < contract.quantity_liters:
             penalty_amount = contract.penalty
