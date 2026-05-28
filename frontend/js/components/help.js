@@ -33,7 +33,7 @@ function renderHelp() {
         <div class="help-section">
             <h2>🍺 Как варить пиво — пошагово</h2>
 
-            <svg class="help-brew-svg" viewBox="0 0 900 440" xmlns="http://www.w3.org/2000/svg">
+            <svg class="help-brew-svg" viewBox="0 0 1200 440" xmlns="http://www.w3.org/2000/svg">
                 <defs>
                     <linearGradient id="stepBg" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stop-color="#1e2a45"/>
@@ -61,95 +61,95 @@ function renderHelp() {
                     </filter>
                 </defs>
 
-                <rect x="10" y="10" width="880" height="420" rx="14" fill="url(#stepBg)" stroke="#2a3a5a" stroke-width="2"/>
+                <rect x="10" y="10" width="1180" height="420" rx="14" fill="url(#stepBg)" stroke="#2a3a5a" stroke-width="2"/>
 
-                <text x="450" y="42" text-anchor="middle" fill="#e0dcd0" font-size="16" font-weight="bold">ПРОЦЕСС ПИВОВАРЕНИЯ</text>
+                <text x="600" y="42" text-anchor="middle" fill="#e0dcd0" font-size="17" font-weight="bold">ПРОЦЕСС ПИВОВАРЕНИЯ</text>
 
                 <g transform="translate(30, 70)">
-                    <rect x="0" y="0" width="140" height="110" rx="8" fill="url(#stepBg)" stroke="#d4a017" stroke-width="2"/>
-                    <rect x="20" y="12" width="100" height="50" rx="25" fill="url(#liqWort)" opacity="0.7"/>
-                    <text x="70" y="80" text-anchor="middle" fill="#d4a017" font-size="12" font-weight="bold">1. ЗАТИРАНИЕ</text>
-                    <text x="70" y="98" text-anchor="middle" fill="#8a8a7a" font-size="9">Солод + вода → сусло</text>
-                    <circle cx="25" cy="22" r="4" fill="#f0c040" opacity="0.7" filter="url(#glowS)">
+                    <rect x="0" y="0" width="150" height="110" rx="8" fill="url(#stepBg)" stroke="#d4a017" stroke-width="2"/>
+                    <rect x="25" y="12" width="100" height="50" rx="25" fill="url(#liqWort)" opacity="0.7"/>
+                    <text x="75" y="80" text-anchor="middle" fill="#d4a017" font-size="13" font-weight="bold">1. ЗАТИРАНИЕ</text>
+                    <text x="75" y="98" text-anchor="middle" fill="#8a8a7a" font-size="10">Солод + вода → сусло</text>
+                    <circle cx="28" cy="22" r="4" fill="#f0c040" opacity="0.7" filter="url(#glowS)">
                         <animate attributeName="opacity" values="0.7;0.2;0.7" dur="1.5s" repeatCount="indefinite"/>
                     </circle>
                 </g>
 
-                <g transform="translate(175, 120)">
-                    <line x1="0" y1="0" x2="35" y2="0" stroke="#4a6a8a" stroke-width="2.5" stroke-dasharray="5,3"/>
-                    <polygon points="35,-6 47,0 35,6" fill="#4a6a8a"/>
+                <g transform="translate(185, 120)">
+                    <line x1="0" y1="0" x2="40" y2="0" stroke="#4a6a8a" stroke-width="2.5" stroke-dasharray="5,3"/>
+                    <polygon points="40,-6 52,0 40,6" fill="#4a6a8a"/>
                 </g>
 
-                <g transform="translate(225, 70)">
-                    <rect x="0" y="0" width="140" height="110" rx="8" fill="url(#stepBg)" stroke="#e67e22" stroke-width="2"/>
-                    <rect x="20" y="12" width="100" height="50" rx="25" fill="url(#liqWort)" opacity="0.8"/>
-                    <text x="70" y="80" text-anchor="middle" fill="#e67e22" font-size="12" font-weight="bold">2. КИПЯЧЕНИЕ</text>
-                    <text x="70" y="98" text-anchor="middle" fill="#8a8a7a" font-size="9">Хмель + варка</text>
-                    <circle cx="35" cy="18" r="3" fill="#e67e22" opacity="0.8"><animate attributeName="cy" values="18;8;18" dur="0.5s" repeatCount="indefinite"/></circle>
-                    <circle cx="60" cy="14" r="3" fill="#e67e22" opacity="0.6"><animate attributeName="cy" values="14;5;14" dur="0.7s" repeatCount="indefinite"/></circle>
-                    <circle cx="85" cy="16" r="3" fill="#e67e22" opacity="0.7"><animate attributeName="cy" values="16;7;16" dur="0.6s" repeatCount="indefinite"/></circle>
+                <g transform="translate(240, 70)">
+                    <rect x="0" y="0" width="150" height="110" rx="8" fill="url(#stepBg)" stroke="#e67e22" stroke-width="2"/>
+                    <rect x="25" y="12" width="100" height="50" rx="25" fill="url(#liqWort)" opacity="0.8"/>
+                    <text x="75" y="80" text-anchor="middle" fill="#e67e22" font-size="13" font-weight="bold">2. КИПЯЧЕНИЕ</text>
+                    <text x="75" y="98" text-anchor="middle" fill="#8a8a7a" font-size="10">Хмель + варка</text>
+                    <circle cx="38" cy="18" r="3" fill="#e67e22" opacity="0.8"><animate attributeName="cy" values="18;8;18" dur="0.5s" repeatCount="indefinite"/></circle>
+                    <circle cx="65" cy="14" r="3" fill="#e67e22" opacity="0.6"><animate attributeName="cy" values="14;5;14" dur="0.7s" repeatCount="indefinite"/></circle>
+                    <circle cx="92" cy="16" r="3" fill="#e67e22" opacity="0.7"><animate attributeName="cy" values="16;7;16" dur="0.6s" repeatCount="indefinite"/></circle>
                 </g>
 
-                <g transform="translate(370, 120)">
-                    <line x1="0" y1="0" x2="35" y2="0" stroke="#4a6a8a" stroke-width="2.5" stroke-dasharray="5,3"/>
-                    <polygon points="35,-6 47,0 35,6" fill="#4a6a8a"/>
+                <g transform="translate(395, 120)">
+                    <line x1="0" y1="0" x2="40" y2="0" stroke="#4a6a8a" stroke-width="2.5" stroke-dasharray="5,3"/>
+                    <polygon points="40,-6 52,0 40,6" fill="#4a6a8a"/>
                 </g>
 
-                <g transform="translate(420, 70)">
-                    <rect x="0" y="0" width="140" height="110" rx="8" fill="url(#stepBg)" stroke="#3498db" stroke-width="2"/>
-                    <rect x="20" y="12" width="100" height="50" rx="25" fill="url(#liqFerment)" opacity="0.7"/>
-                    <text x="70" y="80" text-anchor="middle" fill="#3498db" font-size="12" font-weight="bold">3. ФЕРМЕНТАЦИЯ</text>
-                    <text x="70" y="98" text-anchor="middle" fill="#8a8a7a" font-size="9">Дрожжи + брожение</text>
-                    <circle cx="45" cy="25" r="3" fill="#85c1e9"><animate attributeName="cy" values="25;12;25" dur="2s" repeatCount="indefinite"/></circle>
-                    <circle cx="70" cy="22" r="3" fill="#85c1e9"><animate attributeName="cy" values="22;10;22" dur="2.5s" repeatCount="indefinite"/></circle>
+                <g transform="translate(450, 70)">
+                    <rect x="0" y="0" width="150" height="110" rx="8" fill="url(#stepBg)" stroke="#3498db" stroke-width="2"/>
+                    <rect x="25" y="12" width="100" height="50" rx="25" fill="url(#liqFerment)" opacity="0.7"/>
+                    <text x="75" y="80" text-anchor="middle" fill="#3498db" font-size="13" font-weight="bold">3. ФЕРМЕНТАЦИЯ</text>
+                    <text x="75" y="98" text-anchor="middle" fill="#8a8a7a" font-size="10">Дрожжи + брожение</text>
+                    <circle cx="48" cy="25" r="3" fill="#85c1e9"><animate attributeName="cy" values="25;12;25" dur="2s" repeatCount="indefinite"/></circle>
+                    <circle cx="75" cy="22" r="3" fill="#85c1e9"><animate attributeName="cy" values="22;10;22" dur="2.5s" repeatCount="indefinite"/></circle>
                 </g>
 
-                <g transform="translate(565, 120)">
-                    <line x1="0" y1="0" x2="35" y2="0" stroke="#4a6a8a" stroke-width="2.5" stroke-dasharray="5,3"/>
-                    <polygon points="35,-6 47,0 35,6" fill="#4a6a8a"/>
+                <g transform="translate(605, 120)">
+                    <line x1="0" y1="0" x2="40" y2="0" stroke="#4a6a8a" stroke-width="2.5" stroke-dasharray="5,3"/>
+                    <polygon points="40,-6 52,0 40,6" fill="#4a6a8a"/>
                 </g>
 
-                <g transform="translate(615, 70)">
-                    <rect x="0" y="0" width="140" height="110" rx="8" fill="url(#stepBg)" stroke="#2ecc71" stroke-width="2"/>
-                    <rect x="20" y="12" width="100" height="50" rx="25" fill="url(#liqBeer)" opacity="0.5"/>
-                    <text x="70" y="80" text-anchor="middle" fill="#2ecc71" font-size="12" font-weight="bold">4. ДОЗРЕВАНИЕ</text>
-                    <text x="70" y="98" text-anchor="middle" fill="#8a8a7a" font-size="9">Выдержка, карбонизация</text>
+                <g transform="translate(660, 70)">
+                    <rect x="0" y="0" width="150" height="110" rx="8" fill="url(#stepBg)" stroke="#2ecc71" stroke-width="2"/>
+                    <rect x="25" y="12" width="100" height="50" rx="25" fill="url(#liqBeer)" opacity="0.5"/>
+                    <text x="75" y="80" text-anchor="middle" fill="#2ecc71" font-size="13" font-weight="bold">4. ДОЗРЕВАНИЕ</text>
+                    <text x="75" y="98" text-anchor="middle" fill="#8a8a7a" font-size="10">Выдержка, карбонизация</text>
                 </g>
 
-                <g transform="translate(685, 185)">
+                <g transform="translate(735, 185)">
                     <line x1="0" y1="0" x2="0" y2="35" stroke="#4a6a8a" stroke-width="2.5" stroke-dasharray="5,3"/>
                     <polygon points="-6,35 0,48 6,35" fill="#4a6a8a"/>
                 </g>
 
-                <g transform="translate(570, 230)">
-                    <rect x="0" y="0" width="230" height="110" rx="8" fill="url(#stepDone)" stroke="#4caf50" stroke-width="2.5"/>
-                    <text x="115" y="42" text-anchor="middle" fill="#fff" font-size="26">🍺✅</text>
-                    <text x="115" y="72" text-anchor="middle" fill="#fff" font-size="14" font-weight="bold">5. ГОТОВО!</text>
-                    <text x="115" y="95" text-anchor="middle" fill="#c8e6c9" font-size="11">Можно продавать через 🛢 Партии</text>
+                <g transform="translate(620, 230)">
+                    <rect x="0" y="0" width="260" height="110" rx="8" fill="url(#stepDone)" stroke="#4caf50" stroke-width="2.5"/>
+                    <text x="130" y="42" text-anchor="middle" fill="#fff" font-size="28">🍺✅</text>
+                    <text x="130" y="74" text-anchor="middle" fill="#fff" font-size="15" font-weight="bold">5. ГОТОВО!</text>
+                    <text x="130" y="98" text-anchor="middle" fill="#c8e6c9" font-size="12">Можно продавать через 🛢 Партии</text>
                 </g>
 
                 <g transform="translate(30, 210)">
-                    <rect x="0" y="0" width="120" height="75" rx="8" fill="#2a1a1a" stroke="#d4a017" stroke-width="1.5" opacity="0.9"/>
-                    <text x="60" y="22" text-anchor="middle" fill="#d4a017" font-size="11" font-weight="bold">Ингредиенты</text>
-                    <text x="60" y="40" text-anchor="middle" fill="#8a8a7a" font-size="10">🌾 Солод</text>
-                    <text x="60" y="54" text-anchor="middle" fill="#8a8a7a" font-size="10">🌿 Хмель</text>
-                    <text x="60" y="68" text-anchor="middle" fill="#8a8a7a" font-size="10">🧫 Дрожжи</text>
+                    <rect x="0" y="0" width="130" height="80" rx="8" fill="#2a1a1a" stroke="#d4a017" stroke-width="1.5" opacity="0.9"/>
+                    <text x="65" y="24" text-anchor="middle" fill="#d4a017" font-size="12" font-weight="bold">Ингредиенты</text>
+                    <text x="65" y="44" text-anchor="middle" fill="#8a8a7a" font-size="11">🌾 Солод</text>
+                    <text x="65" y="58" text-anchor="middle" fill="#8a8a7a" font-size="11">🌿 Хмель</text>
+                    <text x="65" y="72" text-anchor="middle" fill="#8a8a7a" font-size="11">🧫 Дрожжи</text>
                 </g>
 
-                <g transform="translate(190, 210)">
-                    <rect x="0" y="0" width="120" height="75" rx="8" fill="#1a1a2e" stroke="#3498db" stroke-width="1.5" opacity="0.9"/>
-                    <text x="60" y="22" text-anchor="middle" fill="#3498db" font-size="11" font-weight="bold">Оборудование</text>
-                    <text x="60" y="40" text-anchor="middle" fill="#8a8a7a" font-size="10">⏱ Котёл</text>
-                    <text x="60" y="54" text-anchor="middle" fill="#8a8a7a" font-size="10">🧪 Ферментер</text>
-                    <text x="60" y="68" text-anchor="middle" fill="#8a8a7a" font-size="10">🧊 Танк</text>
+                <g transform="translate(200, 210)">
+                    <rect x="0" y="0" width="130" height="80" rx="8" fill="#1a1a2e" stroke="#3498db" stroke-width="1.5" opacity="0.9"/>
+                    <text x="65" y="24" text-anchor="middle" fill="#3498db" font-size="12" font-weight="bold">Оборудование</text>
+                    <text x="65" y="44" text-anchor="middle" fill="#8a8a7a" font-size="11">⏱ Котёл</text>
+                    <text x="65" y="58" text-anchor="middle" fill="#8a8a7a" font-size="11">🧪 Ферментер</text>
+                    <text x="65" y="72" text-anchor="middle" fill="#8a8a7a" font-size="11">🧊 Танк</text>
                 </g>
 
-                <g transform="translate(350, 210)">
-                    <rect x="0" y="0" width="130" height="75" rx="8" fill="#1a2e1a" stroke="#2ecc71" stroke-width="1.5" opacity="0.9"/>
-                    <text x="65" y="22" text-anchor="middle" fill="#2ecc71" font-size="11" font-weight="bold">Время</text>
-                    <text x="65" y="40" text-anchor="middle" fill="#8a8a7a" font-size="10">Варка: 1 день</text>
-                    <text x="65" y="54" text-anchor="middle" fill="#8a8a7a" font-size="10">Ферментация: 4-10 дн</text>
-                    <text x="65" y="68" text-anchor="middle" fill="#8a8a7a" font-size="10">Дозревание: 5-20 дн</text>
+                <g transform="translate(370, 210)">
+                    <rect x="0" y="0" width="150" height="80" rx="8" fill="#1a2e1a" stroke="#2ecc71" stroke-width="1.5" opacity="0.9"/>
+                    <text x="75" y="24" text-anchor="middle" fill="#2ecc71" font-size="12" font-weight="bold">Время</text>
+                    <text x="75" y="44" text-anchor="middle" fill="#8a8a7a" font-size="11">Варка: 1 день</text>
+                    <text x="75" y="58" text-anchor="middle" fill="#8a8a7a" font-size="11">Ферментация: 4-10 дн</text>
+                    <text x="75" y="72" text-anchor="middle" fill="#8a8a7a" font-size="11">Дозревание: 5-20 дн</text>
                 </g>
             </svg>
         </div>

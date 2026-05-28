@@ -48,7 +48,7 @@ function renderBrewery() {
         </div>
 
         <div class="brewery-svg-container">
-            <svg viewBox="0 0 1100 600" xmlns="http://www.w3.org/2000/svg" style="width:100%">
+            <svg viewBox="0 0 1800 600" xmlns="http://www.w3.org/2000/svg" style="width:100%">
                 <defs>
                     <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stop-color="#2a3a5a"/>
@@ -76,113 +76,111 @@ function renderBrewery() {
                     </filter>
                 </defs>
 
-                <rect x="10" y="10" width="1080" height="580" rx="10" fill="url(#wall)" stroke="#3a4a6a" stroke-width="2"/>
-                <rect x="10" y="510" width="1080" height="80" rx="0" fill="url(#floor)" opacity="0.6"/>
-                <line x1="10" y1="510" x2="1090" y2="510" stroke="#4a3a2a" stroke-width="1.5"/>
+                <rect x="10" y="10" width="1780" height="580" rx="10" fill="url(#wall)" stroke="#3a4a6a" stroke-width="2"/>
+                <rect x="10" y="510" width="1780" height="80" rx="0" fill="url(#floor)" opacity="0.6"/>
+                <line x1="10" y1="510" x2="1790" y2="510" stroke="#4a3a2a" stroke-width="1.5"/>
 
-                <text x="550" y="38" text-anchor="middle" fill="#e0dcd0" font-size="17" font-weight="bold">🍺 ЦЕХ ПИВОВАРНИ</text>
+                <text x="900" y="38" text-anchor="middle" fill="#e0dcd0" font-size="18" font-weight="bold">🍺 ЦЕХ ПИВОВАРНИ</text>
 
-                <rect x="20" y="50" width="360" height="26" rx="4" fill="#1a1a2e" opacity="0.7"/>
-                <text x="200" y="68" text-anchor="middle" fill="#d4a017" font-size="13" font-weight="bold">⚡ ВАРОЧНЫЙ УЧАСТОК</text>
+                <rect x="20" y="50" width="630" height="26" rx="4" fill="#1a1a2e" opacity="0.7"/>
+                <text x="335" y="68" text-anchor="middle" fill="#d4a017" font-size="14" font-weight="bold">⚡ ВАРОЧНЫЙ УЧАСТОК</text>
 
-                <rect x="410" y="50" width="250" height="26" rx="4" fill="#1a1a2e" opacity="0.7"/>
-                <text x="535" y="68" text-anchor="middle" fill="#3498db" font-size="13" font-weight="bold">🧪 БРОДИЛЬНЯ</text>
+                <rect x="670" y="50" width="810" height="26" rx="4" fill="#1a1a2e" opacity="0.7"/>
+                <text x="1075" y="68" text-anchor="middle" fill="#3498db" font-size="14" font-weight="bold">🧪 БРОДИЛЬНЯ</text>
 
-                <rect x="690" y="50" width="380" height="26" rx="4" fill="#1a1a2e" opacity="0.7"/>
-                <text x="880" y="68" text-anchor="middle" fill="#2ecc71" font-size="13" font-weight="bold">🧊 ДОЗРЕВАНИЕ</text>
+                <rect x="1500" y="50" width="280" height="26" rx="4" fill="#1a1a2e" opacity="0.7"/>
+                <text x="1640" y="68" text-anchor="middle" fill="#2ecc71" font-size="14" font-weight="bold">🧊 ДОЗРЕВАНИЕ</text>
 
                 ${svgTanks.map((t, i) => {
-                    const x = 30 + i * 140;
+                    const x = 40 + i * 145;
                     const color = t.occupied ? '#e74c3c' : '#d4a017';
-                    const maxTanks = Math.min(svgTanks.length, 4);
-                    const shift = maxTanks >= 3 ? 0 : 50;
                     return `
                         <g>
-                            <rect x="${x + shift}" y="95" width="120" height="150" rx="8" fill="url(#kettle)" stroke="${color}" stroke-width="2.5"/>
-                            <rect x="${x + shift + 12}" y="105" width="96" height="45" rx="5" fill="#1a0a00" opacity="0.4"/>
-                            <rect x="${x + shift + 12}" y="${225 - (t.occupied ? 35 : 0)}" width="96" height="${t.occupied ? 35 : 6}" rx="3" fill="#f0c040" opacity="${t.occupied ? 0.85 : 0.2}"/>
-                            <text x="${x + shift + 60}" y="165" text-anchor="middle" fill="#fff" font-size="14" font-weight="bold">Котёл ${t.id}</text>
-                            <text x="${x + shift + 60}" y="190" text-anchor="middle" fill="${color}" font-size="12" font-weight="bold">${t.occupied ? '🔥 Варка' : '✅ Свободен'}</text>
+                            <rect x="${x}" y="95" width="130" height="150" rx="8" fill="url(#kettle)" stroke="${color}" stroke-width="2.5"/>
+                            <rect x="${x + 12}" y="105" width="106" height="45" rx="5" fill="#1a0a00" opacity="0.4"/>
+                            <rect x="${x + 12}" y="${225 - (t.occupied ? 35 : 0)}" width="106" height="${t.occupied ? 35 : 6}" rx="3" fill="#f0c040" opacity="${t.occupied ? 0.85 : 0.2}"/>
+                            <text x="${x + 65}" y="165" text-anchor="middle" fill="#fff" font-size="14" font-weight="bold">Котёл ${t.id}</text>
+                            <text x="${x + 65}" y="190" text-anchor="middle" fill="${color}" font-size="12" font-weight="bold">${t.occupied ? '🔥 Варка' : '✅ Свободен'}</text>
                             ${t.occupied ? `
-                                <circle cx="${x + shift + 25}" cy="120" r="6" fill="#f0c040" opacity="0.85" filter="url(#glow)">
+                                <circle cx="${x + 30}" cy="120" r="6" fill="#f0c040" opacity="0.85" filter="url(#glow)">
                                     <animate attributeName="opacity" values="0.85;0.2;0.85" dur="1s" repeatCount="indefinite"/>
                                 </circle>
-                                <circle cx="${x + shift + 60}" cy="112" r="5" fill="#f0c040" opacity="0.65">
+                                <circle cx="${x + 65}" cy="112" r="5" fill="#f0c040" opacity="0.65">
                                     <animate attributeName="opacity" values="0.65;0.1;0.65" dur="1.5s" repeatCount="indefinite"/>
                                 </circle>
-                                <circle cx="${x + shift + 95}" cy="125" r="4" fill="#f0c040" opacity="0.55">
+                                <circle cx="${x + 100}" cy="125" r="4" fill="#f0c040" opacity="0.55">
                                     <animate attributeName="opacity" values="0.55;0.1;0.55" dur="1.2s" repeatCount="indefinite"/>
                                 </circle>
                             ` : ''}
-                            <rect x="${x + shift + 25}" y="245" width="70" height="10" rx="3" fill="#5a4a3a"/>
+                            <rect x="${x + 30}" y="245" width="70" height="10" rx="3" fill="#5a4a3a"/>
                         </g>
                     `;
                 }).join('')}
 
-                <line x1="30" y1="85" x2="${30 + Math.min(svgTanks.length, 4) * 140 + 60}" y2="85" stroke="#5a4a3a" stroke-width="2.5"/>
+                <line x1="40" y1="85" x2="${40 + Math.min(svgTanks.length, 4) * 145 + 60}" y2="85" stroke="#5a4a3a" stroke-width="2.5"/>
 
                 ${svgFermenters.map((t, i) => {
-                    const x = 430 + i * 105;
+                    const x = 690 + i * 82;
                     const color = t.occupied ? '#e74c3c' : '#3498db';
                     return `
                         <g>
-                            <rect x="${x}" y="105" width="75" height="140" rx="37" fill="url(#ferm)" stroke="${color}" stroke-width="2.5"/>
-                            <rect x="${x + 12}" y="118" width="51" height="65" rx="25" fill="#0a1a2e" opacity="0.3"/>
-                            <text x="${x + 37}" y="172" text-anchor="middle" fill="#fff" font-size="11">Ф${t.id}</text>
-                            <text x="${x + 37}" y="192" text-anchor="middle" fill="${color}" font-size="12" font-weight="bold">${t.occupied ? '⏳ Занят' : '✅ Свободен'}</text>
+                            <rect x="${x}" y="105" width="68" height="140" rx="34" fill="url(#ferm)" stroke="${color}" stroke-width="2.5"/>
+                            <rect x="${x + 10}" y="118" width="48" height="65" rx="24" fill="#0a1a2e" opacity="0.3"/>
+                            <text x="${x + 34}" y="172" text-anchor="middle" fill="#fff" font-size="10">Ф${t.id}</text>
+                            <text x="${x + 34}" y="192" text-anchor="middle" fill="${color}" font-size="11" font-weight="bold">${t.occupied ? '⏳' : '✅'}</text>
                             ${t.occupied ? `
-                                <circle cx="${x + 25}" cy="135" r="4" fill="#85c1e9" opacity="0.75">
+                                <circle cx="${x + 22}" cy="135" r="4" fill="#85c1e9" opacity="0.75">
                                     <animate attributeName="cy" values="135;122;135" dur="2s" repeatCount="indefinite"/>
                                 </circle>
-                                <circle cx="${x + 50}" cy="140" r="4" fill="#85c1e9" opacity="0.55">
+                                <circle cx="${x + 46}" cy="140" r="4" fill="#85c1e9" opacity="0.55">
                                     <animate attributeName="cy" values="140;125;140" dur="2.8s" repeatCount="indefinite"/>
                                 </circle>
                             ` : ''}
-                            <rect x="${x + 20}" y="245" width="35" height="10" rx="3" fill="#5a4a3a"/>
+                            <rect x="${x + 17}" y="245" width="34" height="10" rx="3" fill="#5a4a3a"/>
                         </g>
                     `;
                 }).join('')}
 
                 ${svgConditioning.map((t, i) => {
-                    const x = 720 + i * 120;
+                    const x = 1520 + i * 135;
                     const color = t.occupied ? '#e74c3c' : '#2ecc71';
                     return `
                         <g>
-                            <rect x="${x}" y="95" width="100" height="150" rx="10" fill="url(#cond)" stroke="${color}" stroke-width="2.5"/>
-                            <ellipse cx="${x + 50}" cy="122" rx="38" ry="14" fill="#0a1a0a" opacity="0.35"/>
-                            <text x="${x + 50}" y="172" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold">Танк ${t.id}</text>
-                            <text x="${x + 50}" y="195" text-anchor="middle" fill="${color}" font-size="12" font-weight="bold">${t.occupied ? '⏳ Созревает' : '✅ Свободен'}</text>
-                            <rect x="${x + 20}" y="245" width="60" height="10" rx="3" fill="#5a4a3a"/>
+                            <rect x="${x}" y="95" width="110" height="150" rx="10" fill="url(#cond)" stroke="${color}" stroke-width="2.5"/>
+                            <ellipse cx="${x + 55}" cy="122" rx="42" ry="14" fill="#0a1a0a" opacity="0.35"/>
+                            <text x="${x + 55}" y="172" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold">Танк ${t.id}</text>
+                            <text x="${x + 55}" y="195" text-anchor="middle" fill="${color}" font-size="12" font-weight="bold">${t.occupied ? '⏳ Созревает' : '✅ Свободен'}</text>
+                            <rect x="${x + 25}" y="245" width="60" height="10" rx="3" fill="#5a4a3a"/>
                         </g>
                     `;
                 }).join('')}
 
                 <g transform="translate(40, 330)">
-                    <rect x="0" y="0" width="280" height="90" rx="8" fill="#4a3a2a" stroke="#8a7a5a" stroke-width="1.5" stroke-dasharray="5,3"/>
-                    <text x="140" y="28" text-anchor="middle" fill="#d4a017" font-size="13" font-weight="bold">🍾 Линия розлива</text>
-                    <text x="140" y="50" text-anchor="middle" fill="#8a8a7a" font-size="11">${ownedEquip.some(e => e.type === 'bottling_line') ? '✅ Установлена' : '❌ Не куплена'}</text>
-                    <circle cx="40" cy="70" r="7" fill="#3498db" opacity="0.5"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="0.8s" repeatCount="indefinite"/></circle>
-                    <circle cx="80" cy="70" r="7" fill="#3498db" opacity="0.4"><animate attributeName="opacity" values="0.4;0.1;0.4" dur="0.6s" repeatCount="indefinite"/></circle>
-                    <circle cx="120" cy="70" r="7" fill="#3498db" opacity="0.5"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="0.7s" repeatCount="indefinite"/></circle>
+                    <rect x="0" y="0" width="500" height="90" rx="8" fill="#4a3a2a" stroke="#8a7a5a" stroke-width="1.5" stroke-dasharray="5,3"/>
+                    <text x="250" y="28" text-anchor="middle" fill="#d4a017" font-size="14" font-weight="bold">🍾 Линия розлива</text>
+                    <text x="250" y="50" text-anchor="middle" fill="#8a8a7a" font-size="12">${ownedEquip.some(e => e.type === 'bottling_line') ? '✅ Установлена' : '❌ Не куплена'}</text>
+                    <circle cx="60" cy="72" r="7" fill="#3498db" opacity="0.5"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="0.8s" repeatCount="indefinite"/></circle>
+                    <circle cx="120" cy="72" r="7" fill="#3498db" opacity="0.4"><animate attributeName="opacity" values="0.4;0.1;0.4" dur="0.6s" repeatCount="indefinite"/></circle>
+                    <circle cx="180" cy="72" r="7" fill="#3498db" opacity="0.5"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="0.7s" repeatCount="indefinite"/></circle>
                 </g>
 
-                <g transform="translate(360, 330)">
-                    <rect x="0" y="0" width="280" height="90" rx="8" fill="#4a3a2a" stroke="#8a7a5a" stroke-width="1.5" stroke-dasharray="5,3"/>
-                    <text x="140" y="28" text-anchor="middle" fill="#d4a017" font-size="13" font-weight="bold">🛢 Линия кегов</text>
-                    <text x="140" y="50" text-anchor="middle" fill="#8a8a7a" font-size="11">${ownedEquip.some(e => e.type === 'kegging_line') ? '✅ Установлена' : '❌ Не куплена'}</text>
-                    <ellipse cx="140" cy="68" rx="35" ry="18" fill="#8a7a5a" opacity="0.4" stroke="#8a7a5a" stroke-width="1.5"/>
+                <g transform="translate(580, 330)">
+                    <rect x="0" y="0" width="540" height="90" rx="8" fill="#4a3a2a" stroke="#8a7a5a" stroke-width="1.5" stroke-dasharray="5,3"/>
+                    <text x="270" y="28" text-anchor="middle" fill="#d4a017" font-size="14" font-weight="bold">🛢 Линия кегов</text>
+                    <text x="270" y="50" text-anchor="middle" fill="#8a8a7a" font-size="12">${ownedEquip.some(e => e.type === 'kegging_line') ? '✅ Установлена' : '❌ Не куплена'}</text>
+                    <ellipse cx="270" cy="68" rx="45" ry="22" fill="#8a7a5a" opacity="0.4" stroke="#8a7a5a" stroke-width="1.5"/>
                 </g>
 
-                <g transform="translate(680, 330)">
-                    <rect x="0" y="0" width="300" height="90" rx="8" fill="#3a2a1a" stroke="${b.has_taproom ? '#2ecc71' : '#8a8a7a'}" stroke-width="1.5"/>
-                    <text x="150" y="28" text-anchor="middle" fill="${b.has_taproom ? '#2ecc71' : '#8a8a7a'}" font-size="13" font-weight="bold">🍺 Тапрум</text>
-                    <text x="150" y="50" text-anchor="middle" fill="#8a8a7a" font-size="11">${b.has_taproom ? `✅ Открыт (ур. ${b.taproom_level})` : '🔴 Не построен'}</text>
-                    ${b.has_taproom ? `<text x="150" y="72" text-anchor="middle" fill="#2ecc71" font-size="12">${formatMoney(b.taproom_level * 30)}/день</text>` : ''}
+                <g transform="translate(1160, 330)">
+                    <rect x="0" y="0" width="580" height="90" rx="8" fill="#3a2a1a" stroke="${b.has_taproom ? '#2ecc71' : '#8a8a7a'}" stroke-width="1.5"/>
+                    <text x="290" y="28" text-anchor="middle" fill="${b.has_taproom ? '#2ecc71' : '#8a8a7a'}" font-size="14" font-weight="bold">🍺 Тапрум</text>
+                    <text x="290" y="50" text-anchor="middle" fill="#8a8a7a" font-size="12">${b.has_taproom ? `✅ Открыт (ур. ${b.taproom_level})` : '🔴 Не построен'}</text>
+                    ${b.has_taproom ? `<text x="290" y="72" text-anchor="middle" fill="#2ecc71" font-size="13">${formatMoney(b.taproom_level * 30)}/день</text>` : ''}
                 </g>
 
                 <g transform="translate(40, 445)">
-                    <rect x="0" y="0" width="1020" height="42" rx="6" fill="#1a1a2e" opacity="0.8"/>
-                    <text x="510" y="26" text-anchor="middle" fill="#8a8a7a" font-size="13">📦 Хранилище: ${b.storage_capacity} л • Аренда: ${formatMonthly(b.rent)} • Уровень пивоварни: ${b.level}</text>
+                    <rect x="0" y="0" width="1720" height="42" rx="6" fill="#1a1a2e" opacity="0.8"/>
+                    <text x="860" y="26" text-anchor="middle" fill="#8a8a7a" font-size="14">📦 Хранилище: ${b.storage_capacity} л • Аренда: ${formatMonthly(b.rent)} • Уровень пивоварни: ${b.level}</text>
                 </g>
             </svg>
         </div>
