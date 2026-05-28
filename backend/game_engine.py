@@ -274,6 +274,7 @@ EVENT_DEFS = [
         "title": "Поломка котла",
         "description": "Варочный котёл вышел из строя!",
         "is_choice_event": True,
+        "min_day": 3,
         "choice_a": {"label": "Заплатить $500 за срочный ремонт", "effect": {"money": -500, "reputation": 0}},
         "choice_b": {"label": "Подождать 3 дня (простой производства)", "effect": {"downtime_days": 3, "reputation": 0}},
     },
@@ -294,6 +295,7 @@ EVENT_DEFS = [
     {
         "event_type": "hops_price_surge",
         "title": "Скачок цен на хмель",
+        "min_day": 3,
         "description": "Неурожай хмеля! Цены на хмель выросли на 30% на 7 дней",
         "duration_days": 7,
         "effect_data": {"hops_cost_multiplier": 1.3},
@@ -303,6 +305,7 @@ EVENT_DEFS = [
         "title": "Налоговая проверка",
         "description": "Внеплановая налоговая проверка. Штраф $300",
         "is_choice_event": False,
+        "min_day": 3,
         "effect_instant": {"money": -300},
     },
     {
@@ -326,6 +329,7 @@ EVENT_DEFS = [
         "title": "Вредители на складе",
         "description": "На складе ингредиентов завелись вредители!",
         "is_choice_event": True,
+        "min_day": 3,
         "choice_a": {"label": "Вызвать дезинсекцию ($300)", "effect": {"money": -300, "reputation": 0}},
         "choice_b": {"label": "Рискнуть — потерять 5 кг ингредиентов", "effect": {"lose_ingredients": 5, "reputation": 0}},
     },
@@ -341,7 +345,10 @@ def try_generate_random_event(game: GameState, db: Session) -> list:
     if active_count > 2:
         return events
 
-    event_def = random.choice(EVENT_DEFS)
+    valid_events = [e for e in EVENT_DEFS if game.day >= e.get("min_day", 0)]
+    if not valid_events:
+        return events
+    event_def = random.choice(valid_events)
     existing = db.query(ActiveEvent).filter(
         ActiveEvent.game_state_id == game.id,
         ActiveEvent.event_type == event_def["event_type"],
