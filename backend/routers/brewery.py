@@ -42,6 +42,7 @@ def upgrade_brewery(req: UpgradeBreweryRequest, game_id: int = None, current_use
             raise HTTPException(400, "Недостаточно средств")
         game.money -= cost
         brewery.tank_count = next_level
+        db.commit()
         return {"message": f"Варочных котлов теперь {next_level}", "cost": cost}
 
     elif upgrade_type == "fermenters":
@@ -55,6 +56,7 @@ def upgrade_brewery(req: UpgradeBreweryRequest, game_id: int = None, current_use
             raise HTTPException(400, "Недостаточно средств")
         game.money -= cost
         brewery.fermenter_count = next_val
+        db.commit()
         return {"message": f"Ферментеров теперь {next_val}", "cost": cost}
 
     elif upgrade_type == "storage":
@@ -68,6 +70,7 @@ def upgrade_brewery(req: UpgradeBreweryRequest, game_id: int = None, current_use
             raise HTTPException(400, "Недостаточно средств")
         game.money -= cost
         brewery.storage_capacity = next_val
+        db.commit()
         return {"message": f"Вместимость хранилища: {next_val}л", "cost": cost}
 
     elif upgrade_type == "taproom":
@@ -79,6 +82,7 @@ def upgrade_brewery(req: UpgradeBreweryRequest, game_id: int = None, current_use
         game.money -= cost
         brewery.taproom_level = next_level
         brewery.has_taproom = True
+        db.commit()
         return {"message": f"Тапрум улучшен до уровня {next_level}", "cost": cost}
 
     elif upgrade_type == "marketing":
@@ -89,6 +93,7 @@ def upgrade_brewery(req: UpgradeBreweryRequest, game_id: int = None, current_use
             raise HTTPException(400, "Недостаточно средств")
         game.money -= cost
         brewery.marketing_level = next_level
+        db.commit()
         return {"message": f"Маркетинг улучшен до уровня {next_level}", "cost": cost}
 
     raise HTTPException(400, f"Неизвестный тип улучшения: {upgrade_type}")
