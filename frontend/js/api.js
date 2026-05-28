@@ -207,6 +207,10 @@ const API = {
         localStorage.removeItem('authToken');
     },
 
+    async restartAfterGameOver() {
+        return this.request('POST', '/api/game/restart-after-game-over');
+    },
+
     async getLeaderboard(metric = 'money', limit = 20) {
         const res = await fetch(`${API_BASE}/api/leaderboard?metric=${metric}&limit=${limit}`);
         if (!res.ok) return { entries: [] };

@@ -2,15 +2,15 @@ DAYS_PER_MONTH = 30
 
 
 class StartingBalance:
-    MONEY = 10000.0
+    MONEY = 3000.0
     LOAN = 0.0
     LOAN_INTEREST_RATE = 0.05
     REPUTATION = 50.0
-    INGREDIENT_QUANTITY = 50.0
+    INGREDIENT_QUANTITY = 20.0
 
 
 class Rent:
-    MONTHLY = 1500
+    MONTHLY = 3000
     @classmethod
     def DAILY(cls):
         return cls.MONTHLY / DAYS_PER_MONTH
@@ -46,8 +46,12 @@ class StaffSkill:
     EFFICIENCY_PER_SKILL = 0.02
 
 
+BANKRUPTCY_THRESHOLD = -5000
+BANKRUPTCY_DAYS = 30
+
+
 class Loan:
-    DAILY_INTEREST_RATE = 0.005
+    DAILY_INTEREST_RATE = 0.01
 
 
 class Reputation:

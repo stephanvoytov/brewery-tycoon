@@ -14,6 +14,10 @@ class GameStateSchema(BaseModel):
     total_expenses: float
     daily_revenue: float
     daily_expenses: float
+    days_bankrupt: int = 0
+    game_over: bool = False
+    game_over_capital: float = 0.0
+    achievements: list = []
     revenue_history: list = []
     expense_history: list = []
     currency: str = "$"
@@ -198,6 +202,10 @@ class TickResult(BaseModel):
     batches_updated: int
     contracts_fulfilled: int
     costs_deducted: float
+    game_over: bool = False
+
+class RestartAfterGameOverRequest(BaseModel):
+    pass
 
 
 class BrewRequest(BaseModel):

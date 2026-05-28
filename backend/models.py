@@ -99,6 +99,10 @@ class GameState(Base):
     staff = relationship("Staff", back_populates="game_state", cascade="all, delete-orphan")
     contracts = relationship("Contract", back_populates="game_state", cascade="all, delete-orphan")
     research_list = relationship("Research", back_populates="game_state", cascade="all, delete-orphan")
+    days_bankrupt = Column(Integer, default=0)
+    game_over = Column(Boolean, default=False)
+    game_over_capital = Column(Float, default=0.0)
+    achievements = Column(JSON, default=list)
     revenue_history = Column(JSON, default=list)
     expense_history = Column(JSON, default=list)
 

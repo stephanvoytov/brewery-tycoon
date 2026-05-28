@@ -5,6 +5,17 @@ function renderDashboard() {
     const contracts = GAME_STATE.contracts || [];
     const activeBatches = batches.filter(b => !['sold', 'spoiled'].includes(b.stage));
     const activeContracts = contracts.filter(c => c.is_active);
+    const achievements = s.achievements || [];
+
+    const bankruptcyWarning = s.days_bankrupt > 0 && s.money < -5000
+        ? `<div class="alert alert-danger" style="margin-bottom:16px">⚠️ КРИТИЧЕСКИЙ ДОЛГ! Дней до банкротства: ${30 - s.days_bankrupt}</div>`
+        : '';
+
+    const goalProgress = Math.min(100, Math.round((s.total_revenue / 100000) * 100));
+
+    const achList = achievements.length > 0
+        ? achievements.map(id => ACHIEVEMENTS[id] ? `<span class="ach-badge" title="${ACHIEVEMENTS[id].desc}">${ACHIEVEMENTS[id].icon} ${ACHIEVEMENTS[id].name}</span>` : '').join(' ')
+        : '<span class="text-muted">Пока нет достижений</span>';
 
     const el = document.getElementById('page-dashboard');
     el.innerHTML = `
@@ -13,9 +24,11 @@ function renderDashboard() {
             <button class="btn btn-primary" onclick="doTick()">⏩ День ${s.day + 1}</button>
         </div>
 
+        ${bankruptcyWarning}
+
         <div class="grid-4">
             <div class="card stat">
-                <div class="stat-value">${formatMoney(s.money)}</div>
+                <div class="stat-value ${s.money < 0 ? 'red' : ''}">${formatMoney(s.money)}</div>
                 <div class="stat-label">Баланс</div>
             </div>
             <div class="card stat">
@@ -30,6 +43,17 @@ function renderDashboard() {
                 <div class="stat-value">${b.level}</div>
                 <div class="stat-label">Уровень пивоварни</div>
             </div>
+        </div>
+
+        <div class="card">
+            <h3>🏆 Цель: заработать $100,000</h3>
+            <div class="chart-bar"><div class="chart-bar-fill" style="width:${goalProgress}%"></div></div>
+            <div style="font-size:0.8rem;color:var(--text-dim);margin-top:4px">Выручено: ${formatMoney(s.total_revenue)} из $100,000</div>
+        </div>
+
+        <div class="card">
+            <h3>⭐ Достижения</h3>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">${achList}</div>
         </div>
 
         <div class="grid-2">
@@ -73,7 +97,25 @@ function renderDashboard() {
                 <p class="empty-state">Нажмите "Новый день"</p>
             </div>
         </div>
+
+        <div id="gameOverModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:10000;align-items:center;justify-content:center">
+            <div style="background:var(--bg-card);border:2px solid var(--red);border-radius:16px;padding:40px;max-width:450px;text-align:center">
+                <div style="font-size:64px;margin-bottom:16px">💀</div>
+                <h2 style="color:var(--red);margin-bottom:12px">БАНКРОТСТВО!</h2>
+                <p style="margin-bottom:20px;color:var(--text-dim);line-height:1.6">
+                    Ваша пивоварня обанкротилась. Долг превысил $5,000 и держался больше месяца.<br>
+                    Кредиторы забрали имущество.
+                </p>
+                <p style="margin-bottom:24px;color:var(--text)">Можете начать заново с половиной оставшегося капитала.</p>
+                <button class="btn btn-primary" onclick="restartAfterGameOver()" style="font-size:1rem;padding:12px 32px">🔄 Начать заново</button>
+                <button class="btn btn-secondary" onclick="startNewGame()" style="margin-top:12px">🆕 Совсем новая игра</button>
+            </div>
+        </div>
     `;
+
+    if (s.game_over) {
+        document.getElementById('gameOverModal').style.display = 'flex';
+    }
 }
 
 async function doTick() {
@@ -91,7 +133,24 @@ async function doTick() {
             eventsList.innerHTML = '<p class="empty-state">Ничего особенного не произошло</p>';
         }
 
-        showSuccess(`День ${result.day}`);
+        if (result.game_over) {
+            const modal = document.getElementById('gameOverModal');
+            if (modal) modal.style.display = 'flex';
+            showError('💀 БАНКРОТСТВО! Игра окончена.');
+        } else {
+            showSuccess(`День ${result.day}`);
+        }
+    } catch (e) {
+        showError(e.message);
+    }
+}
+
+async function restartAfterGameOver() {
+    try {
+        const res = await API.restartAfterGameOver();
+        await loadGameState();
+        document.getElementById('gameOverModal').style.display = 'none';
+        showSuccess(`Новый старт с ${formatMoney(res.money)}`);
     } catch (e) {
         showError(e.message);
     }

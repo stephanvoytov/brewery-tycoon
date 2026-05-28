@@ -65,6 +65,18 @@ const ROLE_RU = {
     admin: 'Администратор',
 };
 
+const ACHIEVEMENTS = {
+    first_batch: { name: 'Первая партия', desc: 'Сварите первую партию', icon: '🍺' },
+    first_staff: { name: 'Кадровое пополнение', desc: 'Наймите первого сотрудника', icon: '👤' },
+    first_contract: { name: 'Первая сделка', desc: 'Выполните первый контракт', icon: '📋' },
+    first_upgrade: { name: 'Модернизация', desc: 'Купите первое улучшение', icon: '🔧' },
+    revenue_10k: { name: 'Первая выручка', desc: 'Общая выручка $10,000', icon: '💰' },
+    revenue_50k: { name: 'Серьёзный пивовар', desc: 'Общая выручка $50,000', icon: '💵' },
+    revenue_100k: { name: 'Пивной магнат', desc: 'Общая выручка $100,000', icon: '🏆' },
+    staff_3: { name: 'Дружная команда', desc: 'Наймите 3 сотрудников', icon: '👥' },
+    reputation_90: { name: 'Народная любовь', desc: 'Достигните 90% репутации', icon: '⭐' },
+};
+
 const CURRENCIES = {
     '$': { symbol: '$', locale: 'en-US', rate: 1 },
     '€': { symbol: '€', locale: 'de-DE', rate: 0.92 },

@@ -52,9 +52,13 @@ def tick(game_id: int = None, days: int = 1, current_user: User = Depends(get_cu
     game = resolve_game(game_id, current_user, db)
 
     all_events = []
+    game_over = False
     for _ in range(days):
-        events = process_tick(game, db)
-        all_events.extend(events)
+        result = process_tick(game, db)
+        all_events.extend(result["events"])
+        if result["game_over"]:
+            game_over = True
+            break
 
     return TickResult(
         day=game.day,
@@ -63,7 +67,23 @@ def tick(game_id: int = None, days: int = 1, current_user: User = Depends(get_cu
         batches_updated=0,
         contracts_fulfilled=0,
         costs_deducted=0,
+        game_over=game_over,
     )
+
+
+@router.post("/restart-after-game-over")
+def restart_after_game_over(game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
+    if not game.game_over:
+        raise HTTPException(400, "Игра ещё не окончена")
+
+    game.money = game.game_over_capital if game.game_over_capital > 0 else 500
+    game.game_over = False
+    game.days_bankrupt = 0
+    game.bank_loan = 0
+    game.day = 1
+    db.commit()
+    return {"message": f"Новый старт с капиталом ${game.money:.0f}", "money": game.money}
 
 
 @router.get("/saves")

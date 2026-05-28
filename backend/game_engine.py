@@ -8,7 +8,8 @@ from backend.models import (
 )
 from backend.config import (
     Rent, Taproom, Marketing, StaffSkill, Loan, Reputation,
-    StartingBalance, Salaries, DAYS_PER_MONTH
+    StartingBalance, Salaries, DAYS_PER_MONTH,
+    BANKRUPTCY_THRESHOLD, BANKRUPTCY_DAYS
 )
 
 
@@ -190,8 +191,56 @@ def init_new_game(db: Session) -> GameState:
     return game
 
 
-def process_tick(game: GameState, db: Session) -> list:
+ACHIEVEMENT_DEFS = [
+    {"id": "first_batch", "name": "Первая партия", "desc": "Сварите первую партию пива", "icon": "🍺"},
+    {"id": "first_staff", "name": "Кадровое пополнение", "desc": "Наймите первого сотрудника", "icon": "👤"},
+    {"id": "first_contract", "name": "Первая сделка", "desc": "Выполните первый контракт", "icon": "📋"},
+    {"id": "first_upgrade", "name": "Модернизация", "desc": "Купите первое улучшение пивоварни", "icon": "🔧"},
+    {"id": "revenue_10k", "name": "Первая выручка", "desc": "Достигните $10,000 общей выручки", "icon": "💰"},
+    {"id": "revenue_50k", "name": "Серьёзный пивовар", "desc": "Достигните $50,000 общей выручки", "icon": "💵"},
+    {"id": "revenue_100k", "name": "Пивной магнат", "desc": "Достигните $100,000 общей выручки", "icon": "🏆"},
+    {"id": "staff_3", "name": "Дружная команда", "desc": "Наймите 3 сотрудников", "icon": "👥"},
+    {"id": "reputation_90", "name": "Народная любовь", "desc": "Достигните 90% репутации", "icon": "⭐"},
+]
+
+def check_achievements(game: GameState, db: Session) -> list:
     events = []
+    unlocked = set(game.achievements or [])
+    brewery = db.query(Brewery).filter(Brewery.game_state_id == game.id).first()
+    staff_count = db.query(Staff).filter(Staff.game_state_id == game.id).count()
+    batch_count = db.query(BeerBatch).filter(
+        BeerBatch.game_state_id == game.id,
+        BeerBatch.stage.in_([BatchStage.packaged, BatchStage.sold])
+    ).count()
+
+    checks = {
+        "first_batch": batch_count >= 1,
+        "first_staff": staff_count >= 1,
+        "first_contract": game.total_revenue > 0,
+        "first_upgrade": brewery and (brewery.tank_count > 2 or brewery.fermenter_count > 4 or brewery.taproom_level > 0 or brewery.marketing_level > 1 or brewery.storage_capacity > 1000),
+        "revenue_10k": game.total_revenue >= 10000,
+        "revenue_50k": game.total_revenue >= 50000,
+        "revenue_100k": game.total_revenue >= 100000,
+        "staff_3": staff_count >= 3,
+        "reputation_90": game.reputation >= 90,
+    }
+
+    for ach in ACHIEVEMENT_DEFS:
+        if ach["id"] not in unlocked and checks.get(ach["id"]):
+            unlocked.add(ach["id"])
+            game.achievements = list(unlocked)
+            events.append(f"🎉 Достижение: {ach['icon']} {ach['name']} — {ach['desc']}")
+
+    return events
+
+
+def process_tick(game: GameState, db: Session) -> dict:
+    events = []
+    game_over = False
+
+    if game.game_over:
+        return {"events": events, "game_over": True}
+
     game.day += 1
 
     equipment_owned = db.query(Equipment).filter(
@@ -211,7 +260,7 @@ def process_tick(game: GameState, db: Session) -> list:
 
     brewery = db.query(Brewery).filter(Brewery.game_state_id == game.id).first()
     if not brewery:
-        return events
+        return {"events": events, "game_over": game_over}
 
     batches = db.query(BeerBatch).filter(
         BeerBatch.game_state_id == game.id,
@@ -362,6 +411,7 @@ def process_tick(game: GameState, db: Session) -> list:
         game.money -= interest
         game.total_expenses += interest
         game.daily_expenses += interest
+        events.append(f"Проценты по кредиту: ${interest:.0f} (1%/день)")
 
     reputation_change = random.uniform(-0.2, Reputation.CHANGE_PER_DAY)
     if game.reputation < 100:
@@ -385,8 +435,35 @@ def process_tick(game: GameState, db: Session) -> list:
         game.money = 0
         events.append(f"Взят кредит: ${game.bank_loan:.0f}")
 
+    # Ingredient spoilage -0.5% per day
+    ingredients = db.query(Ingredient).filter(Ingredient.game_state_id == game.id).all()
+    spoiled_total = 0
+    for ing in ingredients:
+        lost = ing.quantity * 0.005
+        if lost > 0:
+            ing.quantity -= lost
+            spoiled_total += lost
+    if spoiled_total > 0:
+        events.append(f"Списание ингредиентов: {spoiled_total:.1f}кг (0.5%/день)")
+
+    # Game over: money < BANKRUPTCY_THRESHOLD for BANKRUPTCY_DAYS consecutive days
+    if game.money < BANKRUPTCY_THRESHOLD:
+        game.days_bankrupt += 1
+        if game.days_bankrupt >= BANKRUPTCY_DAYS:
+            game.game_over = True
+            game.game_over_capital = max(500, game.money / 2)
+            game_over = True
+            events.append(f"💀 БАНКРОТСТВО! Долг превысил ${abs(BANKRUPTCY_THRESHOLD):.0f} более чем на месяц. Игра окончена.")
+    else:
+        if game.days_bankrupt > 0:
+            game.days_bankrupt = 0
+
+    # Check achievements
+    ach_events = check_achievements(game, db)
+    events.extend(ach_events)
+
     db.commit()
-    return events
+    return {"events": events, "game_over": game_over}
 
 
 def get_market_conditions(db: Session, day: int) -> list:

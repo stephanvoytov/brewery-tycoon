@@ -670,6 +670,28 @@ input:focus, select:focus {
     max-height: 600px;
 }
 
+.alert {
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+.alert-danger {
+    background: rgba(231, 76, 60, 0.15);
+    border: 1px solid var(--red);
+    color: var(--red);
+}
+.ach-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: rgba(212, 160, 23, 0.15);
+    border: 1px solid var(--accent);
+    color: var(--accent-light);
+    font-size: 0.8rem;
+    cursor: help;
+}
+
 @media (max-width: 768px) {
     .sidebar { width: 60px; }
     .sidebar-header h1, .sidebar-header span, .nav-btn span, .game-id-bar { display: none; }
