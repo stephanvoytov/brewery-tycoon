@@ -58,13 +58,17 @@
                         ID: <span id="gameIdDisplay">—</span>
                     </div>
                     <div id="userInfo" style="display:none;" class="user-info-bar">
-                        👤 <span id="usernameDisplay"></span>
-                        <button class="btn btn-small" onclick="showSaves()">💾</button>
-                        <button class="btn btn-small" onclick="doLogout()">✕</button>
+                        <div class="user-info-row">
+                            <span class="username">👤 <span id="usernameDisplay"></span></span>
+                            <button class="btn btn-small" onclick="showSaves()">💾 Сохранения</button>
+                            <button class="btn btn-small" onclick="doLogout()">✕ Выйти</button>
+                        </div>
                     </div>
                     <div id="guestInfo" class="user-info-bar">
-                        <span>👤 Гость</span>
-                        <button class="btn btn-small" onclick="showScreen('screen-auth'); updateSidebarUser();">Войти</button>
+                        <div class="user-info-row">
+                            <span class="username">👤 Гость</span>
+                            <button class="btn btn-small" onclick="showScreen('screen-auth'); updateSidebarUser();">🔑 Войти</button>
+                        </div>
                     </div>
                 </div>
                 <nav class="sidebar-nav">

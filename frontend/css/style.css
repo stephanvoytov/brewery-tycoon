@@ -464,25 +464,36 @@ input:focus, select:focus {
 
 /* User info in sidebar */
 .user-info-bar {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-top: 6px;
+}
+.user-info-row {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.78rem;
-    color: var(--text-dim);
-    margin-top: 4px;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+.user-info-row .username {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
 }
 .btn-small {
-    background: none;
+    background: var(--bg-hover);
     border: 1px solid var(--border);
-    color: var(--text-dim);
-    padding: 2px 8px;
-    border-radius: 4px;
+    color: var(--text);
+    padding: 6px 14px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 0.7rem;
+    font-size: 0.8rem;
+    transition: all 0.2s;
 }
 .btn-small:hover {
     border-color: var(--accent);
     color: var(--accent-light);
+    background: var(--bg-card);
 }
 
 /* Saves screen */

@@ -16,7 +16,7 @@ function renderRecipes() {
                         <th>Стиль</th>
                         <th>ABV</th>
                         <th>IBU</th>
-                        <th>Себест./л</th>
+                        <th>Себест./100л</th>
                         <th></th>
                     </tr>
                     ${recipes.map(r => `
@@ -25,7 +25,7 @@ function renderRecipes() {
                             <td>${STYLE_RU[r.style] || r.style}</td>
                             <td>${r.abv}%</td>
                             <td>${r.ibu}</td>
-                            <td>${formatMoney(r.cost_per_liter)}</td>
+                            <td>${formatMoney(r.cost_per_liter * 100)}</td>
                             <td><button class="btn btn-sm btn-primary" onclick="showBrewModal(${r.id})">Варить</button></td>
                         </tr>
                     `).join('')}
@@ -46,7 +46,10 @@ function renderRecipes() {
                             <td>${ing.name}</td>
                             <td>${ing.quantity.toFixed(1)} кг</td>
                             <td>${formatMoney(ing.unit_cost)}/кг</td>
-                            <td><button class="btn btn-sm btn-success" onclick="doBuyIngredient(${ing.id})">+10</button></td>
+                            <td>
+                                <input type="number" id="buyQty_${ing.id}" value="10" min="1" style="width:60px;padding:4px 6px;">
+                                <button class="btn btn-sm btn-success" onclick="doBuyIngredient(${ing.id})">Купить</button>
+                            </td>
                         </tr>
                     `).join('')}
                 </table>
@@ -120,7 +123,7 @@ function showBrewModal(recipeId) {
     const recipe = GAME_STATE.recipes.find(r => r.id === recipeId);
     if (recipe) {
         document.getElementById('brewInfo').textContent =
-            `Рецепт: ${recipe.name} | Стиль: ${STYLE_RU[recipe.style]} | Себестоимость: ${formatMoney(recipe.cost_per_liter)}/л | ` +
+            `Рецепт: ${recipe.name} | Стиль: ${STYLE_RU[recipe.style]} | Себестоимость: ${formatMoney(recipe.cost_per_liter * 100)}/100л | ` +
             `Варка: ${recipe.brew_time_days}д | Ферментация: ${recipe.ferment_time_days}д | Дозревание: ${recipe.condition_time_days}д`;
     }
     document.getElementById('brewConfirmBtn').onclick = async () => {
@@ -138,9 +141,12 @@ function showBrewModal(recipeId) {
 }
 
 async function doBuyIngredient(id) {
+    const qtyInput = document.getElementById(`buyQty_${id}`);
+    const qty = parseInt(qtyInput?.value) || 10;
+    if (qty < 1) { showError('Минимум 1 кг'); return; }
     try {
-        const res = await API.buyIngredient(id, 10);
-        showSuccess(res.message);
+        const res = await API.buyIngredient(id, qty);
+        showSuccess(`Куплено ${qty} кг за ${formatMoney(res.cost)}`);
         await loadGameState();
         renderRecipes();
     } catch (e) {

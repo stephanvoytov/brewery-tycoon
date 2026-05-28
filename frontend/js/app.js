@@ -113,12 +113,10 @@ async function enterGame() {
 }
 
 async function initGameFlow() {
-    // Try to load user from token
     const user = await API.loadUser();
     updateSidebarUser();
 
     if (user && user.active_game_id) {
-        // User has an active game - try to load it
         try {
             await API.loadGame(user.active_game_id);
             await enterGame();
@@ -129,25 +127,17 @@ async function initGameFlow() {
     }
 
     if (user) {
-        // Show saves screen
         try {
             const saves = await API.getSaves();
             renderSaves(saves);
             showScreen('screen-saves');
             APP_MODE = 'saves';
         } catch {
-            // Fallback to new game
             await startNewGame();
         }
     } else {
-        // Guest - create new game immediately
-        try {
-            await API.newGame();
-            showSuccess('Новая игра создана!');
-            await enterGame();
-        } catch (e) {
-            showError('Не удалось создать игру. Запущен ли сервер?');
-        }
+        showScreen('screen-auth');
+        APP_MODE = 'auth';
     }
 }
 

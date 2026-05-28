@@ -30,21 +30,28 @@ const ROLE_RU = {
 };
 
 const CURRENCIES = {
-    '$': { symbol: '$', locale: 'en-US' },
-    '€': { symbol: '€', locale: 'de-DE' },
-    '₽': { symbol: '₽', locale: 'ru-RU' },
-    '£': { symbol: '£', locale: 'en-GB' },
-    '¥': { symbol: '¥', locale: 'ja-JP' },
+    '$': { symbol: '$', locale: 'en-US', rate: 1 },
+    '€': { symbol: '€', locale: 'de-DE', rate: 0.92 },
+    '₽': { symbol: '₽', locale: 'ru-RU', rate: 90 },
+    '£': { symbol: '£', locale: 'en-GB', rate: 0.79 },
+    '¥': { symbol: '¥', locale: 'ja-JP', rate: 150 },
 };
 
 function getCurrency() {
     return (GAME_STATE && GAME_STATE.game && GAME_STATE.game.currency) || '$';
 }
 
+function convertMoney(n) {
+    const cur = getCurrency();
+    const info = CURRENCIES[cur] || CURRENCIES['$'];
+    return n * info.rate;
+}
+
 function formatMoney(n) {
     const cur = getCurrency();
     const info = CURRENCIES[cur] || CURRENCIES['$'];
-    return info.symbol + Number(n).toLocaleString(info.locale, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    const converted = n * info.rate;
+    return info.symbol + Number(converted).toLocaleString(info.locale, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
 function formatMonthly(dailyAmount) {
