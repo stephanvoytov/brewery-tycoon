@@ -8,6 +8,14 @@ from backend.routers import game, brewery, recipes, batches, inventory, staff, m
 
 Base.metadata.create_all(bind=engine)
 
+from sqlalchemy import inspect, text
+insp = inspect(engine)
+cols = [c["name"] for c in insp.get_columns("game_states")]
+if "user_id" not in cols:
+    with engine.connect() as conn:
+        conn.execute(text("ALTER TABLE game_states ADD COLUMN user_id INTEGER REFERENCES users(id)"))
+        conn.commit()
+
 app = FastAPI(title="Пивоваренный Тайкун", description="Brewery Tycoon Game API")
 
 app.add_middleware(
