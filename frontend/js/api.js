@@ -228,5 +228,17 @@ const API = {
         const res = await fetch(`${API_BASE}/api/leaderboard?metric=${metric}&limit=${limit}`);
         if (!res.ok) return { entries: [] };
         return res.json();
-    }
+    },
+
+    async buyInsurance() {
+        return this.request('POST', '/api/brewery/buy-insurance');
+    },
+
+    async repairEquipment(equipmentId) {
+        return this.request('POST', `/api/brewery/equipment/${equipmentId}/repair`);
+    },
+
+    async resolveEvent(eventId, choice) {
+        return this.request('POST', `/api/game/events/${eventId}/resolve`, { choice });
+    },
 };

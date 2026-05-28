@@ -4,12 +4,13 @@ from sqlalchemy.orm import Session
 from backend.models import (
     GameState, Brewery, BeerRecipe, BeerBatch, BatchStage,
     Ingredient, IngredientType, Equipment, Staff, Contract,
-    Research, BeerStyle, StaffRole, EquipmentType, ResearchCategory
+    Research, BeerStyle, StaffRole, EquipmentType, ResearchCategory,
+    Competitor, COMPETITOR_NAMES, ActiveEvent
 )
 from backend.config import (
     Rent, Taproom, Marketing, StaffSkill, Loan, Reputation,
-    StartingBalance, Salaries, DAYS_PER_MONTH,
-    BANKRUPTCY_THRESHOLD, BANKRUPTCY_DAYS
+    StartingBalance, Salaries, DAYS_PER_MONTH, EquipmentWear,
+    BANKRUPTCY_THRESHOLD, BANKRUPTCY_DAYS, EVENT_CHANCE_PER_TICK
 )
 
 
@@ -187,8 +188,29 @@ def init_new_game(db: Session) -> GameState:
         db.add(research)
 
     db.commit()
+
+    init_competitors(game, db)
+
     db.refresh(game)
     return game
+
+
+def init_competitors(game: GameState, db: Session):
+    existing = db.query(Competitor).filter(Competitor.game_state_id == game.id).count()
+    if existing > 0:
+        return
+    count = random.randint(3, 5)
+    names = random.sample(COMPETITOR_NAMES, min(count, len(COMPETITOR_NAMES)))
+    for name in names:
+        comp = Competitor(
+            game_state_id=game.id,
+            name=name,
+            daily_sales_liters=random.uniform(80, 250),
+            total_sales_liters=0.0,
+            reputation=random.uniform(40, 80),
+        )
+        db.add(comp)
+    db.commit()
 
 
 ACHIEVEMENT_DEFS = [
@@ -246,6 +268,212 @@ def check_achievements(game: GameState, db: Session) -> list:
     return events
 
 
+EVENT_DEFS = [
+    {
+        "event_type": "boiler_breakdown",
+        "title": "Поломка котла",
+        "description": "Варочный котёл вышел из строя!",
+        "is_choice_event": True,
+        "choice_a": {"label": "Заплатить $500 за срочный ремонт", "effect": {"money": -500, "reputation": 0}},
+        "choice_b": {"label": "Подождать 3 дня (простой производства)", "effect": {"downtime_days": 3, "reputation": 0}},
+    },
+    {
+        "event_type": "festival",
+        "title": "Пивной фестиваль!",
+        "description": "В городе проходит пивной фестиваль! Спрос вырос, репутация +5",
+        "duration_days": 2,
+        "effect_data": {"demand_multiplier": 2.0, "reputation_bonus": 5},
+    },
+    {
+        "event_type": "heatwave",
+        "title": "Аномальная жара",
+        "description": "Жара +35°C! Спрос на пшеничное пиво вырос на 50%",
+        "duration_days": 3,
+        "effect_data": {"style_demand_bonus": {"wheat": 1.5}},
+    },
+    {
+        "event_type": "hops_price_surge",
+        "title": "Скачок цен на хмель",
+        "description": "Неурожай хмеля! Цены на хмель выросли на 30% на 7 дней",
+        "duration_days": 7,
+        "effect_data": {"hops_cost_multiplier": 1.3},
+    },
+    {
+        "event_type": "tax_audit",
+        "title": "Налоговая проверка",
+        "description": "Внеплановая налоговая проверка. Штраф $300",
+        "is_choice_event": False,
+        "effect_instant": {"money": -300},
+    },
+    {
+        "event_type": "chain_store",
+        "title": "Предложение от сети",
+        "description": "Сетевой магазин 'Продукты+' просит пиво пониженной крепости",
+        "is_choice_event": True,
+        "choice_a": {"label": "Согласиться: получить $2000", "effect": {"money": 2000, "reputation": 0}},
+        "choice_b": {"label": "Отказаться: репутация +5", "effect": {"money": 0, "reputation": 5}},
+    },
+    {
+        "event_type": "local_press",
+        "title": "Статья в газете",
+        "description": "Местная газета хочет написать о вашей пивоварне",
+        "is_choice_event": True,
+        "choice_a": {"label": "Заплатить $500 за рекламную статью (+10 репутации)", "effect": {"money": -500, "reputation": 10}},
+        "choice_b": {"label": "Отказаться", "effect": {"money": 0, "reputation": 0}},
+    },
+    {
+        "event_type": "pest_infestation",
+        "title": "Вредители на складе",
+        "description": "На складе ингредиентов завелись вредители!",
+        "is_choice_event": True,
+        "choice_a": {"label": "Вызвать дезинсекцию ($300)", "effect": {"money": -300, "reputation": 0}},
+        "choice_b": {"label": "Рискнуть — потерять 5 кг ингредиентов", "effect": {"lose_ingredients": 5, "reputation": 0}},
+    },
+]
+
+
+def try_generate_random_event(game: GameState, db: Session) -> list:
+    events = []
+    active_count = db.query(ActiveEvent).filter(
+        ActiveEvent.game_state_id == game.id,
+        ActiveEvent.resolved == False
+    ).count()
+    if active_count > 2:
+        return events
+
+    event_def = random.choice(EVENT_DEFS)
+    existing = db.query(ActiveEvent).filter(
+        ActiveEvent.game_state_id == game.id,
+        ActiveEvent.event_type == event_def["event_type"],
+        ActiveEvent.resolved == False
+    ).first()
+    if existing:
+        return events
+
+    active = ActiveEvent(
+        game_state_id=game.id,
+        event_type=event_def["event_type"],
+        title=event_def["title"],
+        description=event_def["description"],
+        duration_days=event_def.get("duration_days", 0),
+        days_left=event_def.get("duration_days", 0),
+        is_choice_event=event_def.get("is_choice_event", False),
+        effect_data=event_def.get("effect_data", {}),
+    )
+    db.add(active)
+    db.flush()
+
+    if "effect_instant" in event_def:
+        eff = event_def["effect_instant"]
+        if "money" in eff:
+            game.money += eff["money"]
+        events.append(f"📰 {event_def['title']}: {event_def['description']}")
+
+    if not event_def.get("is_choice_event") and "effect_instant" not in event_def:
+        events.append(f"📰 {event_def['title']}: {event_def['description']}")
+
+    if event_def.get("is_choice_event"):
+        events.append(f"⚖️ {event_def['title']}: {event_def['description']}")
+
+    db.flush()
+    return events
+
+
+def process_active_events(game: GameState, db: Session) -> list:
+    events = []
+    active_events = db.query(ActiveEvent).filter(
+        ActiveEvent.game_state_id == game.id,
+        ActiveEvent.resolved == False
+    ).all()
+
+    for ae in active_events:
+        if ae.duration_days > 0:
+            ae.days_left -= 1
+            if ae.days_left <= 0:
+                ae.resolved = True
+                eff = ae.effect_data or {}
+                if "reputation_bonus" in eff:
+                    game.reputation = min(100, max(0, game.reputation + eff["reputation_bonus"]))
+                events.append(f"✅ Событие '{ae.title}' завершилось")
+
+    db.flush()
+    return events
+
+
+def get_active_events(game: GameState, db: Session) -> list:
+    events = db.query(ActiveEvent).filter(
+        ActiveEvent.game_state_id == game.id,
+        ActiveEvent.resolved == False
+    ).all()
+    result = []
+    for ae in events:
+        d = {
+            "id": ae.id,
+            "event_type": ae.event_type,
+            "title": ae.title,
+            "description": ae.description,
+            "duration_days": ae.duration_days,
+            "days_left": ae.days_left,
+            "is_choice_event": ae.is_choice_event,
+            "choice_made": ae.choice_made,
+            "resolved": ae.resolved,
+            "choices": [],
+        }
+        if ae.is_choice_event and not ae.choice_made:
+            event_def = next((e for e in EVENT_DEFS if e["event_type"] == ae.event_type), None)
+            if event_def:
+                d["choices"] = [
+                    {"key": "a", "label": event_def.get("choice_a", {}).get("label", "Вариант А")},
+                    {"key": "b", "label": event_def.get("choice_b", {}).get("label", "Вариант Б")},
+                ]
+        result.append(d)
+    return result
+
+
+def resolve_choice_event(event_id: int, choice: str, game: GameState, db: Session) -> dict:
+    ae = db.query(ActiveEvent).filter(
+        ActiveEvent.id == event_id,
+        ActiveEvent.game_state_id == game.id
+    ).first()
+    if not ae:
+        raise ValueError("Событие не найдено")
+    if ae.choice_made:
+        raise ValueError("Выбор уже сделан")
+
+    event_def = next((e for e in EVENT_DEFS if e["event_type"] == ae.event_type), None)
+    if not event_def or not event_def.get("is_choice_event"):
+        raise ValueError("Это событие не требует выбора")
+
+    key = "choice_a" if choice == "a" else "choice_b"
+    choice_data = event_def.get(key)
+    if not choice_data:
+        raise ValueError("Неверный выбор")
+
+    eff = choice_data["effect"]
+    result_parts = []
+    if "money" in eff and eff["money"] != 0:
+        game.money += eff["money"]
+        result_parts.append(f"{'+' if eff['money'] > 0 else ''}${eff['money']}")
+    if "reputation" in eff and eff["reputation"] != 0:
+        game.reputation = min(100, max(0, game.reputation + eff["reputation"]))
+        result_parts.append(f"{'+' if eff['reputation'] > 0 else ''}реп {eff['reputation']}")
+    if "lose_ingredients" in eff:
+        ingredients = db.query(Ingredient).filter(Ingredient.game_state_id == game.id, Ingredient.type != IngredientType.adjunct).all()
+        for ing in ingredients:
+            loss = min(ing.quantity, eff["lose_ingredients"])
+            ing.quantity -= loss
+            break
+        result_parts.append(f"-{eff['lose_ingredients']} кг ингредиентов")
+
+    ae.choice_made = True
+    ae.resolved = True
+    db.commit()
+
+    return {
+        "message": f"{ae.title}: {choice_data['label']}. {' '.join(result_parts)}",
+    }
+
+
 def process_tick(game: GameState, db: Session) -> dict:
     events = []
     game_over = False
@@ -260,7 +488,7 @@ def process_tick(game: GameState, db: Session) -> dict:
         Equipment.is_owned == True
     ).all()
 
-    total_efficiency = 1.0 + sum(eq.efficiency_bonus for eq in equipment_owned)
+    total_efficiency = 1.0 + sum(eq.efficiency_bonus for eq in equipment_owned if eq.wear_tear >= EquipmentWear.BROKEN_THRESHOLD)
 
     all_staff = db.query(Staff).filter(Staff.game_state_id == game.id).all()
     brewer_skill = sum(s.skill_level for s in all_staff if s.role == StaffRole.brewer)
@@ -351,8 +579,10 @@ def process_tick(game: GameState, db: Session) -> dict:
                 contract.total_revenue += revenue
                 contract.delivered_liters += deliver_amount
                 batch.batch_size_liters -= deliver_amount
+                game.player_total_liters = (game.player_total_liters or 0) + deliver_amount
                 if batch.batch_size_liters <= 0:
                     batch.stage = BatchStage.sold
+                    game.reputation = min(100, max(0, game.reputation + (batch.quality - 50) * 0.2))
                 events.append(f"Продажа {deliver_amount:.0f}л по контракту с {contract.buyer_name} (+${revenue:.0f})")
 
         if contract.days_left == 3 and contract.delivered_liters < contract.quantity_liters:
@@ -364,11 +594,24 @@ def process_tick(game: GameState, db: Session) -> dict:
             game.total_expenses += penalty_amount
             game.daily_expenses += penalty_amount
             contract.is_active = False
-            events.append(f"Контракт с {contract.buyer_name} просрочен! Штраф ${penalty_amount:.0f}")
+            game.reputation = min(100, max(0, game.reputation - 5))
+            events.append(f"Контракт с {contract.buyer_name} просрочен! Штраф ${penalty_amount:.0f}, репутация -5")
 
         if contract.delivered_liters >= contract.quantity_liters:
             contract.is_active = False
-            events.append(f"Контракт с {contract.buyer_name} выполнен!")
+            game.reputation = min(100, max(0, game.reputation + 1))
+            events.append(f"Контракт с {contract.buyer_name} выполнен! Репутация +1")
+
+    # Competitors processing
+    competitors = db.query(Competitor).filter(Competitor.game_state_id == game.id).all()
+    if competitors:
+        total_market_liters = game.player_total_liters or 0
+        for comp in competitors:
+            daily = random.uniform(50, 300) * (comp.reputation / 100)
+            comp.daily_sales_liters = daily
+            comp.total_sales_liters += daily
+            comp.reputation = max(0, min(100, comp.reputation + random.uniform(-0.1, 0.2)))
+            total_market_liters += comp.total_sales_liters
 
     total_salary = 0
     for s in all_staff:
@@ -428,9 +671,18 @@ def process_tick(game: GameState, db: Session) -> dict:
         game.daily_expenses += interest
         events.append(f"Проценты по кредиту: ${interest:.0f} (1%/день)")
 
-    reputation_change = random.uniform(-0.2, Reputation.CHANGE_PER_DAY)
-    if game.reputation < 100:
-        game.reputation = min(100, max(0, game.reputation + reputation_change))
+    # Equipment wear & tear
+    for eq in equipment_owned:
+        was_broken = eq.wear_tear < EquipmentWear.BROKEN_THRESHOLD
+        eq.wear_tear = max(0, eq.wear_tear - EquipmentWear.PER_DAY)
+        if not was_broken and eq.wear_tear < EquipmentWear.BROKEN_THRESHOLD:
+            if game.has_insurance:
+                eq.wear_tear = 100.0
+                game.has_insurance = False
+                events.append(f"🔧 {eq.name} сломался, страховка покрыла ремонт! Износ восстановлен.")
+            else:
+                repair_cost = int(eq.price * EquipmentWear.REPAIR_COST_RATIO)
+                events.append(f"⚙️ {eq.name} износился до {eq.wear_tear:.0f}%! Ремонт ${repair_cost}")
 
     revenue_history = game.revenue_history or []
     expense_history = game.expense_history or []
@@ -472,6 +724,15 @@ def process_tick(game: GameState, db: Session) -> dict:
     else:
         if game.days_bankrupt > 0:
             game.days_bankrupt = 0
+
+    # Random events
+    if not game.game_over and random.random() < EVENT_CHANCE_PER_TICK:
+        event_events = try_generate_random_event(game, db)
+        events.extend(event_events)
+
+    if not game.game_over:
+        processed = process_active_events(game, db)
+        events.extend(processed)
 
     # Check achievements
     ach_events = check_achievements(game, db)

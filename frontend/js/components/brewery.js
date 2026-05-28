@@ -224,9 +224,15 @@ function renderBrewery() {
             <div class="card">
                 <h3>🔧 Оборудование</h3>
                 <h4 style="color:var(--green);font-size:0.85rem;margin-bottom:8px">Приобретено:</h4>
-                ${ownedEquip.length === 0 ? '<div class="empty-state">Нет оборудования</div>' : ownedEquip.map(e =>
-                    `<div style="padding:4px 0">✅ ${e.name} (бонус: +${Math.round(e.efficiency_bonus * 100)}%)</div>`
-                ).join('')}
+                ${ownedEquip.length === 0 ? '<div class="empty-state">Нет оборудования</div>' : ownedEquip.map(e => {
+                    const wearColor = e.wear_tear > 80 ? 'var(--green)' : e.wear_tear > 40 ? 'var(--accent)' : 'var(--red)';
+                    const broken = e.wear_tear < 20;
+                    const repairCost = Math.round(e.price * 0.3);
+                    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)">
+                        <span>${broken ? '❌' : '✅'} ${e.name} <span style="color:${wearColor};font-size:0.75rem">(износ: ${Math.round(e.wear_tear)}%)</span></span>
+                        <span>${broken ? `<button class="btn btn-sm btn-danger" onclick="doRepairEquipment(${e.id})">Ремонт $${repairCost}</button>` : `<span style="color:var(--text-dim);font-size:0.75rem">+${Math.round(e.efficiency_bonus * 100)}%</span>`}</span>
+                    </div>`;
+                }).join('')}
 
                 <h4 style="color:var(--accent);font-size:0.85rem;margin:10px 0 8px">Доступно к покупке:</h4>
                 ${availableEquip.length === 0 ? '<div class="empty-state">Всё куплено</div>' : availableEquip.map(e =>
@@ -235,6 +241,12 @@ function renderBrewery() {
                         <span>${formatMoney(e.price)} <button class="btn btn-sm btn-success" onclick="doBuyEquipment(${e.id})">Купить</button></span>
                     </div>`
                 ).join('')}
+
+                <h4 style="color:var(--accent);font-size:0.85rem;margin:10px 0 8px">Страховка</h4>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <span>${GAME_STATE.game.has_insurance ? '✅ Страховка активна (покрывает поломку)' : '❌ Страховка не куплена'}</span>
+                    ${!GAME_STATE.game.has_insurance ? `<button class="btn btn-sm btn-primary" onclick="doBuyInsurance()">Купить $500</button>` : ''}
+                </div>
             </div>
         </div>
     `;
@@ -268,6 +280,28 @@ async function doUpgrade(type) {
 async function doBuyEquipment(id) {
     try {
         const res = await API.buyEquipment(id);
+        showSuccess(res.message);
+        await loadGameState();
+        renderBrewery();
+    } catch (e) {
+        showError(e.message);
+    }
+}
+
+async function doBuyInsurance() {
+    try {
+        const res = await API.buyInsurance();
+        showSuccess(res.message);
+        await loadGameState();
+        renderBrewery();
+    } catch (e) {
+        showError(e.message);
+    }
+}
+
+async function doRepairEquipment(id) {
+    try {
+        const res = await API.repairEquipment(id);
         showSuccess(res.message);
         await loadGameState();
         renderBrewery();

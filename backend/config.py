@@ -76,3 +76,13 @@ class EquipmentPrices:
     MASH_TUN = 1800
     COOLING_SYSTEM = 3000
     CONDITIONING_TANK = 2500
+
+
+class EquipmentWear:
+    PER_DAY = 0.1
+    BROKEN_THRESHOLD = 20
+    REPAIR_COST_RATIO = 0.3
+    INSURANCE_COST = 500
+
+
+EVENT_CHANCE_PER_TICK = 0.10

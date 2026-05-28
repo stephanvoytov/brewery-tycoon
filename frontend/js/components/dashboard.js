@@ -56,6 +56,19 @@ function renderDashboard() {
             <div style="display:flex;flex-wrap:wrap;gap:6px">${achList}</div>
         </div>
 
+        <div class="card">
+            <h3>🏭 Доля рынка</h3>
+            <div class="stat-value" style="font-size:1.4rem;margin-bottom:6px">${GAME_STATE.market_share || 0}%</div>
+            <div class="chart-bar"><div class="chart-bar-fill" style="width:${Math.min(100, GAME_STATE.market_share || 0)}%"></div></div>
+            <table style="margin-top:10px">
+                <tr><th>Пивоварня</th><th>Продажи/день</th><th>Репутация</th></tr>
+                <tr><td>🏠 Вы</td><td>${Math.round((s.player_total_liters || 0) / Math.max(1, s.day))}л</td><td>${Math.round(s.reputation)}%</td></tr>
+                ${(GAME_STATE.competitors || []).map(c => `
+                    <tr><td>${c.name}</td><td>${Math.round(c.daily_sales_liters)}л</td><td>${Math.round(c.reputation)}%</td></tr>
+                `).join('')}
+            </table>
+        </div>
+
         <div class="grid-2">
             <div class="card">
                 <h3>⏳ Активные партии (${activeBatches.length})</h3>
@@ -92,9 +105,31 @@ function renderDashboard() {
         </div>
 
         <div class="card">
+            <h3>📌 Активные события (${(GAME_STATE.active_events || []).filter(e => e.is_choice_event && !e.choice_made).length + '/' + (GAME_STATE.active_events || []).length})</h3>
+            ${(!GAME_STATE.active_events || GAME_STATE.active_events.length === 0) ? '<div class="empty-state">Нет активных событий</div>' : GAME_STATE.active_events.filter(e => !e.resolved).map(e => `
+                <div class="event-item event-${e.event_type}" style="padding:8px;margin-bottom:6px;background:rgba(255,255,255,0.03);border-radius:6px;border-left:3px solid ${e.is_choice_event && !e.choice_made ? 'var(--accent)' : 'var(--text-dim)'}">
+                    <strong>${e.title}</strong>
+                    <div style="font-size:0.8rem;color:var(--text-dim)">${e.description}</div>
+                    ${e.duration_days > 0 ? `<div style="font-size:0.75rem;color:var(--text-dim)">Осталось: ${e.days_left} дн.</div>` : ''}
+                    ${e.is_choice_event && !e.choice_made ? `<button class="btn btn-sm btn-primary" style="margin-top:4px" onclick="showEventChoice(${e.id})">⚖️ Сделать выбор</button>` : ''}
+                </div>
+            `).join('')}
+        </div>
+
+        <div class="card">
             <h3>📰 События</h3>
             <div class="events-panel" id="eventsList">
                 <p class="empty-state">Нажмите "Новый день"</p>
+            </div>
+        </div>
+
+        <div id="eventChoiceModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:10000;align-items:center;justify-content:center">
+            <div style="background:var(--bg-card);border:2px solid var(--accent);border-radius:16px;padding:32px;max-width:500px;text-align:center">
+                <div style="font-size:48px;margin-bottom:12px">⚖️</div>
+                <h2 id="choiceTitle" style="color:var(--accent);margin-bottom:8px"></h2>
+                <p id="choiceDesc" style="margin-bottom:20px;color:var(--text-dim);line-height:1.6"></p>
+                <div id="choiceButtons" style="display:flex;flex-direction:column;gap:10px"></div>
+                <button class="btn btn-secondary" style="margin-top:12px" onclick="closeEventChoice()">Закрыть</button>
             </div>
         </div>
 
@@ -168,6 +203,36 @@ async function restartAfterGameOver() {
         await loadGameState();
         document.getElementById('gameOverModal').style.display = 'none';
         showSuccess(`Новый старт с ${formatMoney(res.money)}`);
+    } catch (e) {
+        showError(e.message);
+    }
+}
+
+function showEventChoice(eventId) {
+    const event = (GAME_STATE.active_events || []).find(e => e.id === eventId);
+    if (!event) return;
+
+    document.getElementById('choiceTitle').textContent = event.title;
+    document.getElementById('choiceDesc').textContent = event.description;
+
+    const container = document.getElementById('choiceButtons');
+    container.innerHTML = (event.choices || []).map(c =>
+        `<button class="btn btn-primary" onclick="resolveEventChoice(${eventId}, '${c.key}')" style="padding:12px">${c.label}</button>`
+    ).join('');
+
+    document.getElementById('eventChoiceModal').style.display = 'flex';
+}
+
+function closeEventChoice() {
+    document.getElementById('eventChoiceModal').style.display = 'none';
+}
+
+async function resolveEventChoice(eventId, choice) {
+    try {
+        const res = await API.resolveEvent(eventId, choice);
+        showSuccess(res.message);
+        closeEventChoice();
+        await loadGameState();
     } catch (e) {
         showError(e.message);
     }

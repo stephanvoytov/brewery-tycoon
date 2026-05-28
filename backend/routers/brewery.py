@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.database import get_db
-from backend.models import GameState, Brewery, User
+from backend.models import GameState, Brewery, Equipment, User
 from backend.schemas import BrewerySchema, UpgradeBreweryRequest, RenameBreweryRequest
-from backend.config import UpgradeCosts
+from backend.config import UpgradeCosts, EquipmentWear
 from backend.dependencies import get_current_user, resolve_game
 
 ACHIEVEMENT_UPGRADE_DISCOUNT = 0.1
@@ -117,3 +117,38 @@ def rename_brewery(req: RenameBreweryRequest, game_id: int = None, current_user:
     brewery.name = req.name.strip()
     db.commit()
     return {"message": f"Пивоварня переименована в «{brewery.name}»", "name": brewery.name}
+
+
+@router.post("/buy-insurance")
+def buy_insurance(game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
+    if game.has_insurance:
+        raise HTTPException(400, "Страховка уже активна")
+    cost = EquipmentWear.INSURANCE_COST
+    if game.money < cost:
+        raise HTTPException(400, f"Недостаточно средств. Нужно ${cost}")
+    game.money -= cost
+    game.has_insurance = True
+    db.commit()
+    return {"message": f"Страховка куплена за ${cost}", "has_insurance": True}
+
+
+@router.post("/equipment/{equipment_id}/repair")
+def repair_equipment(equipment_id: int, game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
+    eq = db.query(Equipment).filter(
+        Equipment.id == equipment_id,
+        Equipment.game_state_id == game.id,
+        Equipment.is_owned == True
+    ).first()
+    if not eq:
+        raise HTTPException(404, "Оборудование не найдено")
+    if eq.wear_tear >= EquipmentWear.BROKEN_THRESHOLD:
+        raise HTTPException(400, "Оборудование ещё не сломалось")
+    repair_cost = int(eq.price * EquipmentWear.REPAIR_COST_RATIO)
+    if game.money < repair_cost:
+        raise HTTPException(400, f"Недостаточно средств. Ремонт стоит ${repair_cost}")
+    game.money -= repair_cost
+    eq.wear_tear = 100.0
+    db.commit()
+    return {"message": f"{eq.name} отремонтирован за ${repair_cost}", "wear_tear": eq.wear_tear}

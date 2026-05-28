@@ -105,6 +105,8 @@ class GameState(Base):
     achievements = Column(JSON, default=list)
     revenue_history = Column(JSON, default=list)
     expense_history = Column(JSON, default=list)
+    has_insurance = Column(Boolean, default=False)
+    player_total_liters = Column(Float, default=0.0)
 
 
 class Brewery(Base):
@@ -197,6 +199,7 @@ class Equipment(Base):
     efficiency_bonus = Column(Float, default=0.0)
     is_owned = Column(Boolean, default=False)
     is_busy = Column(Boolean, default=False)
+    wear_tear = Column(Float, default=100.0)
 
     game_state = relationship("GameState", back_populates="equipment_list")
 
@@ -233,6 +236,43 @@ class Contract(Base):
     delivered_liters = Column(Float, default=0.0)
 
     game_state = relationship("GameState", back_populates="contracts")
+
+
+class ActiveEvent(Base):
+    __tablename__ = "active_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    game_state_id = Column(Integer, ForeignKey("game_states.id"))
+    event_type = Column(String, index=True)
+    title = Column(String)
+    description = Column(String)
+    duration_days = Column(Integer, default=0)
+    days_left = Column(Integer, default=0)
+    is_choice_event = Column(Boolean, default=False)
+    choice_made = Column(Boolean, default=False)
+    effect_data = Column(JSON, default=dict)
+    resolved = Column(Boolean, default=False)
+
+    game_state = relationship("GameState", backref="active_events")
+
+
+class Competitor(Base):
+    __tablename__ = "competitors"
+
+    id = Column(Integer, primary_key=True, index=True)
+    game_state_id = Column(Integer, ForeignKey("game_states.id"))
+    name = Column(String)
+    daily_sales_liters = Column(Float, default=150.0)
+    total_sales_liters = Column(Float, default=0.0)
+    reputation = Column(Float, default=60.0)
+
+    game_state = relationship("GameState", backref="competitors")
+
+
+COMPETITOR_NAMES = [
+    "Балтика Крафт", "Московский Пивовар", "Томское Пиво",
+    "Волковская Пивоварня", "Донское Золото"
+]
 
 
 class Research(Base):

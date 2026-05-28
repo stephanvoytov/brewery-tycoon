@@ -76,6 +76,7 @@ def sell_batch(batch_id: int, game_id: int = None, current_user: User = Depends(
     game.total_revenue += revenue
     game.daily_revenue += revenue
     game.reputation = min(100, game.reputation + (batch.quality - 50) * 0.1)
+    game.player_total_liters = (game.player_total_liters or 0) + batch.batch_size_liters
 
     batch.stage = BatchStage.sold
 

@@ -21,6 +21,8 @@ class GameStateSchema(BaseModel):
     revenue_history: list = []
     expense_history: list = []
     currency: str = "$"
+    has_insurance: bool = False
+    player_total_liters: float = 0.0
 
     class Config:
         from_attributes = True
@@ -121,6 +123,7 @@ class EquipmentSchema(BaseModel):
     efficiency_bonus: float
     is_owned: bool
     is_busy: bool
+    wear_tear: float = 100.0
 
     class Config:
         from_attributes = True
@@ -151,6 +154,38 @@ class ContractSchema(BaseModel):
     is_active: bool
     total_revenue: float
     delivered_liters: float
+
+    class Config:
+        from_attributes = True
+
+
+class ActiveEventSchema(BaseModel):
+    id: int
+    event_type: str
+    title: str
+    description: str
+    duration_days: int = 0
+    days_left: int = 0
+    is_choice_event: bool = False
+    choice_made: bool = False
+    resolved: bool = False
+    choices: list = []
+
+    class Config:
+        from_attributes = True
+
+
+class ResolveEventRequest(BaseModel):
+    choice: str
+
+
+class CompetitorSchema(BaseModel):
+    id: int
+    name: str
+    daily_sales_liters: float
+    total_sales_liters: float
+    reputation: float
+    market_share: float = 0.0
 
     class Config:
         from_attributes = True
@@ -193,6 +228,9 @@ class FullGameState(BaseModel):
     contracts: List[ContractSchema]
     market: List[MarketConditionSchema]
     research: List[ResearchSchema]
+    competitors: List[CompetitorSchema] = []
+    market_share: float = 0.0
+    active_events: List[ActiveEventSchema] = []
 
 
 class TickResult(BaseModel):

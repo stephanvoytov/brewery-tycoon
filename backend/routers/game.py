@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.database import get_db
-from backend.models import GameState, Brewery, BeerRecipe, BeerBatch, Ingredient, Equipment, Staff, Contract, Research, User
-from backend.schemas import FullGameState, GameStateSchema, TickResult, CurrencyRequest, SelectGameRequest
-from backend.game_engine import init_new_game, process_tick, get_market_conditions
+from backend.models import GameState, Brewery, BeerRecipe, BeerBatch, Ingredient, Equipment, Staff, Contract, Research, Competitor, ActiveEvent, User
+from backend.schemas import FullGameState, GameStateSchema, TickResult, CurrencyRequest, SelectGameRequest, ResolveEventRequest
+from backend.game_engine import init_new_game, process_tick, get_market_conditions, get_active_events, resolve_choice_event
 from backend.dependencies import get_current_user, resolve_game
 
 router = APIRouter(prefix="/api/game", tags=["game"])
@@ -32,6 +32,13 @@ def get_state(game_id: int = None, current_user: User = Depends(get_current_user
     contracts = db.query(Contract).filter(Contract.game_state_id == game.id).all()
     research = db.query(Research).filter(Research.game_state_id == game.id).all()
     market = get_market_conditions(db, game.day)
+    competitors = db.query(Competitor).filter(Competitor.game_state_id == game.id).all()
+    total_market = game.player_total_liters or 0
+    for comp in competitors:
+        total_market += comp.total_sales_liters
+    market_share = round((game.player_total_liters or 0) / total_market * 100, 1) if total_market > 0 else 0
+
+    active_events = get_active_events(game, db)
 
     return FullGameState(
         game=GameStateSchema.model_validate(game),
@@ -44,6 +51,9 @@ def get_state(game_id: int = None, current_user: User = Depends(get_current_user
         contracts=contracts,
         market=market,
         research=research,
+        competitors=competitors,
+        market_share=market_share,
+        active_events=active_events,
     )
 
 
@@ -115,3 +125,20 @@ def set_currency(game_id: int = None, req: CurrencyRequest = None, current_user:
     game.currency = req.currency
     db.commit()
     return {"currency": game.currency, "message": f"Валюта изменена на {game.currency}"}
+
+
+@router.get("/events")
+def list_events(game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
+    active_events = get_active_events(game, db)
+    return active_events
+
+
+@router.post("/events/{event_id}/resolve")
+def resolve_event(event_id: int, req: ResolveEventRequest, game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
+    try:
+        result = resolve_choice_event(event_id, req.choice, game, db)
+        return result
+    except ValueError as e:
+        raise HTTPException(400, str(e))
