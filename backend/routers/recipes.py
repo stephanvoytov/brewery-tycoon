@@ -1,24 +1,24 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.database import get_db
-from backend.models import GameState, BeerRecipe, BeerBatch, BatchStage, Brewery, Ingredient, IngredientType
+from backend.models import GameState, BeerRecipe, BeerBatch, BatchStage, Brewery, Ingredient, IngredientType, User
 from backend.schemas import BeerRecipeCreate, BeerRecipeSchema, BrewRequest
+from backend.dependencies import get_current_user, resolve_game
 
 router = APIRouter(prefix="/api/recipes", tags=["recipes"])
 
 
 @router.get("/")
-def get_recipes(game_id: int, db: Session = Depends(get_db)):
-    recipes = db.query(BeerRecipe).filter(BeerRecipe.game_state_id == game_id).all()
+def get_recipes(game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
+    recipes = db.query(BeerRecipe).filter(BeerRecipe.game_state_id == game.id).all()
     return recipes
 
 
 @router.post("/")
-def create_recipe(game_id: int, recipe: BeerRecipeCreate, db: Session = Depends(get_db)):
-    game = db.query(GameState).filter(GameState.id == game_id).first()
-    if not game:
-        raise HTTPException(404, "Игра не найдена")
-    db_recipe = BeerRecipe(game_state_id=game_id, **recipe.model_dump())
+def create_recipe(recipe: BeerRecipeCreate, game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
+    db_recipe = BeerRecipe(game_state_id=game.id, **recipe.model_dump())
     db.add(db_recipe)
     db.commit()
     db.refresh(db_recipe)
@@ -26,16 +26,16 @@ def create_recipe(game_id: int, recipe: BeerRecipeCreate, db: Session = Depends(
 
 
 @router.post("/{recipe_id}/brew")
-def start_brew(game_id: int, recipe_id: int, req: BrewRequest, db: Session = Depends(get_db)):
-    game = db.query(GameState).filter(GameState.id == game_id).first()
+def start_brew(recipe_id: int, req: BrewRequest, game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
     recipe = db.query(BeerRecipe).filter(
         BeerRecipe.id == recipe_id,
-        BeerRecipe.game_state_id == game_id
+        BeerRecipe.game_state_id == game.id
     ).first()
-    brewery = db.query(Brewery).filter(Brewery.game_state_id == game_id).first()
+    brewery = db.query(Brewery).filter(Brewery.game_state_id == game.id).first()
 
-    if not game or not recipe or not brewery:
-        raise HTTPException(404, "Игра, рецепт или пивоварня не найдена")
+    if not recipe or not brewery:
+        raise HTTPException(404, "Рецепт или пивоварня не найдена")
 
     if req.batch_size_liters > brewery.storage_capacity:
         raise HTTPException(400, f"Объём партии превышает вместимость хранилища ({brewery.storage_capacity}л)")

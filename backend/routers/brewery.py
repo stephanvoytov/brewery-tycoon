@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.database import get_db
-from backend.models import GameState, Brewery
+from backend.models import GameState, Brewery, User
 from backend.schemas import BrewerySchema, UpgradeBreweryRequest
 from backend.config import UpgradeCosts
+from backend.dependencies import get_current_user, resolve_game
 
 router = APIRouter(prefix="/api/brewery", tags=["brewery"])
 
@@ -17,19 +18,20 @@ UPGRADE_COSTS = {
 
 
 @router.get("/")
-def get_brewery(game_id: int, db: Session = Depends(get_db)):
-    brewery = db.query(Brewery).filter(Brewery.game_state_id == game_id).first()
+def get_brewery(game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
+    brewery = db.query(Brewery).filter(Brewery.game_state_id == game.id).first()
     if not brewery:
         raise HTTPException(404, "Пивоварня не найдена")
     return brewery
 
 
 @router.post("/upgrade")
-def upgrade_brewery(game_id: int, req: UpgradeBreweryRequest, db: Session = Depends(get_db)):
-    game = db.query(GameState).filter(GameState.id == game_id).first()
-    brewery = db.query(Brewery).filter(Brewery.game_state_id == game_id).first()
-    if not game or not brewery:
-        raise HTTPException(404, "Игра или пивоварня не найдена")
+def upgrade_brewery(req: UpgradeBreweryRequest, game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
+    brewery = db.query(Brewery).filter(Brewery.game_state_id == game.id).first()
+    if not brewery:
+        raise HTTPException(404, "Пивоварня не найдена")
 
     upgrade_type = req.upgrade_type
     if upgrade_type == "tanks":

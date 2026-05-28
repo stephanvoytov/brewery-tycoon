@@ -1,15 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.database import get_db
-from backend.models import GameState, BeerBatch, BatchStage, BeerRecipe
+from backend.models import GameState, BeerBatch, BatchStage, BeerRecipe, User
 from backend.schemas import BatchActionRequest
+from backend.dependencies import get_current_user, resolve_game
 
 router = APIRouter(prefix="/api/batches", tags=["batches"])
 
 
 @router.get("/")
-def get_batches(game_id: int, db: Session = Depends(get_db)):
-    batches = db.query(BeerBatch).filter(BeerBatch.game_state_id == game_id).all()
+def get_batches(game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
+    batches = db.query(BeerBatch).filter(BeerBatch.game_state_id == game.id).all()
     result = []
     for b in batches:
         recipe = db.query(BeerRecipe).filter(BeerRecipe.id == b.recipe_id).first()
@@ -29,16 +31,18 @@ def get_batches(game_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/{batch_id}")
-def get_batch(game_id: int, batch_id: int, db: Session = Depends(get_db)):
+def get_batch(batch_id: int, game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
     batch = db.query(BeerBatch).filter(
         BeerBatch.id == batch_id,
-        BeerBatch.game_state_id == game_id
+        BeerBatch.game_state_id == game.id
     ).first()
     if not batch:
         raise HTTPException(404, "Партия не найдена")
     recipe = db.query(BeerRecipe).filter(BeerRecipe.id == batch.recipe_id).first()
     return {
         "id": batch.id,
+        "recipe_id": batch.recipe_id,
         "recipe_name": recipe.name if recipe else "Unknown",
         "recipe_style": recipe.style.value if recipe else "unknown",
         "batch_size_liters": batch.batch_size_liters,
@@ -51,17 +55,17 @@ def get_batch(game_id: int, batch_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/{batch_id}/sell")
-def sell_batch(game_id: int, batch_id: int, db: Session = Depends(get_db)):
+def sell_batch(batch_id: int, game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
     batch = db.query(BeerBatch).filter(
         BeerBatch.id == batch_id,
-        BeerBatch.game_state_id == game_id
+        BeerBatch.game_state_id == game.id
     ).first()
     if not batch:
         raise HTTPException(404, "Партия не найдена")
     if batch.stage != BatchStage.packaged:
         raise HTTPException(400, "Партия ещё не готова к продаже")
 
-    game = db.query(GameState).filter(GameState.id == game_id).first()
     recipe = db.query(BeerRecipe).filter(BeerRecipe.id == batch.recipe_id).first()
     if not recipe:
         raise HTTPException(404, "Рецепт не найден")

@@ -1,28 +1,30 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.database import get_db
-from backend.models import GameState, Ingredient, Equipment
+from backend.models import GameState, Ingredient, Equipment, User
 from backend.schemas import BuyIngredientRequest, BuyEquipmentRequest
+from backend.dependencies import get_current_user, resolve_game
 
 router = APIRouter(prefix="/api/inventory", tags=["inventory"])
 
 
 @router.get("/")
-def get_inventory(game_id: int, db: Session = Depends(get_db)):
-    ingredients = db.query(Ingredient).filter(Ingredient.game_state_id == game_id).all()
+def get_inventory(game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
+    ingredients = db.query(Ingredient).filter(Ingredient.game_state_id == game.id).all()
     return ingredients
 
 
 @router.post("/buy")
-def buy_ingredient(game_id: int, req: BuyIngredientRequest, db: Session = Depends(get_db)):
-    game = db.query(GameState).filter(GameState.id == game_id).first()
+def buy_ingredient(req: BuyIngredientRequest, game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
     ingredient = db.query(Ingredient).filter(
         Ingredient.id == req.ingredient_id,
-        Ingredient.game_state_id == game_id
+        Ingredient.game_state_id == game.id
     ).first()
 
-    if not game or not ingredient:
-        raise HTTPException(404, "Игра или ингредиент не найден")
+    if not ingredient:
+        raise HTTPException(404, "Ингредиент не найден")
 
     cost = ingredient.unit_cost * req.quantity
     if game.money < cost:
@@ -42,21 +44,22 @@ def buy_ingredient(game_id: int, req: BuyIngredientRequest, db: Session = Depend
 
 
 @router.get("/equipment")
-def get_equipment(game_id: int, db: Session = Depends(get_db)):
-    equipment = db.query(Equipment).filter(Equipment.game_state_id == game_id).all()
+def get_equipment(game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
+    equipment = db.query(Equipment).filter(Equipment.game_state_id == game.id).all()
     return equipment
 
 
 @router.post("/equipment/buy")
-def buy_equipment(game_id: int, req: BuyEquipmentRequest, db: Session = Depends(get_db)):
-    game = db.query(GameState).filter(GameState.id == game_id).first()
+def buy_equipment(req: BuyEquipmentRequest, game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
     equip = db.query(Equipment).filter(
         Equipment.id == req.equipment_id,
-        Equipment.game_state_id == game_id
+        Equipment.game_state_id == game.id
     ).first()
 
-    if not game or not equip:
-        raise HTTPException(404, "Игра или оборудование не найдено")
+    if not equip:
+        raise HTTPException(404, "Оборудование не найдено")
     if equip.is_owned:
         raise HTTPException(400, "Оборудование уже приобретено")
     if game.money < equip.price:

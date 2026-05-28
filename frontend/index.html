@@ -7,46 +7,102 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div class="app">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <h1>🍺 ПивТайкун</h1>
-                <div class="game-id-bar">
-                    ID: <span id="gameIdDisplay">—</span>
-                </div>
-            </div>
-            <nav class="sidebar-nav">
-                <button class="nav-btn active" data-page="dashboard">📊 Дашборд</button>
-                <button class="nav-btn" data-page="brewery">🏭 Пивоварня</button>
-                <button class="nav-btn" data-page="recipes">📝 Рецепты</button>
-                <button class="nav-btn" data-page="batches">🛢 Партии</button>
-                <button class="nav-btn" data-page="market">💰 Рынок</button>
-                <button class="nav-btn" data-page="staff">👥 Персонал</button>
-                <button class="nav-btn" data-page="research">🔬 Исследования</button>
-                <button class="nav-btn" data-page="finance">📈 Финансы</button>
-            </nav>
-            <div class="sidebar-footer">
-                <div class="currency-bar">
-                    <label>Валюта:</label>
-                    <select id="currencySelect" onchange="doChangeCurrency(this.value)">
-                        <option value="$">$ USD</option>
-                        <option value="€">€ EUR</option>
-                        <option value="₽">₽ RUB</option>
-                        <option value="£">£ GBP</option>
-                        <option value="¥">¥ JPY</option>
-                    </select>
-                </div>
-                <button class="btn btn-newgame" onclick="API.newGame()">🔄 Новая игра</button>
-            </div>
-        </aside>
+    <!-- Auth Screen -->
+    <div id="screen-auth" class="screen active">
+        <div class="auth-container">
+            <div class="auth-box">
+                <h1>🍺 Пивоваренный Тайкун</h1>
+                <p class="auth-subtitle">Экономическая стратегия</p>
 
-        <main class="main-content">
-            <div id="pageContent"></div>
-        </main>
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-form="loginForm">Вход</button>
+                    <button class="auth-tab" data-form="regForm">Регистрация</button>
+                </div>
+
+                <div id="loginForm" class="auth-form active">
+                    <input type="text" id="loginUsername" placeholder="Имя пользователя" maxlength="20">
+                    <input type="password" id="loginPassword" placeholder="Пароль (мин. 6 символов)">
+                    <button id="loginBtn" class="btn btn-primary">Войти</button>
+                </div>
+
+                <div id="regForm" class="auth-form">
+                    <input type="text" id="regUsername" placeholder="Имя пользователя" maxlength="20">
+                    <input type="password" id="regPassword" placeholder="Пароль (мин. 6 символов)">
+                    <input type="password" id="regConfirm" placeholder="Повторите пароль">
+                    <button id="registerBtn" class="btn btn-primary">Зарегистрироваться</button>
+                </div>
+
+                <div class="auth-divider"><span>или</span></div>
+                <button id="guestBtn" class="btn btn-secondary">Продолжить без регистрации</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Saves Screen -->
+    <div id="screen-saves" class="screen">
+        <div class="saves-container">
+            <h1>🍺 Ваши пивоварни</h1>
+            <div id="savesList" class="saves-list"></div>
+            <button class="btn btn-primary" onclick="startNewGame()">➕ Новая пивоварня</button>
+            <button class="btn btn-secondary" onclick="doLogout()" style="margin-top: 8px;">Выйти</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="screen-game" class="screen">
+        <div class="app">
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <h1>🍺 ПивТайкун</h1>
+                    <div class="game-id-bar">
+                        ID: <span id="gameIdDisplay">—</span>
+                    </div>
+                    <div id="userInfo" style="display:none;" class="user-info-bar">
+                        👤 <span id="usernameDisplay"></span>
+                        <button class="btn btn-small" onclick="showSaves()">💾</button>
+                        <button class="btn btn-small" onclick="doLogout()">✕</button>
+                    </div>
+                    <div id="guestInfo" class="user-info-bar">
+                        <span>👤 Гость</span>
+                        <button class="btn btn-small" onclick="showScreen('screen-auth'); updateSidebarUser();">Войти</button>
+                    </div>
+                </div>
+                <nav class="sidebar-nav">
+                    <button class="nav-btn active" data-page="dashboard">📊 Дашборд</button>
+                    <button class="nav-btn" data-page="brewery">🏭 Пивоварня</button>
+                    <button class="nav-btn" data-page="recipes">📝 Рецепты</button>
+                    <button class="nav-btn" data-page="batches">🛢 Партии</button>
+                    <button class="nav-btn" data-page="market">💰 Рынок</button>
+                    <button class="nav-btn" data-page="staff">👥 Персонал</button>
+                    <button class="nav-btn" data-page="research">🔬 Исследования</button>
+                    <button class="nav-btn" data-page="finance">📈 Финансы</button>
+                    <button class="nav-btn" data-page="leaderboard">🏆 Лидерборд</button>
+                </nav>
+                <div class="sidebar-footer">
+                    <div class="currency-bar">
+                        <label>Валюта:</label>
+                        <select id="currencySelect" onchange="doChangeCurrency(this.value)">
+                            <option value="$">$ USD</option>
+                            <option value="€">€ EUR</option>
+                            <option value="₽">₽ RUB</option>
+                            <option value="£">£ GBP</option>
+                            <option value="¥">¥ JPY</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-newgame" onclick="startNewGame()">🔄 Новая игра</button>
+                </div>
+            </aside>
+
+            <main class="main-content">
+                <div id="pageContent"></div>
+            </main>
+        </div>
     </div>
 
     <script src="js/api.js"></script>
     <script src="js/utils.js"></script>
+    <script src="js/components/leaderboard.js"></script>
+    <script src="js/components/saves.js"></script>
     <script src="js/components/dashboard.js"></script>
     <script src="js/components/brewery.js"></script>
     <script src="js/components/recipes.js"></script>

@@ -232,5 +232,42 @@ class ContractSignRequest(BaseModel):
     contract_id: int
 
 
+class UserOut(BaseModel):
+    id: int
+    username: str
+    created_at: datetime
+    active_game_id: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+
+
+class AuthRequest(BaseModel):
+    username: str
+    password: str
+
+
+class TokenResponse(BaseModel):
+    token: str
+    user: UserOut
+
+
+class LeaderboardEntry(BaseModel):
+    rank: int
+    username: str
+    money: float
+    day: int
+    reputation: float
+    total_revenue: float
+
+
+class LeaderboardResponse(BaseModel):
+    entries: List[LeaderboardEntry]
+
+
+class SelectGameRequest(BaseModel):
+    game_id: int
+
+
 class CurrencyRequest(BaseModel):
     currency: str

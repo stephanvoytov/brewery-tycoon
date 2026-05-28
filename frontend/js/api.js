@@ -2,15 +2,25 @@ const API_BASE = '';
 
 const API = {
     gameId: null,
+    authToken: localStorage.getItem('authToken'),
+    user: null,
+
+    _getHeaders() {
+        const h = { 'Content-Type': 'application/json' };
+        if (this.authToken) {
+            h['Authorization'] = `Bearer ${this.authToken}`;
+        }
+        return h;
+    },
 
     async request(method, path, body) {
-        const opts = {
-            method,
-            headers: { 'Content-Type': 'application/json' },
-        };
+        const opts = { method, headers: this._getHeaders() };
         if (body) opts.body = JSON.stringify(body);
-        const url = `${API_BASE}${path}${this.gameId ? (path.includes('?') ? '&' : '?') + `game_id=${this.gameId}` : ''}`;
-        const res = await fetch(url, opts);
+        let suffix = '';
+        if (this.gameId && !path.includes('game_id=')) {
+            suffix = (path.includes('?') ? '&' : '?') + `game_id=${this.gameId}`;
+        }
+        const res = await fetch(`${API_BASE}${path}${suffix}`, opts);
         if (!res.ok) {
             const err = await res.json().catch(() => ({}));
             throw new Error(err.detail || `Ошибка ${res.status}`);
@@ -21,7 +31,8 @@ const API = {
     async newGame() {
         const data = await this.request('POST', '/api/game/new');
         this.gameId = data.game_id;
-        document.getElementById('gameIdDisplay').textContent = this.gameId;
+        const el = document.getElementById('gameIdDisplay');
+        if (el) el.textContent = this.gameId;
         return data;
     },
 
@@ -117,19 +128,84 @@ const API = {
         return this.request('GET', '/api/game/saves');
     },
 
+    async selectSave(gameId) {
+        return this.request('PUT', '/api/game/select', { game_id: gameId });
+    },
+
     async setCurrency(currency) {
         return this.request('POST', '/api/game/currency', { currency });
     },
 
     async loadGame(id) {
-        const resp = await fetch(`${API_BASE}/api/game/saves`);
-        const saves = await resp.json();
-        const found = saves.find(s => s.id === id);
-        if (found) {
-            this.gameId = id;
-            document.getElementById('gameIdDisplay').textContent = id;
-            return await this.getState();
+        this.gameId = id;
+        const el = document.getElementById('gameIdDisplay');
+        if (el) el.textContent = id;
+        return await this.getState();
+    },
+
+    async register(username, password) {
+        const res = await fetch(`${API_BASE}/api/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password }),
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.detail || 'Ошибка регистрации');
         }
-        throw new Error('Сохранение не найдено');
+        const data = await res.json();
+        this.authToken = data.token;
+        this.user = data.user;
+        localStorage.setItem('authToken', data.token);
+        return data;
+    },
+
+    async login(username, password) {
+        const res = await fetch(`${API_BASE}/api/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password }),
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.detail || 'Ошибка входа');
+        }
+        const data = await res.json();
+        this.authToken = data.token;
+        this.user = data.user;
+        localStorage.setItem('authToken', data.token);
+        return data;
+    },
+
+    async loadUser() {
+        if (!this.authToken) return null;
+        try {
+            const res = await fetch(`${API_BASE}/api/auth/me`, {
+                headers: { 'Authorization': `Bearer ${this.authToken}` },
+            });
+            if (!res.ok) {
+                this.authToken = null;
+                this.user = null;
+                localStorage.removeItem('authToken');
+                return null;
+            }
+            this.user = await res.json();
+            return this.user;
+        } catch {
+            return null;
+        }
+    },
+
+    logout() {
+        this.authToken = null;
+        this.user = null;
+        this.gameId = null;
+        localStorage.removeItem('authToken');
+    },
+
+    async getLeaderboard(metric = 'money', limit = 20) {
+        const res = await fetch(`${API_BASE}/api/leaderboard?metric=${metric}&limit=${limit}`);
+        if (!res.ok) return { entries: [] };
+        return res.json();
     }
 };

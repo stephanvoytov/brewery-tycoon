@@ -2,9 +2,10 @@ import random
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.database import get_db
-from backend.models import GameState, Staff, StaffRole
+from backend.models import GameState, Staff, StaffRole, User
 from backend.game_engine import STAFF_NAMES
 from backend.config import Salaries
+from backend.dependencies import get_current_user, resolve_game
 
 router = APIRouter(prefix="/api/staff", tags=["staff"])
 
@@ -16,16 +17,15 @@ SALARIES = {
 
 
 @router.get("/")
-def get_staff(game_id: int, db: Session = Depends(get_db)):
-    staff = db.query(Staff).filter(Staff.game_state_id == game_id).all()
+def get_staff(game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
+    staff = db.query(Staff).filter(Staff.game_state_id == game.id).all()
     return staff
 
 
 @router.post("/hire")
-def hire_staff(game_id: int, role: str, db: Session = Depends(get_db)):
-    game = db.query(GameState).filter(GameState.id == game_id).first()
-    if not game:
-        raise HTTPException(404, "Игра не найдена")
+def hire_staff(role: str, game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
 
     try:
         staff_role = StaffRole(role)
@@ -37,7 +37,7 @@ def hire_staff(game_id: int, role: str, db: Session = Depends(get_db)):
     name = random.choice(STAFF_NAMES)
 
     staff = Staff(
-        game_state_id=game_id,
+        game_state_id=game.id,
         name=name,
         role=staff_role,
         skill_level=random.randint(1, 5),
@@ -52,10 +52,11 @@ def hire_staff(game_id: int, role: str, db: Session = Depends(get_db)):
 
 
 @router.post("/{staff_id}/fire")
-def fire_staff(game_id: int, staff_id: int, db: Session = Depends(get_db)):
+def fire_staff(staff_id: int, game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
     staff = db.query(Staff).filter(
         Staff.id == staff_id,
-        Staff.game_state_id == game_id
+        Staff.game_state_id == game.id
     ).first()
     if not staff:
         raise HTTPException(404, "Сотрудник не найден")
@@ -65,14 +66,14 @@ def fire_staff(game_id: int, staff_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/{staff_id}/train")
-def train_staff(game_id: int, staff_id: int, db: Session = Depends(get_db)):
+def train_staff(staff_id: int, game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
     staff = db.query(Staff).filter(
         Staff.id == staff_id,
-        Staff.game_state_id == game_id
+        Staff.game_state_id == game.id
     ).first()
-    game = db.query(GameState).filter(GameState.id == game_id).first()
-    if not staff or not game:
-        raise HTTPException(404, "Сотрудник или игра не найдена")
+    if not staff:
+        raise HTTPException(404, "Сотрудник не найден")
     if staff.skill_level >= 10:
         raise HTTPException(400, "Максимальный уровень навыка")
 

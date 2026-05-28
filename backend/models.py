@@ -1,5 +1,6 @@
 import enum
-from sqlalchemy import Column, Integer, Float, String, Boolean, ForeignKey, Enum as SAEnum, JSON
+from datetime import datetime
+from sqlalchemy import Column, Integer, Float, String, Boolean, ForeignKey, Enum as SAEnum, JSON, DateTime
 from sqlalchemy.orm import relationship
 from backend.database import Base
 
@@ -58,10 +59,24 @@ class ResearchCategory(str, enum.Enum):
     marketing = "marketing"
 
 
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    password_hash = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    active_game_id = Column(Integer, ForeignKey("game_states.id"), nullable=True)
+
+    games = relationship("GameState", back_populates="owner", foreign_keys="GameState.user_id")
+    active_game = relationship("GameState", foreign_keys=[active_game_id], post_update=True)
+
+
 class GameState(Base):
     __tablename__ = "game_states"
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
     name = Column(String, default="Моя пивоварня")
     money = Column(Float, default=10000.0)
     bank_loan = Column(Float, default=0.0)
@@ -73,6 +88,8 @@ class GameState(Base):
     daily_revenue = Column(Float, default=0.0)
     daily_expenses = Column(Float, default=0.0)
     currency = Column(String, default="$")
+
+    owner = relationship("User", back_populates="games", foreign_keys=[user_id])
 
     brewery = relationship("Brewery", uselist=False, back_populates="game_state", cascade="all, delete-orphan")
     recipes = relationship("BeerRecipe", back_populates="game_state", cascade="all, delete-orphan")
