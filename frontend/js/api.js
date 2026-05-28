@@ -52,6 +52,10 @@ const API = {
         return this.request('POST', '/api/brewery/upgrade', { upgrade_type: upgradeType });
     },
 
+    async renameBrewery(name) {
+        return this.request('POST', '/api/brewery/rename', { name });
+    },
+
     async getRecipes() {
         return this.request('GET', '/api/recipes/');
     },

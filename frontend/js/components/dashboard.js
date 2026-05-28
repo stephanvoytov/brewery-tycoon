@@ -24,7 +24,7 @@ function renderDashboard() {
             </div>
             <div class="card stat">
                 <div class="stat-value ${s.reputation > 60 ? 'green' : s.reputation > 30 ? '' : 'red'}">${Math.round(s.reputation)}%</div>
-                <div class="stat-label">Репутация</div>
+                <div class="stat-label" title="Высокая репутация = выше цены продажи и больше контрактов">Репутация</div>
             </div>
             <div class="card stat">
                 <div class="stat-value">${b.level}</div>

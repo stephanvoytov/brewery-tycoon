@@ -6,17 +6,17 @@ function renderBatches() {
         <h2>🛢 Партии пива</h2>
 
         <div class="card">
-            <table>
-                <tr>
-                    <th>#</th>
-                    <th>Рецепт</th>
-                    <th>Объём</th>
-                    <th>Стадия</th>
-                    <th>Прогресс</th>
-                    <th>Качество</th>
-                    <th>День старта</th>
-                    <th></th>
-                </tr>
+                <table>
+                    <tr>
+                        <th>#</th>
+                        <th>Рецепт</th>
+                        <th>Объём</th>
+                        <th title="Стадии: затирание → кипячение → ферментация → дозревание → готова">Стадия</th>
+                        <th title="Прогресс текущей стадии">Прогресс</th>
+                        <th title="Качество пива зависит от рецепта, оборудования и навыков">Качество</th>
+                        <th>День старта</th>
+                        <th></th>
+                    </tr>
                 ${batches.length === 0 ? '<tr><td colspan="8" class="empty-state">Нет партий</td></tr>' :
                 batches.sort((a, b) => b.id - a.id).map(b => `
                     <tr>

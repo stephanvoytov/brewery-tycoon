@@ -37,7 +37,7 @@ def buy_ingredient(req: BuyIngredientRequest, game_id: int = None, current_user:
     db.commit()
 
     return {
-        "message": f"Куплено {req.quantity} ед. {ingredient.name} за ${cost:.0f}",
+        "message": f"Куплено {req.quantity} ед. {ingredient.name} за {cost:.0f} {game.currency}",
         "cost": cost,
         "new_quantity": ingredient.quantity,
     }
@@ -70,4 +70,4 @@ def buy_equipment(req: BuyEquipmentRequest, game_id: int = None, current_user: U
     equip.is_owned = True
     db.commit()
 
-    return {"message": f"Куплено: {equip.name} за ${equip.price:.0f}", "cost": equip.price}
+    return {"message": f"Куплено: {equip.name} за {equip.price:.0f} {game.currency}", "cost": equip.price}

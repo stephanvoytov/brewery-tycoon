@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.database import get_db
 from backend.models import GameState, Brewery, User
-from backend.schemas import BrewerySchema, UpgradeBreweryRequest
+from backend.schemas import BrewerySchema, UpgradeBreweryRequest, RenameBreweryRequest
 from backend.config import UpgradeCosts
 from backend.dependencies import get_current_user, resolve_game
 
@@ -92,3 +92,16 @@ def upgrade_brewery(req: UpgradeBreweryRequest, game_id: int = None, current_use
         return {"message": f"Маркетинг улучшен до уровня {next_level}", "cost": cost}
 
     raise HTTPException(400, f"Неизвестный тип улучшения: {upgrade_type}")
+
+
+@router.post("/rename")
+def rename_brewery(req: RenameBreweryRequest, game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
+    brewery = db.query(Brewery).filter(Brewery.game_state_id == game.id).first()
+    if not brewery:
+        raise HTTPException(404, "Пивоварня не найдена")
+    if not req.name or len(req.name.strip()) < 1:
+        raise HTTPException(400, "Название не может быть пустым")
+    brewery.name = req.name.strip()
+    db.commit()
+    return {"message": f"Пивоварня переименована в «{brewery.name}»", "name": brewery.name}

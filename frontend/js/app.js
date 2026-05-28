@@ -57,6 +57,7 @@ function renderCurrentPage() {
         case 'page-research': renderResearch(); break;
         case 'page-finance': renderFinance(); break;
         case 'page-leaderboard': renderLeaderboard('money'); break;
+        case 'page-help': renderHelp(); break;
     }
 }
 
@@ -144,7 +145,7 @@ async function initGameFlow() {
 document.addEventListener('DOMContentLoaded', async () => {
     // Init main game pages
     const main = document.getElementById('pageContent');
-    const pages = ['dashboard', 'brewery', 'recipes', 'batches', 'market', 'staff', 'research', 'finance', 'leaderboard'];
+    const pages = ['dashboard', 'brewery', 'recipes', 'batches', 'market', 'staff', 'research', 'finance', 'leaderboard', 'help'];
     pages.forEach(p => {
         const div = document.createElement('div');
         div.id = `page-${p}`;

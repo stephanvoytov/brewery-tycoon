@@ -9,13 +9,13 @@ function renderMarket() {
         <div class="grid-2">
             <div class="card">
                 <h3>📈 Условия рынка</h3>
-                <table>
-                    <tr>
-                        <th>Стиль</th>
-                        <th>Спрос</th>
-                        <th>Множитель цены</th>
-                        <th>Сезон</th>
-                    </tr>
+                    <table>
+                        <tr>
+                            <th>Стиль</th>
+                            <th title="Базовый спрос на этот стиль пива (0-100%)">Спрос</th>
+                            <th title="Насколько выше/ниже базовой цены можно продать">Множитель цены</th>
+                            <th title="Сезонный коэффициент. Летом выше спрос на светлое, зимой — на тёмное">Сезон</th>
+                        </tr>
                     ${market.map(m => `
                         <tr>
                             <td>${STYLE_RU[m.beer_style] || m.beer_style}</td>

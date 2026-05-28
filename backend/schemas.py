@@ -271,3 +271,7 @@ class SelectGameRequest(BaseModel):
 
 class CurrencyRequest(BaseModel):
     currency: str
+
+
+class RenameBreweryRequest(BaseModel):
+    name: str

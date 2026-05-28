@@ -10,25 +10,27 @@ function renderRecipes() {
         <div class="grid-2">
             <div class="card">
                 <h3>🍺 Рецепты</h3>
-                <table>
-                    <tr>
-                        <th>Название</th>
-                        <th>Стиль</th>
-                        <th>ABV</th>
-                        <th>IBU</th>
-                        <th>Себест./100л</th>
-                        <th></th>
-                    </tr>
-                    ${recipes.map(r => `
+                    <table>
                         <tr>
-                            <td>${r.name}</td>
-                            <td>${STYLE_RU[r.style] || r.style}</td>
-                            <td>${r.abv}%</td>
-                            <td>${r.ibu}</td>
-                            <td>${formatMoney(r.cost_per_liter * 100)}</td>
-                            <td><button class="btn btn-sm btn-primary" onclick="showBrewModal(${r.id})">Варить</button></td>
+                            <th></th>
+                            <th>Название</th>
+                            <th>Стиль</th>
+                            <th title="ABV (Alcohol By Volume) — крепость пива в процентах">ABV</th>
+                            <th title="IBU (International Bitterness Units) — горечь пива от хмеля">IBU</th>
+                            <th>Себест./100л</th>
+                            <th></th>
                         </tr>
-                    `).join('')}
+                        ${recipes.map(r => `
+                            <tr>
+                                <td><span class="srm-dot" style="background:${SRM_COLORS[r.style] || '#ccc'}" title="SRM ${r.srm || '?'} — цвет пива"></span></td>
+                                <td>${r.name}</td>
+                                <td title="${STYLE_INFO[r.style] || ''}">${STYLE_RU[r.style] || r.style}</td>
+                                <td>${r.abv}%</td>
+                                <td>${r.ibu}</td>
+                                <td>${formatMoney(r.cost_per_liter * 100)}</td>
+                                <td><button class="btn btn-sm btn-primary" onclick="showBrewModal(${r.id})">Варить</button></td>
+                            </tr>
+                        `).join('')}
                 </table>
             </div>
 

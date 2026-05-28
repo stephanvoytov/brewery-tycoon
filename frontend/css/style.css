@@ -337,14 +337,6 @@ input:focus, select:focus {
     align-items: flex-end;
 }
 
-.brewery-svg-container {
-    background: var(--bg-main);
-    border-radius: 8px;
-    padding: 10px;
-    text-align: center;
-    overflow: hidden;
-}
-
 .events-panel {
     max-height: 200px;
     overflow-y: auto;
@@ -567,6 +559,112 @@ input:focus, select:focus {
 .lb-rank { width: 40px; text-align: center; }
 .lb-value { font-weight: 600; color: var(--accent-light); }
 .text-muted { color: var(--text-dim); font-size: 0.85rem; }
+
+/* Tooltips */
+[title] {
+    cursor: help;
+}
+
+/* SRM color dot */
+.srm-dot {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.2);
+    vertical-align: middle;
+    margin-right: 4px;
+    flex-shrink: 0;
+}
+.srm-dot-lg {
+    width: 40px;
+    height: 40px;
+    border-width: 3px;
+}
+
+/* Help page */
+.help-section {
+    margin-bottom: 24px;
+}
+.help-section h2 {
+    margin-bottom: 12px;
+}
+.help-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+.help-card h3 {
+    color: var(--accent);
+    margin-bottom: 8px;
+    font-size: 1rem;
+}
+.help-card p, .help-card li {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--text);
+    margin-bottom: 6px;
+}
+.help-card ul {
+    padding-left: 20px;
+}
+.help-card li {
+    margin-bottom: 4px;
+}
+.help-card table {
+    font-size: 0.85rem;
+}
+.help-brew-svg {
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+    display: block;
+}
+
+/* Beer style cards on help page */
+.style-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+}
+.style-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+.style-card .srm-dot {
+    margin-top: 2px;
+}
+.style-card .style-name {
+    font-weight: 600;
+    color: var(--accent-light);
+    font-size: 0.9rem;
+}
+.style-card .style-desc {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    line-height: 1.4;
+    margin-top: 2px;
+}
+
+/* Brewery SVG container - full height */
+.brewery-svg-container {
+    background: var(--bg-main);
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    overflow: hidden;
+}
+.brewery-svg-container svg {
+    width: 100%;
+    max-height: 600px;
+}
 
 @media (max-width: 768px) {
     .sidebar { width: 60px; }
