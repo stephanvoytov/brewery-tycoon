@@ -1,0 +1,18 @@
+services:
+  brewery-tycoon:
+    build: .
+    container_name: brewery-tycoon
+    restart: unless-stopped
+    expose:
+      - "8000"
+    networks:
+      - brewery-network
+    volumes:
+      - brewery-data:/app/data
+
+networks:
+  brewery-network:
+    external: true
+
+volumes:
+  brewery-data:

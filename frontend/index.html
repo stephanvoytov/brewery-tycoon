@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Пивоваренный Тайкун</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>🍺 ПивТайкун</h1>
+                <div class="game-id-bar">
+                    ID: <span id="gameIdDisplay">—</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <button class="nav-btn active" data-page="dashboard">📊 Дашборд</button>
+                <button class="nav-btn" data-page="brewery">🏭 Пивоварня</button>
+                <button class="nav-btn" data-page="recipes">📝 Рецепты</button>
+                <button class="nav-btn" data-page="batches">🛢 Партии</button>
+                <button class="nav-btn" data-page="market">💰 Рынок</button>
+                <button class="nav-btn" data-page="staff">👥 Персонал</button>
+                <button class="nav-btn" data-page="research">🔬 Исследования</button>
+                <button class="nav-btn" data-page="finance">📈 Финансы</button>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="currency-bar">
+                    <label>Валюта:</label>
+                    <select id="currencySelect" onchange="doChangeCurrency(this.value)">
+                        <option value="$">$ USD</option>
+                        <option value="€">€ EUR</option>
+                        <option value="₽">₽ RUB</option>
+                        <option value="£">£ GBP</option>
+                        <option value="¥">¥ JPY</option>
+                    </select>
+                </div>
+                <button class="btn btn-newgame" onclick="API.newGame()">🔄 Новая игра</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div id="pageContent"></div>
+        </main>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/components/dashboard.js"></script>
+    <script src="js/components/brewery.js"></script>
+    <script src="js/components/recipes.js"></script>
+    <script src="js/components/batches.js"></script>
+    <script src="js/components/market.js"></script>
+    <script src="js/components/staff.js"></script>
+    <script src="js/components/research.js"></script>
+    <script src="js/components/finance.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
