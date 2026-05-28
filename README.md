@@ -1,6 +1,6 @@
 # Пивоваренный Тайкун (Brewery Tycoon)
 
-Экономическая стратегия — управляйте собственной пивоварней. Варите пиво, заключайте контракты, нанимайте персонал, улучшайте оборудование и исследуйте новые технологии.
+Экономическая стратегия — управляйте собственной пивоварней. Варите пиво, заключайте контракты, нанимайте персонал, улучшайте оборудование и исследуйте новые технологии. Соревнуйтесь с другими игроками в лидерборде.
 
 ## Технологии
 
@@ -8,17 +8,22 @@
 |-----------|-----------|
 | Бэкенд    | Python 3.12+, FastAPI, SQLAlchemy 2.0, Pydantic 2 |
 | База данных | SQLite |
+| Аутентификация | JWT (python-jose), PBKDF2 (hashlib) |
 | Фронтенд  | Vanilla JavaScript (SPA), CSS (тёмная тема) |
 | Сервер    | Uvicorn |
-| Деплой    | Docker, Docker Compose, Caddy (reverse proxy) |
+| Деплой    | Docker, Docker Compose, Caddy (reverse proxy, HTTPS) |
+
+## Мультиплеер
+
+- **Регистрация и вход** — JWT-токен, пароль минимум 6 символов
+- **Несколько сохранений** — у каждого пользователя может быть много игр
+- **Гостевой режим** — можно играть без регистрации (одно сохранение)
+- **Лидерборд** — топ игроков по деньгам, репутации, доходу, дням
 
 ## Быстрый старт (локальная разработка)
 
 ```bash
-# Установить зависимости
 pip install -r backend/requirements.txt
-
-# Запустить сервер
 uvicorn backend.main:app --reload --port 8000
 ```
 
@@ -28,18 +33,21 @@ uvicorn backend.main:app --reload --port 8000
 ## Деплой (Docker)
 
 ```bash
-# Сборка и запуск
 docker compose up -d --build
-
-# Просмотр логов
-docker logs brewery-tycoon -f
-
-# Остановка
+docker compose logs -f
 docker compose down
 ```
 
 Сервис стартует на `http://localhost:8000`.
-Для продакшена требуется reverse proxy с HTTPS (Caddy, Nginx).
+Для продакшена требуется reverse proxy с HTTPS (рекомендуется Caddy).
+
+### Деплой через GitHub
+
+```bash
+# На сервере:
+git pull
+docker compose up -d --build
+```
 
 ## Баланс
 
@@ -48,8 +56,6 @@ docker compose down
 ```python
 # backend/config.py — единственный конфиг баланса
 ```
-
-Основные параметры:
 
 | Параметр | Значение |
 |----------|----------|
@@ -73,24 +79,29 @@ docker compose down
 ├── backend/
 │   ├── main.py           # Точка входа FastAPI + раздача статики
 │   ├── database.py       # Подключение SQLAlchemy к SQLite
-│   ├── models.py         # Модели БД (GameState, BeerRecipe, ...)
+│   ├── models.py         # Модели БД (User, GameState, BeerRecipe, ...)
 │   ├── schemas.py        # Pydantic-схемы для API
+│   ├── dependencies.py   # JWT-токены, resolve_game
 │   ├── game_engine.py    # Игровой движок (тики, рынок, контракты)
 │   ├── config.py         # Конфиг баланса (цены, зарплаты, апгрейды)
 │   ├── requirements.txt  # Зависимости Python
 │   └── routers/          # Маршруты API
-│       ├── game.py       # /api/game/*      — создание, состояние, тик
-│       ├── brewery.py    # /api/brewery/*   — улучшения пивоварни
-│       ├── recipes.py    # /api/recipes/*   — рецепты и варка
-│       ├── batches.py    # /api/batches/*   — партии пива
-│       ├── inventory.py  # /api/inventory/* — ингредиенты, оборудование
-│       ├── staff.py      # /api/staff/*     — найм, увольнение, обучение
-│       ├── market.py     # /api/market/*    — рынок и контракты
-│       └── research.py   # /api/research/*  — исследования
+│       ├── auth.py       # /api/auth/*       — регистрация, вход, профиль
+│       ├── leaderboard.py# /api/leaderboard  — топ игроков
+│       ├── game.py       # /api/game/*       — создание, состояние, тик
+│       ├── brewery.py    # /api/brewery/*    — улучшения пивоварни
+│       ├── recipes.py    # /api/recipes/*    — рецепты и варка
+│       ├── batches.py    # /api/batches/*    — партии пива
+│       ├── inventory.py  # /api/inventory/*  — ингредиенты, оборудование
+│       ├── staff.py      # /api/staff/*      — найм, увольнение, обучение
+│       ├── market.py     # /api/market/*     — рынок и контракты
+│       └── research.py   # /api/research/*   — исследования
 ├── frontend/
+│   ├── index.html        # SPA (экраны: auth, saves, game)
+│   ├── css/style.css     # Тёмная тема
 │   └── js/
-│       ├── api.js        # HTTP-клиент для API
-│       ├── app.js        # Инициализация, навигация
+│       ├── api.js        # HTTP-клиент (auth, saves, leaderboard)
+│       ├── app.js        # Инициализация, навигация, экраны
 │       ├── utils.js      # Форматирование, локализация, тосты
 │       └── components/
 │           ├── dashboard.js   # Дашборд
@@ -100,38 +111,61 @@ docker compose down
 │           ├── market.js      # Рынок и контракты
 │           ├── staff.js       # Персонал
 │           ├── research.js    # Исследования
-│           └── finance.js     # Финансы
+│           ├── finance.js     # Финансы
+│           ├── saves.js       # Список сохранений
+│           └── leaderboard.js # Таблица лидеров
 ├── data/               # Директория БД (создаётся автоматически)
 ├── Dockerfile          # Образ для Docker
 ├── docker-compose.yml  # Docker Compose (brewery + volume)
 └── .gitignore
 ```
 
-## API (основные эндпоинты)
+## API
 
-Все эндпоинты принимают `game_id` как query-параметр.
+### Аутентификация
+
+| Метод | Путь | Описание |
+|-------|------|----------|
+| POST | `/api/auth/register` | Регистрация (username, password) |
+| POST | `/api/auth/login` | Вход, возвращает JWT-токен |
+| GET | `/api/auth/me` | Профиль текущего пользователя |
+
+### Игра
 
 | Метод | Путь | Описание |
 |-------|------|----------|
 | POST | `/api/game/new` | Создать новую игру |
 | GET | `/api/game/state?game_id=` | Полное состояние игры |
 | POST | `/api/game/tick?game_id=&days=` | Прожить N дней |
+| GET | `/api/game/saves` | Список сохранений пользователя |
+| PUT | `/api/game/select` | Выбрать активное сохранение |
 | POST | `/api/game/currency` | Сменить валюту |
-| GET | `/api/brewery/?game_id=` | Данные пивоварни |
+
+### Лидерборд
+
+| Метод | Путь | Описание |
+|-------|------|----------|
+| GET | `/api/leaderboard?metric=&limit=` | Топ игроков (money, total_revenue, reputation, day) |
+
+### Игровые ресурсы
+
+| Метод | Путь | Описание |
+|-------|------|----------|
+| GET | `/api/brewery/{game_id}` | Данные пивоварни |
 | POST | `/api/brewery/upgrade` | Улучшить пивоварню |
-| GET | `/api/recipes/?game_id=` | Список рецептов |
+| GET | `/api/recipes/{game_id}` | Список рецептов |
 | POST | `/api/recipes/{id}/brew` | Начать варку |
-| GET | `/api/batches/?game_id=` | Список партий |
+| GET | `/api/batches/{game_id}` | Список партий |
 | POST | `/api/batches/{id}/sell` | Продать партию |
 | POST | `/api/inventory/buy` | Купить ингредиенты |
 | POST | `/api/inventory/equipment/buy` | Купить оборудование |
 | POST | `/api/staff/hire` | Нанять сотрудника |
 | POST | `/api/staff/{id}/fire` | Уволить сотрудника |
 | POST | `/api/staff/{id}/train` | Обучить сотрудника |
-| GET | `/api/market/?game_id=` | Условия рынка |
+| GET | `/api/market/{game_id}` | Условия рынка |
 | GET | `/api/market/contracts?game_id=` | Контракты |
 | POST | `/api/market/contracts/{id}/sign` | Подписать контракт |
-| GET | `/api/research/?game_id=` | Дерево исследований |
+| GET | `/api/research/{game_id}` | Дерево исследований |
 | POST | `/api/research/{id}/start` | Начать исследование |
 
 Полная документация — **http://localhost:8000/docs** (Swagger UI).
