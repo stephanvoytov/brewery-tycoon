@@ -6,6 +6,7 @@ function renderFinance() {
 
     const revenueHistory = s.revenue_history || [];
     const expenseHistory = s.expense_history || [];
+    const hasData = revenueHistory.length > 0 || expenseHistory.length > 0;
 
     const maxVal = Math.max(...revenueHistory, ...expenseHistory, 1);
 
@@ -37,23 +38,29 @@ function renderFinance() {
         <div class="grid-2">
             <div class="card">
                 <h3>📊 Доходы за последние 30 дней</h3>
-                <div style="display:flex;align-items:flex-end;gap:2px;height:120px;padding:10px 0">
-                    ${revenueHistory.length === 0 ? '<div class="empty-state" style="width:100%">Нет данных</div>' :
+                <div style="position:relative;display:flex;align-items:flex-end;gap:2px;height:160px;padding:20px 0 10px">
+                    ${!hasData ? '<div class="empty-state" style="width:100%">Нажмите «Новый день» на дашборде</div>' :
+                    !revenueHistory.length ? '<div class="empty-state" style="width:100%">Нет данных о доходах</div>' :
                     revenueHistory.map(v => {
                         const h = (v / maxVal) * 100;
-                        return `<div style="flex:1;background:var(--green);height:${Math.max(h, 2)}%;min-width:6px;border-radius:2px 2px 0 0" title="${formatMoney(v)}"></div>`;
+                        return `<div style="flex:1;background:var(--green);height:${Math.max(h, 2)}%;min-width:10px;border-radius:2px 2px 0 0" title="День ${revenueHistory.indexOf(v) + 1}: ${formatMoney(v)}"></div>`;
                     }).join('')}
+                    ${hasData ? `<div style="position:absolute;top:2px;right:4px;font-size:0.7rem;color:var(--text-dim)">max ${formatMoney(maxVal)}</div>` : ''}
+                    ${hasData ? `<div style="position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-between;font-size:0.65rem;color:var(--text-dim);padding:0 2px"><span>1</span><span>${Math.min(revenueHistory.length || expenseHistory.length, 30)}</span></div>` : ''}
                 </div>
             </div>
 
             <div class="card">
                 <h3>📊 Расходы за последние 30 дней</h3>
-                <div style="display:flex;align-items:flex-end;gap:2px;height:120px;padding:10px 0">
-                    ${expenseHistory.length === 0 ? '<div class="empty-state" style="width:100%">Нет данных</div>' :
+                <div style="position:relative;display:flex;align-items:flex-end;gap:2px;height:160px;padding:20px 0 10px">
+                    ${!hasData ? '<div class="empty-state" style="width:100%">Нажмите «Новый день» на дашборде</div>' :
+                    !expenseHistory.length ? '<div class="empty-state" style="width:100%">Нет данных о расходах</div>' :
                     expenseHistory.map(v => {
                         const h = (v / maxVal) * 100;
-                        return `<div style="flex:1;background:var(--red);height:${Math.max(h, 2)}%;min-width:6px;border-radius:2px 2px 0 0" title="${formatMoney(v)}"></div>`;
+                        return `<div style="flex:1;background:var(--red);height:${Math.max(h, 2)}%;min-width:10px;border-radius:2px 2px 0 0" title="День ${expenseHistory.indexOf(v) + 1}: ${formatMoney(v)}"></div>`;
                     }).join('')}
+                    ${hasData ? `<div style="position:absolute;top:2px;right:4px;font-size:0.7rem;color:var(--text-dim)">max ${formatMoney(maxVal)}</div>` : ''}
+                    ${hasData ? `<div style="position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-between;font-size:0.65rem;color:var(--text-dim);padding:0 2px"><span>1</span><span>${Math.min(expenseHistory.length || revenueHistory.length, 30)}</span></div>` : ''}
                 </div>
             </div>
         </div>

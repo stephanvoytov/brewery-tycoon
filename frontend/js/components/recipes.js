@@ -17,6 +17,8 @@ function renderRecipes() {
                             <th>Стиль</th>
                             <th title="ABV (Alcohol By Volume) — крепость пива в процентах">ABV</th>
                             <th title="IBU (International Bitterness Units) — горечь пива от хмеля">IBU</th>
+                            <th title="Солод на 100л пива">🌾 Солод/100л</th>
+                            <th title="Хмель на 100л пива">🌿 Хмель/100л</th>
                             <th>Себест./100л</th>
                             <th></th>
                         </tr>
@@ -27,6 +29,8 @@ function renderRecipes() {
                                 <td title="${STYLE_INFO[r.style] || ''}">${STYLE_RU[r.style] || r.style}</td>
                                 <td>${r.abv}%</td>
                                 <td>${r.ibu}</td>
+                                <td>${((r.malt_amount || 0) * 10).toFixed(1)} кг</td>
+                                <td>${((r.hops_amount || 0) * 10).toFixed(1)} кг</td>
                                 <td>${formatMoney(r.cost_per_liter * 100)}</td>
                                 <td><button class="btn btn-sm btn-primary" onclick="showBrewModal(${r.id})">Варить</button></td>
                             </tr>
@@ -91,12 +95,12 @@ function renderRecipes() {
             </div>
             <div class="form-row">
                 <div class="form-group">
-                    <label>Солод (кг/10л)</label>
-                    <input type="number" id="newRecipeMalt" value="5.0" step="0.1">
+                    <label>Солод (кг/100л)</label>
+                    <input type="number" id="newRecipeMalt" value="50" step="1">
                 </div>
                 <div class="form-group">
-                    <label>Хмель (кг/10л)</label>
-                    <input type="number" id="newRecipeHops" value="0.5" step="0.1">
+                    <label>Хмель (кг/100л)</label>
+                    <input type="number" id="newRecipeHops" value="5" step="0.5">
                 </div>
                 <div class="form-group">
                     <label>IBU</label>
@@ -123,11 +127,29 @@ function showBrewModal(recipeId) {
     const modal = document.getElementById('brewModal');
     modal.style.display = 'block';
     const recipe = GAME_STATE.recipes.find(r => r.id === recipeId);
-    if (recipe) {
-        document.getElementById('brewInfo').textContent =
-            `Рецепт: ${recipe.name} | Стиль: ${STYLE_RU[recipe.style]} | Себестоимость: ${formatMoney(recipe.cost_per_liter * 100)}/100л | ` +
-            `Варка: ${recipe.brew_time_days}д | Ферментация: ${recipe.ferment_time_days}д | Дозревание: ${recipe.condition_time_days}д`;
+    const ingredients = GAME_STATE.ingredients || [];
+
+    function updateBrewInfo() {
+        if (!recipe) return;
+        const size = parseFloat(document.getElementById('brewSize').value) || 50;
+        const maltPerL = (recipe.malt_amount || 0) / 10;
+        const hopsPerL = (recipe.hops_amount || 0) / 10;
+        const needMalt = (maltPerL * size).toFixed(1);
+        const needHops = (hopsPerL * size).toFixed(1);
+        const maltOk = ingredients.find(i => i.name === 'Солод');
+        const hopsOk = ingredients.find(i => i.name === 'Хмель');
+        const hasMalt = maltOk && maltOk.quantity >= needMalt;
+        const hasHops = hopsOk && hopsOk.quantity >= needHops;
+        document.getElementById('brewInfo').innerHTML =
+            `<b>${recipe.name}</b> (${STYLE_RU[recipe.style]})<br>` +
+            `Себестоимость: ${formatMoney(recipe.cost_per_liter * 100)}/100л<br>` +
+            `Варка: ${recipe.brew_time_days}д → Ферментация: ${recipe.ferment_time_days}д → Дозревание: ${recipe.condition_time_days}д<br>` +
+            `Потребуется на ${size}л: 🌾 Солод ${needMalt} кг ${hasMalt ? '✅' : '❌'}, 🌿 Хмель ${needHops} кг ${hasHops ? '✅' : '❌'}`;
     }
+
+    updateBrewInfo();
+    document.getElementById('brewSize').oninput = updateBrewInfo;
+
     document.getElementById('brewConfirmBtn').onclick = async () => {
         const size = parseFloat(document.getElementById('brewSize').value) || 50;
         try {
@@ -162,8 +184,8 @@ async function doCreateRecipe() {
     const recipe = {
         name,
         style: document.getElementById('newRecipeStyle').value,
-        malt_amount: parseFloat(document.getElementById('newRecipeMalt').value) || 5,
-        hops_amount: parseFloat(document.getElementById('newRecipeHops').value) || 0.5,
+        malt_amount: (parseFloat(document.getElementById('newRecipeMalt').value) || 50) / 10,
+        hops_amount: (parseFloat(document.getElementById('newRecipeHops').value) || 5) / 10,
         abv: parseFloat(document.getElementById('newRecipeAbv').value) || 5,
         ibu: parseInt(document.getElementById('newRecipeIbu').value) || 20,
         cost_per_liter: parseFloat(document.getElementById('newRecipeCost').value) || 0.5,
