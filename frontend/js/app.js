@@ -16,6 +16,8 @@ function navigate(page) {
 
     const btn = document.querySelector(`[data-page="${page}"]`);
     if (btn) btn.classList.add('active');
+
+    localStorage.setItem(STORAGE_KEYS.ACTIVE_PAGE, page);
 }
 
 async function doChangeCurrency(currency) {
@@ -80,6 +82,7 @@ function updateSidebarUser() {
 
 function doLogout() {
     API.logout();
+    localStorage.removeItem(STORAGE_KEYS.ACTIVE_PAGE);
     showScreen('screen-auth');
     updateSidebarUser();
     showSuccess('Выход выполнен');
@@ -109,8 +112,17 @@ async function startNewGame() {
 async function enterGame() {
     showScreen('screen-game');
     APP_MODE = 'game';
+
+    const savedPage = localStorage.getItem(STORAGE_KEYS.ACTIVE_PAGE);
+    const validPages = ['dashboard', 'brewery', 'recipes', 'batches', 'market', 'staff', 'research', 'finance', 'leaderboard', 'help'];
+    if (savedPage && validPages.includes(savedPage)) {
+        navigate(savedPage);
+    }
+
     await loadGameState();
-    renderCurrentPage();
+    if (!savedPage || !validPages.includes(savedPage)) {
+        renderCurrentPage();
+    }
 }
 
 async function initGameFlow() {
@@ -136,10 +148,24 @@ async function initGameFlow() {
         } catch {
             await startNewGame();
         }
-    } else {
-        showScreen('screen-auth');
-        APP_MODE = 'auth';
+        return;
     }
+
+    // Guest mode: try restoring saved game
+    const savedGameId = localStorage.getItem(STORAGE_KEYS.GAME_ID);
+    if (savedGameId) {
+        try {
+            await API.loadGame(parseInt(savedGameId));
+            await enterGame();
+            return;
+        } catch {
+            localStorage.removeItem(STORAGE_KEYS.GAME_ID);
+            localStorage.removeItem(STORAGE_KEYS.ACTIVE_PAGE);
+        }
+    }
+
+    showScreen('screen-auth');
+    APP_MODE = 'auth';
 }
 
 document.addEventListener('DOMContentLoaded', async () => {

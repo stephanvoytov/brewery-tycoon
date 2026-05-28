@@ -1,8 +1,17 @@
 const API_BASE = '';
 
+const STORAGE_KEYS = {
+    GAME_ID: 'breweryGameId',
+    AUTH_TOKEN: 'authToken',
+    ACTIVE_PAGE: 'breweryActivePage',
+};
+
 const API = {
-    gameId: null,
-    authToken: localStorage.getItem('authToken'),
+    gameId: (() => {
+        const saved = localStorage.getItem(STORAGE_KEYS.GAME_ID);
+        return saved ? parseInt(saved) : null;
+    })(),
+    authToken: localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN),
     user: null,
 
     _getHeaders() {
@@ -31,6 +40,7 @@ const API = {
     async newGame() {
         const data = await this.request('POST', '/api/game/new');
         this.gameId = data.game_id;
+        localStorage.setItem(STORAGE_KEYS.GAME_ID, this.gameId);
         const el = document.getElementById('gameIdDisplay');
         if (el) el.textContent = this.gameId;
         return data;
@@ -142,6 +152,7 @@ const API = {
 
     async loadGame(id) {
         this.gameId = id;
+        localStorage.setItem(STORAGE_KEYS.GAME_ID, id);
         const el = document.getElementById('gameIdDisplay');
         if (el) el.textContent = id;
         return await this.getState();
@@ -160,7 +171,7 @@ const API = {
         const data = await res.json();
         this.authToken = data.token;
         this.user = data.user;
-        localStorage.setItem('authToken', data.token);
+        localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, data.token);
         return data;
     },
 
@@ -177,7 +188,7 @@ const API = {
         const data = await res.json();
         this.authToken = data.token;
         this.user = data.user;
-        localStorage.setItem('authToken', data.token);
+        localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, data.token);
         return data;
     },
 
@@ -190,7 +201,7 @@ const API = {
             if (!res.ok) {
                 this.authToken = null;
                 this.user = null;
-                localStorage.removeItem('authToken');
+                localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
                 return null;
             }
             this.user = await res.json();
@@ -204,7 +215,9 @@ const API = {
         this.authToken = null;
         this.user = null;
         this.gameId = null;
-        localStorage.removeItem('authToken');
+        localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.GAME_ID);
+        localStorage.removeItem(STORAGE_KEYS.ACTIVE_PAGE);
     },
 
     async restartAfterGameOver() {

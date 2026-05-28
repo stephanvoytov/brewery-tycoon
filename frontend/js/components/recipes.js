@@ -192,6 +192,9 @@ async function doBuyIngredient(id) {
         showSuccess(`Куплено ${qty} кг за ${formatMoney(res.cost)}`);
         await loadGameState();
         renderRecipes();
+        if (brewRecipeId !== null) {
+            showBrewModal(brewRecipeId);
+        }
     } catch (e) {
         showError(e.message);
     }
