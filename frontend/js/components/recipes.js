@@ -17,8 +17,8 @@ function renderRecipes() {
                             <th>Стиль</th>
                             <th title="ABV (Alcohol By Volume) — крепость пива в процентах">ABV</th>
                             <th title="IBU (International Bitterness Units) — горечь пива от хмеля">IBU</th>
-                            <th title="Солод на 100л пива">🌾 Солод/100л</th>
-                            <th title="Хмель на 100л пива">🌿 Хмель/100л</th>
+                            <th title="Солод на 100л">🌾 Солод</th>
+                            <th title="Хмель на 100л">🌿 Хмель</th>
                             <th>Себест./100л</th>
                             <th></th>
                         </tr>
@@ -29,8 +29,8 @@ function renderRecipes() {
                                 <td title="${STYLE_INFO[r.style] || ''}">${STYLE_RU[r.style] || r.style}</td>
                                 <td>${r.abv}%</td>
                                 <td>${r.ibu}</td>
-                                <td>${((r.malt_amount || 0) * 10).toFixed(1)} кг</td>
-                                <td>${((r.hops_amount || 0) * 10).toFixed(1)} кг</td>
+                                <td title="${r.malt_ingredient_name || ''}">${r.malt_ingredient_name ? r.malt_ingredient_name.substring(6) + ' ' + ((r.malt_amount || 0) * 10).toFixed(1) + 'кг' : ((r.malt_amount || 0) * 10).toFixed(1) + ' кг'}</td>
+                                <td title="${r.hops_ingredient_name || ''}">${r.hops_ingredient_name ? r.hops_ingredient_name.substring(6) + ' ' + ((r.hops_amount || 0) * 10).toFixed(1) + 'кг' : ((r.hops_amount || 0) * 10).toFixed(1) + ' кг'}</td>
                                 <td>${formatMoney(r.cost_per_liter * 100)}</td>
                                 <td><button class="btn btn-sm btn-primary" onclick="showBrewModal(${r.id})">Варить</button></td>
                             </tr>
@@ -84,9 +84,10 @@ function renderRecipes() {
                 </div>
                 <div class="form-group">
                     <label>Стиль</label>
-                    <select id="newRecipeStyle">
+                    <select id="newRecipeStyle" onchange="updateIngredientRecs()">
                         ${Object.entries(STYLE_RU).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
                     </select>
+                    <div id="styleRec" style="font-size:0.75rem;color:var(--text-dim);margin-top:4px"></div>
                 </div>
                 <div class="form-group">
                     <label>ABV (%)</label>
@@ -95,29 +96,38 @@ function renderRecipes() {
             </div>
             <div class="form-row">
                 <div class="form-group">
+                    <label>🌾 Солод</label>
+                    <select id="newRecipeMaltName" onchange="updateRecipeCost()">${(ingredients || []).filter(i => i.type === 'malt').map(i => `<option value="${i.name}" data-cost="${i.unit_cost}">${i.name} (${formatMoney(i.unit_cost)}/кг)</option>`).join('')}</select>
+                </div>
+                <div class="form-group">
                     <label>Солод (кг/100л)</label>
-                    <input type="number" id="newRecipeMalt" value="50" step="1">
+                    <input type="number" id="newRecipeMalt" value="50" step="1" oninput="updateRecipeCost()">
+                </div>
+                <div class="form-group">
+                    <label>🌿 Хмель</label>
+                    <select id="newRecipeHopsName" onchange="updateRecipeCost()">${(ingredients || []).filter(i => i.type === 'hops').map(i => `<option value="${i.name}" data-cost="${i.unit_cost}">${i.name} (${formatMoney(i.unit_cost)}/кг)</option>`).join('')}</select>
                 </div>
                 <div class="form-group">
                     <label>Хмель (кг/100л)</label>
-                    <input type="number" id="newRecipeHops" value="5" step="0.5">
+                    <input type="number" id="newRecipeHops" value="5" step="0.5" oninput="updateRecipeCost()">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>🧫 Дрожжи</label>
+                    <select id="newRecipeYeastName" onchange="updateRecipeCost()">${(ingredients || []).filter(i => i.type === 'yeast').map(i => `<option value="${i.name}" data-cost="${i.unit_cost}">${i.name} (${formatMoney(i.unit_cost)}/кг)</option>`).join('')}</select>
                 </div>
                 <div class="form-group">
                     <label>IBU</label>
                     <input type="number" id="newRecipeIbu" value="25">
                 </div>
-                <div class="form-group">
-                    <label>Себест./л</label>
-                    <input type="number" id="newRecipeCost" value="0.5" step="0.1">
-                </div>
-                <div class="form-group">
-                    <label>Цена/л</label>
-                    <input type="number" id="newRecipePrice" value="2.0" step="0.1">
-                </div>
             </div>
+            <div id="recipeCostPreview" style="margin:8px 0;font-size:0.85rem;color:var(--accent-light)"></div>
             <button class="btn btn-success" onclick="doCreateRecipe()">Создать рецепт</button>
         </div>
     `;
+    updateIngredientRecs();
+    updateRecipeCost();
 }
 
 let brewRecipeId = null;
@@ -134,17 +144,26 @@ function showBrewModal(recipeId) {
         const size = parseFloat(document.getElementById('brewSize').value) || 50;
         const maltPerL = (recipe.malt_amount || 0) / 10;
         const hopsPerL = (recipe.hops_amount || 0) / 10;
+        const yeastPerL = 0.1 / 10;
         const needMalt = (maltPerL * size).toFixed(1);
         const needHops = (hopsPerL * size).toFixed(1);
-        const maltOk = ingredients.find(i => i.name === 'Солод');
-        const hopsOk = ingredients.find(i => i.name === 'Хмель');
-        const hasMalt = maltOk && maltOk.quantity >= needMalt;
-        const hasHops = hopsOk && hopsOk.quantity >= needHops;
+        const needYeast = (yeastPerL * size).toFixed(2);
+        const maltIng = ingredients.find(i => i.name === recipe.malt_ingredient_name);
+        const hopsIng = ingredients.find(i => i.name === recipe.hops_ingredient_name);
+        const yeastIng = ingredients.find(i => i.name === recipe.yeast_ingredient_name);
+        const hasMalt = maltIng && maltIng.quantity >= needMalt;
+        const hasHops = hopsIng && hopsIng.quantity >= needHops;
+        const hasYeast = yeastIng && yeastIng.quantity >= needYeast;
+        const totalOk = hasMalt && hasHops && hasYeast;
         document.getElementById('brewInfo').innerHTML =
             `<b>${recipe.name}</b> (${STYLE_RU[recipe.style]})<br>` +
             `Себестоимость: ${formatMoney(recipe.cost_per_liter * 100)}/100л<br>` +
             `Варка: ${recipe.brew_time_days}д → Ферментация: ${recipe.ferment_time_days}д → Дозревание: ${recipe.condition_time_days}д<br>` +
-            `Потребуется на ${size}л: 🌾 Солод ${needMalt} кг ${hasMalt ? '✅' : '❌'}, 🌿 Хмель ${needHops} кг ${hasHops ? '✅' : '❌'}`;
+            `Потребуется на ${size}л:<br>` +
+            `🌾 ${recipe.malt_ingredient_name || 'Солод'}: ${needMalt} кг ${hasMalt ? '✅' : '❌'}<br>` +
+            `🌿 ${recipe.hops_ingredient_name || 'Хмель'}: ${needHops} кг ${hasHops ? '✅' : '❌'}<br>` +
+            `🧫 ${recipe.yeast_ingredient_name || 'Дрожжи'}: ${needYeast} кг ${hasYeast ? '✅' : '❌'}<br>` +
+            `<span style="color:${totalOk ? 'var(--green)' : 'var(--red)'};font-weight:bold">${totalOk ? '✅ Ингредиентов достаточно' : '❌ Пополните запасы'}</span>`;
     }
 
     updateBrewInfo();
@@ -178,19 +197,46 @@ async function doBuyIngredient(id) {
     }
 }
 
+function updateIngredientRecs() {
+    const style = document.getElementById('newRecipeStyle')?.value;
+    const rec = STYLE_RECS && STYLE_RECS[style];
+    const el = document.getElementById('styleRec');
+    if (rec) {
+        el.innerHTML = `⭐ Рекомендовано: 🌾${rec.malt}, 🌿${rec.hops}, 🧫${rec.yeast}`;
+    } else {
+        el.innerHTML = '';
+    }
+}
+
+function updateRecipeCost() {
+    const maltSel = document.getElementById('newRecipeMaltName');
+    const hopsSel = document.getElementById('newRecipeHopsName');
+    const yeastSel = document.getElementById('newRecipeYeastName');
+    if (!maltSel || !hopsSel || !yeastSel) return;
+    const maltCost = parseFloat(maltSel.options[maltSel.selectedIndex]?.dataset?.cost || 1);
+    const hopsCost = parseFloat(hopsSel.options[hopsSel.selectedIndex]?.dataset?.cost || 1);
+    const yeastCost = parseFloat(yeastSel.options[yeastSel.selectedIndex]?.dataset?.cost || 1);
+    const maltAmount = (parseFloat(document.getElementById('newRecipeMalt').value) || 50) / 10;
+    const hopsAmount = (parseFloat(document.getElementById('newRecipeHops').value) || 5) / 10;
+    const costPerLiter = (maltCost * maltAmount + hopsCost * hopsAmount + yeastCost * 0.1) / 10;
+    const pricePerLiter = costPerLiter * 3.5;
+    document.getElementById('recipeCostPreview').innerHTML =
+        `Расчёт: себест. ${formatMoney(costPerLiter * 100)}/100л, цена продажи ${formatMoney(pricePerLiter * 100)}/100л`;
+}
+
 async function doCreateRecipe() {
     const name = document.getElementById('newRecipeName').value.trim();
     if (!name) { showError('Введите название рецепта'); return; }
     const recipe = {
         name,
         style: document.getElementById('newRecipeStyle').value,
+        malt_ingredient_name: document.getElementById('newRecipeMaltName').value,
+        hops_ingredient_name: document.getElementById('newRecipeHopsName').value,
+        yeast_ingredient_name: document.getElementById('newRecipeYeastName').value,
         malt_amount: (parseFloat(document.getElementById('newRecipeMalt').value) || 50) / 10,
         hops_amount: (parseFloat(document.getElementById('newRecipeHops').value) || 5) / 10,
         abv: parseFloat(document.getElementById('newRecipeAbv').value) || 5,
         ibu: parseInt(document.getElementById('newRecipeIbu').value) || 20,
-        cost_per_liter: parseFloat(document.getElementById('newRecipeCost').value) || 0.5,
-        base_price_per_liter: parseFloat(document.getElementById('newRecipePrice').value) || 2.0,
-        yeast_type: 'standard',
         adjuncts_amount: 0,
         srm: 5,
         complexity: 1,

@@ -32,6 +32,21 @@ STAFF_NAMES = [
     "Павел Борисов", "Татьяна Кузнецова", "Николай Фёдоров", "Юрий Семёнов"
 ]
 
+STYLE_INGREDIENT_MAP = {
+    BeerStyle.lager: {"malt": "Солод Пильзнер", "hops": "Хмель Сааз", "yeast": "Дрожжи Лагерные"},
+    BeerStyle.ale: {"malt": "Солод Карамельный", "hops": "Хмель Каскад", "yeast": "Дрожжи Элевые"},
+    BeerStyle.stout: {"malt": "Солод Тёмный", "hops": "Хмель Магнум", "yeast": "Дрожжи Элевые"},
+    BeerStyle.ipa: {"malt": "Солод Пильзнер", "hops": "Хмель Цитра", "yeast": "Дрожжи Элевые"},
+    BeerStyle.porter: {"malt": "Солод Тёмный", "hops": "Хмель Магнум", "yeast": "Дрожжи Элевые"},
+    BeerStyle.wheat: {"malt": "Солод Пшеничный", "hops": "Хмель Сааз", "yeast": "Дрожжи Пшеничные"},
+    BeerStyle.pilsner: {"malt": "Солод Пильзнер", "hops": "Хмель Сааз", "yeast": "Дрожжи Лагерные"},
+    BeerStyle.sour: {"malt": "Солод Пильзнер", "hops": "Хмель Каскад", "yeast": "Дрожжи Штамм Бельгийский"},
+    BeerStyle.bock: {"malt": "Солод Карамельный", "hops": "Хмель Магнум", "yeast": "Дрожжи Лагерные"},
+    BeerStyle.pale_ale: {"malt": "Солод Пильзнер", "hops": "Хмель Каскад", "yeast": "Дрожжи Элевые"},
+    BeerStyle.amber_ale: {"malt": "Солод Карамельный", "hops": "Хмель Каскад", "yeast": "Дрожжи Элевые"},
+    BeerStyle.belgian_tripel: {"malt": "Солод Пильзнер", "hops": "Хмель Сааз", "yeast": "Дрожжи Штамм Бельгийский"},
+}
+
 BUYER_NAMES = [
     "Бар 'Тёмная лошадка'", "Ресторан 'Прага'", "Магазин 'Пивной рай'",
     "Бар 'Крафт & Ко'", "Отель 'Центральный'", "Спорт-бар 'Гол'",
@@ -39,19 +54,32 @@ BUYER_NAMES = [
     "Бар 'Пенная история'"
 ]
 
+def _make_recipe(name, style, malt_amount, hops_amount, abv, ibu, srm, brew_time, ferment_time, condition_time):
+    ing = STYLE_INGREDIENT_MAP[style]
+    return {
+        "name": name, "style": style,
+        "malt_amount": malt_amount, "hops_amount": hops_amount,
+        "malt_ingredient_name": ing["malt"], "hops_ingredient_name": ing["hops"],
+        "yeast_ingredient_name": ing["yeast"],
+        "abv": abv, "ibu": ibu, "srm": srm,
+        "brew_time_days": brew_time, "ferment_time_days": ferment_time,
+        "condition_time_days": condition_time,
+        "cost_per_liter": 0, "base_price_per_liter": 0,
+    }
+
 RECIPE_TEMPLATES = [
-    {"name": "Классический Лагер", "style": BeerStyle.lager, "malt_amount": 4.5, "hops_amount": 0.3, "abv": 4.8, "ibu": 18, "srm": 3, "brew_time_days": 1, "ferment_time_days": 7, "condition_time_days": 14, "cost_per_liter": 0.4, "base_price_per_liter": 1.8},
-    {"name": "Золотой Эль", "style": BeerStyle.ale, "malt_amount": 5.0, "hops_amount": 0.4, "abv": 5.2, "ibu": 25, "srm": 6, "brew_time_days": 1, "ferment_time_days": 4, "condition_time_days": 5, "cost_per_liter": 0.45, "base_price_per_liter": 2.0},
-    {"name": "Тёмный Стаут", "style": BeerStyle.stout, "malt_amount": 6.5, "hops_amount": 0.5, "abv": 5.5, "ibu": 35, "srm": 40, "brew_time_days": 1, "ferment_time_days": 5, "condition_time_days": 10, "cost_per_liter": 0.55, "base_price_per_liter": 2.5},
-    {"name": "Хмельная IPA", "style": BeerStyle.ipa, "malt_amount": 5.5, "hops_amount": 1.5, "abv": 6.5, "ibu": 70, "srm": 8, "brew_time_days": 1, "ferment_time_days": 5, "condition_time_days": 7, "cost_per_liter": 0.6, "base_price_per_liter": 3.0},
-    {"name": "Портер", "style": BeerStyle.porter, "malt_amount": 6.0, "hops_amount": 0.6, "abv": 5.8, "ibu": 30, "srm": 30, "brew_time_days": 1, "ferment_time_days": 5, "condition_time_days": 12, "cost_per_liter": 0.5, "base_price_per_liter": 2.3},
-    {"name": "Пшеничное", "style": BeerStyle.wheat, "malt_amount": 4.5, "hops_amount": 0.3, "abv": 4.5, "ibu": 12, "srm": 4, "brew_time_days": 1, "ferment_time_days": 4, "condition_time_days": 4, "cost_per_liter": 0.4, "base_price_per_liter": 1.9},
-    {"name": "Пильзнер", "style": BeerStyle.pilsner, "malt_amount": 4.0, "hops_amount": 0.4, "abv": 4.5, "ibu": 22, "srm": 3, "brew_time_days": 1, "ferment_time_days": 6, "condition_time_days": 14, "cost_per_liter": 0.4, "base_price_per_liter": 1.8},
-    {"name": "Кислый Эль", "style": BeerStyle.sour, "malt_amount": 4.5, "hops_amount": 0.2, "abv": 4.0, "ibu": 8, "srm": 5, "brew_time_days": 1, "ferment_time_days": 10, "condition_time_days": 20, "cost_per_liter": 0.6, "base_price_per_liter": 3.2},
-    {"name": "Бок", "style": BeerStyle.bock, "malt_amount": 7.0, "hops_amount": 0.4, "abv": 7.0, "ibu": 20, "srm": 20, "brew_time_days": 1, "ferment_time_days": 7, "condition_time_days": 21, "cost_per_liter": 0.55, "base_price_per_liter": 2.8},
-    {"name": "Пэйл Эль", "style": BeerStyle.pale_ale, "malt_amount": 5.0, "hops_amount": 0.8, "abv": 5.5, "ibu": 40, "srm": 10, "brew_time_days": 1, "ferment_time_days": 4, "condition_time_days": 7, "cost_per_liter": 0.5, "base_price_per_liter": 2.2},
-    {"name": "Янтарный Эль", "style": BeerStyle.amber_ale, "malt_amount": 5.2, "hops_amount": 0.6, "abv": 5.5, "ibu": 28, "srm": 18, "brew_time_days": 1, "ferment_time_days": 4, "condition_time_days": 7, "cost_per_liter": 0.5, "base_price_per_liter": 2.2},
-    {"name": "Бельгийский Трипель", "style": BeerStyle.belgian_tripel, "malt_amount": 7.5, "hops_amount": 0.5, "abv": 9.5, "ibu": 25, "srm": 6, "brew_time_days": 1, "ferment_time_days": 8, "condition_time_days": 21, "cost_per_liter": 0.7, "base_price_per_liter": 3.5},
+    _make_recipe("Классический Лагер", BeerStyle.lager, 4.5, 0.3, 4.8, 18, 3, 1, 7, 14),
+    _make_recipe("Золотой Эль", BeerStyle.ale, 5.0, 0.4, 5.2, 25, 6, 1, 4, 5),
+    _make_recipe("Тёмный Стаут", BeerStyle.stout, 6.5, 0.5, 5.5, 35, 40, 1, 5, 10),
+    _make_recipe("Хмельная IPA", BeerStyle.ipa, 5.5, 1.5, 6.5, 70, 8, 1, 5, 7),
+    _make_recipe("Портер", BeerStyle.porter, 6.0, 0.6, 5.8, 30, 30, 1, 5, 12),
+    _make_recipe("Пшеничное", BeerStyle.wheat, 4.5, 0.3, 4.5, 12, 4, 1, 4, 4),
+    _make_recipe("Пильзнер", BeerStyle.pilsner, 4.0, 0.4, 4.5, 22, 3, 1, 6, 14),
+    _make_recipe("Кислый Эль", BeerStyle.sour, 4.5, 0.2, 4.0, 8, 5, 1, 10, 20),
+    _make_recipe("Бок", BeerStyle.bock, 7.0, 0.4, 7.0, 20, 20, 1, 7, 21),
+    _make_recipe("Пэйл Эль", BeerStyle.pale_ale, 5.0, 0.8, 5.5, 40, 10, 1, 4, 7),
+    _make_recipe("Янтарный Эль", BeerStyle.amber_ale, 5.2, 0.6, 5.5, 28, 18, 1, 4, 7),
+    _make_recipe("Бельгийский Трипель", BeerStyle.belgian_tripel, 7.5, 0.5, 9.5, 25, 6, 1, 8, 21),
 ]
 
 INGREDIENT_TEMPLATES = [
@@ -122,6 +150,21 @@ def init_new_game(db: Session) -> GameState:
         )
         db.add(ingredient)
 
+    db.flush()
+
+    def _unit_cost(name):
+        for ing in INGREDIENT_TEMPLATES:
+            if ing["name"] == name:
+                return ing["unit_cost"]
+        return 1.0
+
+    for recipe in db.query(BeerRecipe).filter(BeerRecipe.game_state_id == game.id).all():
+        malt_cost = _unit_cost(recipe.malt_ingredient_name) * recipe.malt_amount
+        hops_cost = _unit_cost(recipe.hops_ingredient_name) * recipe.hops_amount
+        yeast_cost = _unit_cost(recipe.yeast_ingredient_name) * 0.1
+        recipe.cost_per_liter = (malt_cost + hops_cost + yeast_cost) / 10
+        recipe.base_price_per_liter = recipe.cost_per_liter * 3.5
+
     for eq in get_available_equipment(1):
         equipment = Equipment(
             game_state_id=game.id,
@@ -159,9 +202,11 @@ def process_tick(game: GameState, db: Session) -> list:
     total_efficiency = 1.0 + sum(eq.efficiency_bonus for eq in equipment_owned)
 
     all_staff = db.query(Staff).filter(Staff.game_state_id == game.id).all()
-    staff_efficiency = 1.0 + sum(
-        s.skill_level * StaffSkill.EFFICIENCY_PER_SKILL for s in all_staff
-    )
+    brewer_skill = sum(s.skill_level for s in all_staff if s.role == StaffRole.brewer)
+    sales_skill = sum(s.skill_level for s in all_staff if s.role == StaffRole.sales)
+    admin_skill = sum(s.skill_level for s in all_staff if s.role == StaffRole.admin)
+
+    staff_efficiency = 1.0 + brewer_skill * StaffSkill.EFFICIENCY_PER_SKILL
     total_efficiency *= staff_efficiency
 
     brewery = db.query(Brewery).filter(Brewery.game_state_id == game.id).first()
@@ -205,10 +250,7 @@ def process_tick(game: GameState, db: Session) -> list:
                 batch.stage_progress = 0
                 batch.days_in_stage = 0
 
-                quality = 50.0
-                quality += recipe.complexity * 5
-                quality += (brewery.quality_bonus * 10)
-                quality += random.uniform(-5, 10)
+                quality = (batch.quality or 50) + recipe.complexity * 5 + (brewery.quality_bonus or 0) * 10 + random.uniform(-5, 10)
                 quality = max(10, min(100, quality))
                 batch.quality = quality
                 events.append(f"Партия #{batch.id} начала ферментацию (качество: {quality:.0f})")
@@ -240,7 +282,8 @@ def process_tick(game: GameState, db: Session) -> list:
             batch = matching_batches[0]
             deliver_amount = min(batch.batch_size_liters, contract.quantity_liters - contract.delivered_liters)
             if deliver_amount > 0:
-                revenue = deliver_amount * contract.price_per_liter
+                sales_bonus = 1.0 + sales_skill * 0.02
+                revenue = deliver_amount * contract.price_per_liter * sales_bonus
                 game.money += revenue
                 game.total_revenue += revenue
                 game.daily_revenue += revenue
@@ -307,10 +350,12 @@ def process_tick(game: GameState, db: Session) -> list:
                 brewery.quality_bonus += effect["quality_bonus"]
             events.append(f"Исследование '{res.name}' завершено!")
 
-    game.money -= brewery.rent
-    game.total_expenses += brewery.rent
-    game.daily_expenses += brewery.rent
-    events.append(f"Аренда: ${brewery.rent:.0f}")
+    admin_discount = max(0, 1.0 - admin_skill * 0.02)
+    effective_rent = brewery.rent * admin_discount
+    game.money -= effective_rent
+    game.total_expenses += effective_rent
+    game.daily_expenses += effective_rent
+    events.append(f"Аренда: ${effective_rent:.0f}")
 
     if game.bank_loan > 0:
         interest = game.bank_loan * Loan.DAILY_INTEREST_RATE

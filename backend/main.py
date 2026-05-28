@@ -16,6 +16,13 @@ if "user_id" not in cols:
         conn.execute(text("ALTER TABLE game_states ADD COLUMN user_id INTEGER REFERENCES users(id)"))
         conn.commit()
 
+recipe_cols = [c["name"] for c in insp.get_columns("beer_recipes")]
+for col_name, default in [("malt_ingredient_name", "'Солод Пильзнер'"), ("hops_ingredient_name", "'Хмель Каскад'"), ("yeast_ingredient_name", "'Дрожжи Элевые'")]:
+    if col_name not in recipe_cols:
+        with engine.connect() as conn:
+            conn.execute(text(f"ALTER TABLE beer_recipes ADD COLUMN {col_name} VARCHAR DEFAULT {default}"))
+            conn.commit()
+
 app = FastAPI(title="Пивоваренный Тайкун", description="Brewery Tycoon Game API")
 
 app.add_middleware(

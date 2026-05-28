@@ -45,7 +45,9 @@ class BeerRecipeCreate(BaseModel):
     style: str
     malt_amount: float = 5.0
     hops_amount: float = 0.5
-    yeast_type: str = "standard"
+    malt_ingredient_name: str = "Солод Пильзнер"
+    hops_ingredient_name: str = "Хмель Каскад"
+    yeast_ingredient_name: str = "Дрожжи Элевые"
     adjuncts_amount: float = 0.0
     abv: float = 5.0
     ibu: int = 20
@@ -54,8 +56,6 @@ class BeerRecipeCreate(BaseModel):
     brew_time_days: int = 1
     ferment_time_days: int = 5
     condition_time_days: int = 7
-    cost_per_liter: float = 0.5
-    base_price_per_liter: float = 2.0
 
 
 class BeerRecipeSchema(BaseModel):
@@ -64,7 +64,9 @@ class BeerRecipeSchema(BaseModel):
     style: str
     malt_amount: float
     hops_amount: float
-    yeast_type: str
+    malt_ingredient_name: str = "Солод Пильзнер"
+    hops_ingredient_name: str = "Хмель Каскад"
+    yeast_ingredient_name: str = "Дрожжи Элевые"
     adjuncts_amount: float
     abv: float
     ibu: int
