@@ -89,10 +89,10 @@ function renderBrewery() {
         </div>
 
         <div class="brewery-svg-container">
-            <svg viewBox="0 0 1800 600" xmlns="http://www.w3.org/2000/svg" style="width:100%">
+            <svg viewBox="0 0 1800 900" xmlns="http://www.w3.org/2000/svg" style="width:100%">
                 <defs>
                     <clipPath id="bgClip">
-                        <rect x="10" y="10" width="1780" height="580" rx="10"/>
+                        <rect x="10" y="10" width="1780" height="880" rx="10"/>
                     </clipPath>
                     <linearGradient id="kettle_${b.building_id}" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stop-color="${v.kettle[0]}"/>
@@ -115,12 +115,13 @@ function renderBrewery() {
                 ${(() => {
                     const bg = BUILDING_BG[b.building_id] || BUILDING_BG[2];
                     const isLight = b.building_id === 6;
-                    return `<image href="${bg}" x="10" y="10" width="1780" height="580" preserveAspectRatio="xMidYMid slice" clip-path="url(#bgClip)"/>
-                    <rect x="10" y="10" width="1780" height="580" rx="10" fill="${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(0,0,0,0.12)'}"/>
-                    <rect x="10" y="470" width="1780" height="120" rx="0" fill="rgba(0,0,0,0.2)"/>`;
+                    return `<image href="${bg}" x="10" y="10" width="1780" height="880" preserveAspectRatio="xMidYMid slice" clip-path="url(#bgClip)"/>
+                    <rect x="10" y="10" width="1780" height="880" rx="10" fill="${isLight ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.35)'}"/>
+                    <rect x="10" y="10" width="1780" height="880" rx="10" fill="none" stroke="var(--border)" stroke-width="1.5"/>`;
                 })()}
 
                 <text x="900" y="38" text-anchor="middle" fill="${v.titleColor}" font-size="18" font-weight="bold">${v.title}</text>
+                <g transform="translate(0, 300)">
 
                 ${(() => {
                     const showCond = curBld.cond_tanks > 0;
@@ -292,6 +293,7 @@ function renderBrewery() {
                     }
                     return html;
                 })()}
+                </g>
 
             </svg>
         </div>
