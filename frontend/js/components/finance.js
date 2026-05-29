@@ -136,6 +136,7 @@ async function renderFinance() {
         </div>
     `;
 
+    console.log('📊 chart check:', { hasData, chartistExists: typeof Chartist !== 'undefined', el: document.getElementById('financeChart') });
     if (hasData && typeof Chartist !== 'undefined') {
         if (financeChart) { financeChart.detach(); financeChart = null; }
         const maxLen = Math.max(revenueHistory.length, expenseHistory.length);
@@ -143,7 +144,10 @@ async function renderFinance() {
         for (let i = 0; i < maxLen; i++) labels.push('День ' + (i + 1));
         const expenses = expenseHistory.length >= maxLen ? expenseHistory : [...expenseHistory, ...Array(maxLen - expenseHistory.length).fill(0)];
 
-        financeChart = new Chartist.Line('#financeChart', {
+        try {
+            const chartEl = document.getElementById('financeChart');
+            if (!chartEl) { console.warn('📊 #financeChart not in DOM'); return; }
+            financeChart = new Chartist.Line(chartEl, {
             labels,
             series: [
                 { name: 'Доходы', data: revenueHistory },
@@ -170,14 +174,17 @@ async function renderFinance() {
             chartPadding: { top: 8, right: 8, bottom: 20, left: 52 }
         });
 
-        financeChart.on('draw', function(data) {
-            if (data.type === 'point') {
-                const val = data.value.y;
-                const label = data.series.name;
-                const day = data.index + 1;
-                data.element._node.setAttribute('title', label + ': ' + formatMoney(val) + ' (День ' + day + ')');
-            }
-        });
+            financeChart.on('draw', function(data) {
+                if (data.type === 'point') {
+                    const val = data.value.y;
+                    const label = data.series.name;
+                    const day = data.index + 1;
+                    data.element._node.setAttribute('title', label + ': ' + formatMoney(val) + ' (День ' + day + ')');
+                }
+            });
+        } catch (e) {
+            console.error('📊 Chartist init failed:', e);
+        }
     }
 }
 
