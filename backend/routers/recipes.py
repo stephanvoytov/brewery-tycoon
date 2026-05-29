@@ -198,4 +198,12 @@ def start_brew(recipe_id: int, req: BrewRequest, game_id: int = None, current_us
         "message": f"Варка начата! Партия #{batch.id}{quality_note}",
         "batch_id": batch.id,
         "cost": total_ingredient_cost,
+        "quality_breakdown": {
+            "ingredient": ingredient_score,
+            "equipment": equipment_score,
+            "skill": skill_score,
+            "mastery": mastery_score,
+            "random": random_score,
+            "total": quality,
+        },
     }

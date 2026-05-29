@@ -25,6 +25,7 @@ class GameStateSchema(BaseModel):
     player_total_liters: float = 0.0
     brewing_level: int = 1
     total_batches_completed: int = 0
+    quality_history: list = []
 
     class Config:
         from_attributes = True
@@ -104,6 +105,9 @@ class BeerBatchSchema(BaseModel):
     stage_progress: int
     quality: float
     days_in_stage: int
+    actual_abv: float = 0.0
+    actual_ibu: int = 0
+    actual_srm: int = 0
 
     class Config:
         from_attributes = True

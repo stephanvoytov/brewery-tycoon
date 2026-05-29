@@ -127,6 +127,13 @@ function renderDashboard() {
             </div>
         </div>
 
+        <div class="card">
+            <h3>⭐ История качества (последние 30 партий)</h3>
+            <div id="qualityChartContainer">
+                ${renderQualityChart(s.quality_history || [])}
+            </div>
+        </div>
+
         <div id="eventChoiceModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:10000;align-items:center;justify-content:center">
             <div style="background:var(--bg-card);border:2px solid var(--accent);border-radius:16px;padding:32px;max-width:500px;text-align:center">
                 <div style="font-size:48px;margin-bottom:12px">⚖️</div>
@@ -240,4 +247,67 @@ async function resolveEventChoice(eventId, choice) {
     } catch (e) {
         showError(e.message);
     }
+}
+
+function renderQualityChart(history) {
+    if (!history || history.length === 0) {
+        return '<div class="empty-state">Нет завершённых партий. Сварите пиво!</div>';
+    }
+
+    const w = 600, h = 180, pad = { top: 10, right: 10, bottom: 25, left: 35 };
+    const chartW = w - pad.left - pad.right;
+    const chartH = h - pad.top - pad.bottom;
+
+    const minQ = Math.max(0, Math.min(...history.map(d => d.quality)) - 5);
+    const maxQ = Math.min(100, Math.max(...history.map(d => d.quality)) + 5);
+    const range = maxQ - minQ || 1;
+
+    const xScale = (i) => pad.left + (i / Math.max(1, history.length - 1)) * chartW;
+    const yScale = (v) => pad.top + chartH - ((v - minQ) / range) * chartH;
+
+    const line = history.map((d, i) => `${i === 0 ? 'M' : 'L'}${xScale(i).toFixed(1)},${yScale(d.quality).toFixed(1)}`).join(' ');
+
+    const bars = history.map((d, i) => {
+        const x = xScale(i) - (chartW / Math.max(1, history.length)) * 0.3;
+        const barW = Math.max(3, (chartW / Math.max(1, history.length)) * 0.6);
+        const barH = chartH - ((d.quality - minQ) / range) * chartH;
+        const color = d.quality >= 70 ? '#4caf50' : d.quality >= 40 ? '#ff9800' : '#f44336';
+        return `<rect x="${x}" y="${pad.top + barH}" width="${barW}" height="${chartH - barH}" fill="${color}" opacity="0.6" rx="2">
+                    <title>День ${d.day}: ${d.quality}% — ${d.name || ''}</title>
+                </rect>`;
+    }).join('');
+
+    const yTicks = [];
+    for (let v = Math.ceil(minQ / 10) * 10; v <= maxQ; v += 10) {
+        yTicks.push(v);
+    }
+    const yGrid = yTicks.map(v => {
+        const y = yScale(v);
+        return `<line x1="${pad.left}" y1="${y}" x2="${w - pad.right}" y2="${y}" stroke="#2a3a5a" stroke-width="1" stroke-dasharray="3,3"/>`;
+    }).join('');
+    const yLabels = yTicks.map(v => {
+        const y = yScale(v);
+        return `<text x="${pad.left - 5}" y="${y + 4}" text-anchor="end" fill="#8a8a7a" font-size="10">${v}</text>`;
+    }).join('');
+
+    const xLabels = history.filter((_, i) => i % Math.max(1, Math.floor(history.length / 6)) === 0 || i === history.length - 1)
+        .map((d, _, arr) => {
+            const i = history.indexOf(d);
+            const x = xScale(i);
+            return `<text x="${x}" y="${h - 5}" text-anchor="middle" fill="#8a8a7a" font-size="9">Д${d.day}</text>`;
+        }).join('');
+
+    const avgQ = Math.round(history.reduce((s, d) => s + d.quality, 0) / history.length);
+    const avgY = yScale(avgQ);
+    const avgLine = avgQ >= minQ && avgQ <= maxQ ? `<line x1="${pad.left}" y1="${avgY}" x2="${w - pad.right}" y2="${avgY}" stroke="#f39c12" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <text x="${w - pad.right + 2}" y="${avgY + 4}" fill="#f39c12" font-size="10">Ø${avgQ}</text>` : '';
+
+    return `<svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" style="max-width:100%">
+        ${yGrid}
+        ${bars}
+        <path d="${line}" fill="none" stroke="#e0dcd0" stroke-width="2" opacity="0.7"/>
+        ${avgLine}
+        ${yLabels}
+        ${xLabels}
+    </svg>`;
 }

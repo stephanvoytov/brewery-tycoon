@@ -560,6 +560,28 @@ def process_tick(game: GameState, db: Session) -> dict:
                 quality = (batch.quality or 50) * 0.7 + recipe.complexity * 5 + (brewery.quality_bonus or 0) * 10 + random.uniform(-5, 10)
                 quality = max(10, min(100, quality))
                 batch.quality = quality
+
+                hp = recipe.hidden_params or {}
+                mash_temp = hp.get("mash_temp", "medium")
+                water_type = hp.get("water_type", "soft")
+                abv_mod = 1.0
+                ibu_mod = 1.0
+                srm_mod = 1.0
+                if mash_temp == "low":
+                    abv_mod = 1.10
+                    srm_mod = 0.95
+                elif mash_temp == "high":
+                    abv_mod = 0.90
+                    srm_mod = 1.05
+                if water_type == "hard":
+                    ibu_mod = 1.10
+                    srm_mod = 1.05
+                elif water_type == "soft":
+                    ibu_mod = 0.95
+                batch.actual_abv = round(recipe.abv * abv_mod, 1)
+                batch.actual_ibu = max(1, int(recipe.ibu * ibu_mod))
+                batch.actual_srm = max(1, int(recipe.srm * srm_mod))
+
                 events.append(f"Партия #{batch.id} начала ферментацию (качество: {quality:.0f})")
             elif batch.stage == BatchStage.ferment:
                 batch.stage = BatchStage.condition
@@ -572,6 +594,12 @@ def process_tick(game: GameState, db: Session) -> dict:
                 recipe.mastery_count = (recipe.mastery_count or 0) + 1
                 game.total_batches_completed = (game.total_batches_completed or 0) + 1
                 game.brewing_level = min(10, 1 + (game.total_batches_completed // 5))
+                quality_val = round(batch.quality or 50)
+                qh = list(game.quality_history or [])
+                qh.append({"day": game.day, "quality": quality_val, "name": recipe.name})
+                if len(qh) > 30:
+                    qh = qh[-30:]
+                game.quality_history = qh
                 if batch.quality and batch.quality < 30:
                     game.reputation = max(0, game.reputation - 10)
                     events.append(f"⚠️ Партия #{batch.id} получена с качеством {batch.quality:.0f}! Репутация -10, пивоварня простаивает")

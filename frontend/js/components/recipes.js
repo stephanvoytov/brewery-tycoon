@@ -175,6 +175,13 @@ function showBrewModal(recipeId) {
         const hasHops = hopsIng && hopsIng.quantity >= needHops;
         const hasYeast = yeastIng && yeastIng.quantity >= needYeast;
         const totalOk = hasMalt && hasHops && hasYeast;
+
+        const ingScore = 40 - (recipe.malt_ingredient_name && STYLE_RECS[recipe.style] && recipe.malt_ingredient_name !== STYLE_RECS[recipe.style].malt ? 10 : 0) - (recipe.hops_ingredient_name && STYLE_RECS[recipe.style] && recipe.hops_ingredient_name !== STYLE_RECS[recipe.style].hops ? 10 : 0) - (recipe.yeast_ingredient_name && STYLE_RECS[recipe.style] && recipe.yeast_ingredient_name !== STYLE_RECS[recipe.style].yeast ? 5 : 0);
+        const eqScore = GAME_STATE.equipment && GAME_STATE.equipment.length ? Math.round(30 * GAME_STATE.equipment.filter(e => e.is_owned).reduce((s, e) => s + (e.wear_tear || 100), 0) / Math.max(1, GAME_STATE.equipment.filter(e => e.is_owned).length) / 100) : 30;
+        const skillScore = Math.min(20, (GAME_STATE.game.brewing_level || 1) * 2);
+        const mastScore = Math.min(5, Math.floor((recipe.mastery_count || 0) * 0.5));
+        const estQuality = Math.min(100, Math.max(10, ingScore + eqScore + skillScore + mastScore));
+
         document.getElementById('brewInfo').innerHTML =
             `<b>${recipe.name}</b> (${STYLE_RU[recipe.style]})<br>` +
             `Себестоимость: ${formatMoney(recipe.cost_per_liter * 100)}/100л<br>` +
@@ -183,7 +190,11 @@ function showBrewModal(recipeId) {
             `🌾 ${recipe.malt_ingredient_name || 'Солод'}: ${needMalt} кг ${hasMalt ? '✅' : '❌'}<br>` +
             `🌿 ${recipe.hops_ingredient_name || 'Хмель'}: ${needHops} кг ${hasHops ? '✅' : '❌'}<br>` +
             `🧫 ${recipe.yeast_ingredient_name || 'Дрожжи'}: ${needYeast} кг ${hasYeast ? '✅' : '❌'}<br>` +
-            `<span style="color:${totalOk ? 'var(--green)' : 'var(--red)'};font-weight:bold">${totalOk ? '✅ Ингредиентов достаточно' : '❌ Пополните запасы'}</span>`;
+            `<span style="color:${totalOk ? 'var(--green)' : 'var(--red)'};font-weight:bold">${totalOk ? '✅ Ингредиентов достаточно' : '❌ Пополните запасы'}</span><br>` +
+            `<div style="margin-top:8px;font-size:0.8rem;border-top:1px solid var(--border);padding-top:6px">` +
+            `<b>⭐ Прогноз качества ≈${estQuality}</b><br>` +
+            `<span class="text-dim">🌾 Ингредиенты ${ingScore}/40 · ⚙️ Оборудование ${eqScore}/30 · 🧑‍🍳 Навык ${skillScore}/20 · ⭐ Мастерство ${mastScore}/5 · 🎲 ±5</span>` +
+            `</div>`;
     }
 
     updateBrewInfo();
@@ -193,7 +204,12 @@ function showBrewModal(recipeId) {
         const size = parseFloat(document.getElementById('brewSize').value) || 50;
         try {
             const res = await API.startBrew(recipeId, size);
-            showSuccess(res.message);
+            const qb = res.quality_breakdown;
+            let detail = '';
+            if (qb) {
+                detail = `\n⭐ Качество: ${qb.total} (🌾${qb.ingredient} ⚙️${qb.equipment} 🧑‍🍳${qb.skill} ⭐${qb.mastery} 🎲${qb.random > 0 ? '+' : ''}${qb.random})`;
+            }
+            showSuccess(res.message + detail);
             await loadGameState();
             modal.style.display = 'none';
             renderRecipes();

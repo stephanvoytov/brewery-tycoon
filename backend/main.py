@@ -46,10 +46,15 @@ for col_name in ["has_insurance", "player_total_liters"]:
                 conn.execute(text("ALTER TABLE game_states ADD COLUMN player_total_liters FLOAT DEFAULT 0.0"))
             conn.commit()
 
-for col_name in ["brewing_level", "total_batches_completed"]:
+for col_name in ["brewing_level", "total_batches_completed", "quality_history"]:
     if col_name not in game_cols:
         with engine.connect() as conn:
-            conn.execute(text(f"ALTER TABLE game_states ADD COLUMN {col_name} INTEGER DEFAULT 1" if col_name == "brewing_level" else f"ALTER TABLE game_states ADD COLUMN {col_name} INTEGER DEFAULT 0"))
+            if col_name == "brewing_level":
+                conn.execute(text("ALTER TABLE game_states ADD COLUMN brewing_level INTEGER DEFAULT 1"))
+            elif col_name == "total_batches_completed":
+                conn.execute(text("ALTER TABLE game_states ADD COLUMN total_batches_completed INTEGER DEFAULT 0"))
+            elif col_name == "quality_history":
+                conn.execute(text("ALTER TABLE game_states ADD COLUMN quality_history JSON DEFAULT '[]'"))
             conn.commit()
 
 eq_cols = [c["name"] for c in insp.get_columns("equipment")]
@@ -63,6 +68,13 @@ for col_name, col_type in [("mastery_count", "INTEGER DEFAULT 0"), ("hidden_para
     if col_name not in recipe_cols_new:
         with engine.connect() as conn:
             conn.execute(text(f"ALTER TABLE beer_recipes ADD COLUMN {col_name} {col_type}"))
+            conn.commit()
+
+batch_cols = [c["name"] for c in insp.get_columns("beer_batches")]
+for col_name, col_type in [("actual_abv", "FLOAT DEFAULT 0.0"), ("actual_ibu", "INTEGER DEFAULT 0"), ("actual_srm", "INTEGER DEFAULT 0")]:
+    if col_name not in batch_cols:
+        with engine.connect() as conn:
+            conn.execute(text(f"ALTER TABLE beer_batches ADD COLUMN {col_name} {col_type}"))
             conn.commit()
 
 app = FastAPI(title="Пивоваренный Тайкун", description="Brewery Tycoon Game API")

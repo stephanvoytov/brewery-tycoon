@@ -109,6 +109,7 @@ class GameState(Base):
     player_total_liters = Column(Float, default=0.0)
     brewing_level = Column(Integer, default=1)
     total_batches_completed = Column(Integer, default=0)
+    quality_history = Column(JSON, default=list)
 
 
 class Brewery(Base):
@@ -173,6 +174,9 @@ class BeerBatch(Base):
     stage_progress = Column(Integer, default=0)
     quality = Column(Float, default=50.0)
     days_in_stage = Column(Integer, default=0)
+    actual_abv = Column(Float, default=0.0)
+    actual_ibu = Column(Integer, default=0)
+    actual_srm = Column(Integer, default=0)
 
     game_state = relationship("GameState", back_populates="batches")
     recipe = relationship("BeerRecipe", back_populates="batches")

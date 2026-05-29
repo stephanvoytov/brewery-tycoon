@@ -14,10 +14,11 @@ function renderBatches() {
                         <th title="Стадии: затирание → кипячение → ферментация → дозревание → готова">Стадия</th>
                         <th title="Прогресс текущей стадии">Прогресс</th>
                         <th title="Качество пива зависит от рецепта, оборудования и навыков">Качество</th>
+                        <th>ABV/IBU/SRM</th>
                         <th>День старта</th>
                         <th></th>
                     </tr>
-                ${batches.length === 0 ? '<tr><td colspan="8" class="empty-state">Нет партий</td></tr>' :
+                ${batches.length === 0 ? '<tr><td colspan="9" class="empty-state">Нет партий</td></tr>' :
                 batches.sort((a, b) => b.id - a.id).map(b => `
                     <tr>
                         <td>${b.id}</td>
@@ -31,6 +32,7 @@ function renderBatches() {
                             ${b.stage_progress}%
                         </td>
                         <td>${b.stage === 'ferment' || b.stage === 'condition' || b.stage === 'packaged' ? Math.round(b.quality) + '%' : '—'}</td>
+                        <td style="font-size:0.8rem">${b.stage === 'ferment' || b.stage === 'condition' || b.stage === 'packaged' ? (b.actual_abv || '—') + '% / ' + (b.actual_ibu || '—') + ' / ' + (b.actual_srm || '—') : '—'}</td>
                         <td>${b.started_day}</td>
                         <td>
                             ${b.stage === 'packaged' ? `<button class="btn btn-sm btn-success" onclick="doSellBatch(${b.id})">Продать</button>` : ''}
