@@ -49,6 +49,9 @@ function renderBrewery() {
         </div>
         <div style="margin-bottom:16px;font-size:0.85rem;color:var(--accent-light)">
             ${curBld.icon} ${curBld.name} &nbsp;·&nbsp; Аренда: ${formatMonthly(b.rent)}
+            ${curBld.quality_bonus ? `&nbsp;·&nbsp; ⭐${curBld.quality_bonus > 0 ? '+' : ''}${curBld.quality_bonus}%` : ''}
+            ${curBld.cost_reduction ? `&nbsp;·&nbsp; 🏷−${curBld.cost_reduction}%` : ''}
+            ${curBld.extra_slots ? `&nbsp;·&nbsp; 📋+${curBld.extra_slots} слот` : ''}
             <button class="btn btn-small" onclick="showBuildingModal()" style="margin-left:12px;">🏢 Сменить здание</button>
         </div>
 
@@ -376,7 +379,11 @@ function showBuildingModal() {
                                 <span>📦 ${bld.storage}л</span>
                                 <span>⚡ ${bld.tanks}×${bld.kettle_vol}л</span>
                                 <span>🧪 ${bld.fermenters} ферм.</span>
-                                <span>⭐ ${bld.quality_bonus > 0 ? '+' : ''}${bld.quality_bonus}% q</span>
+                                <span>⭐ ${bld.quality_bonus > 0 ? '+' : ''}${bld.quality_bonus}%</span>
+                                ${bld.cost_reduction ? `<span>🏷 −${bld.cost_reduction}%</span>` : ''}
+                                ${bld.extra_slots ? `<span>📋 +${bld.extra_slots} слот</span>` : ''}
+                                ${bld.demand_bonus ? `<span>📈 +${bld.demand_bonus}%</span>` : ''}
+                                ${bld.taproom ? `<span>🍺 Тапрум</span>` : ''}
                             </div>
                             ${!isCurrent && !isLocked ? `
                                 <div class="building-cost" style="margin-top:8px">
