@@ -1,19 +1,6 @@
 let loanInfoCache = null;
 let financeChart = null;
 
-function makeGradient(ctx, c1, c2) {
-    const g = ctx.createLinearGradient(0, 0, 0, 240);
-    g.addColorStop(0, c1);
-    g.addColorStop(1, c2);
-    return g;
-}
-
-function buildChartLabels(n) {
-    const labels = [];
-    for (let i = 0; i < n; i++) labels.push('День ' + (i + 1));
-    return labels;
-}
-
 async function renderFinance() {
     const s = GAME_STATE.game;
     const contracts = GAME_STATE.contracts || [];
@@ -61,7 +48,7 @@ async function renderFinance() {
         <div class="card">
             <h3>📊 Доходы и расходы</h3>
             <div class="finance-chart-wrap">
-                ${!hasData ? '<div class="empty-state">Нажмите «Новый день» на дашборде</div>' : '<canvas id="financeChart"></canvas>'}
+                ${!hasData ? '<div class="empty-state">Нажмите «Новый день» на дашборде</div>' : '<div class="ct-chart" id="financeChart"></div>'}
             </div>
         </div>
 
@@ -149,101 +136,48 @@ async function renderFinance() {
         </div>
     `;
 
-    if (hasData && typeof Chart !== 'undefined') {
-        try {
-            console.log('📊 finance chart data:', { hasData, revenueHistory, expenseHistory, ChartExists: typeof Chart !== 'undefined', prevChart: !!financeChart });
-            if (financeChart) { console.log('🧹 destroying prev chart'); financeChart.destroy(); financeChart = null; }
-            const canvas = document.getElementById('financeChart');
-            console.log('📊 canvas found:', !!canvas, 'canvas parent:', canvas?.parentElement?.className);
-            if (!canvas) { console.warn('📊 canvas not found'); return; }
-            const ctx = canvas.getContext('2d');
-            const maxLen = Math.max(revenueHistory.length, expenseHistory.length);
-            const labels = buildChartLabels(maxLen);
-            financeChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels,
-                    datasets: [
-                        {
-                            label: 'Доходы',
-                            data: revenueHistory,
-                            borderColor: '#4caf50',
-                            backgroundColor: makeGradient(ctx, 'rgba(76,175,80,0.35)', 'rgba(76,175,80,0.02)'),
-                            fill: true,
-                            tension: 0.3,
-                            pointRadius: 2,
-                            pointHoverRadius: 5,
-                            borderWidth: 2
-                        },
-                        {
-                            label: 'Расходы',
-                            data: expenseHistory.length >= maxLen ? expenseHistory : [...expenseHistory, ...Array(maxLen - expenseHistory.length).fill(0)],
-                            borderColor: '#e74c3c',
-                            backgroundColor: makeGradient(ctx, 'rgba(231,76,60,0.35)', 'rgba(231,76,60,0.02)'),
-                            fill: true,
-                            tension: 0.3,
-                            pointRadius: 2,
-                            pointHoverRadius: 5,
-                            borderWidth: 2
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false
-                    },
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#e0dcd0',
-                                font: { size: 12 },
-                                usePointStyle: true,
-                                padding: 16
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: '#1f2d4a',
-                            titleColor: '#f0c040',
-                            bodyColor: '#e0dcd0',
-                            borderColor: '#3a4a6a',
-                            borderWidth: 1,
-                            padding: 10,
-                            callbacks: {
-                                label: ctx => ' ' + ctx.dataset.label + ': ' + formatMoney(ctx.parsed.y)
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: {
-                                color: '#a0a090',
-                                font: { size: 10 },
-                                maxTicksLimit: 10
-                            },
-                            grid: {
-                                color: 'rgba(58,74,106,0.15)'
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                color: '#a0a090',
-                                font: { size: 10 },
-                                callback: v => formatMoney(v)
-                            },
-                            grid: {
-                                color: 'rgba(58,74,106,0.15)'
-                            }
-                        }
-                    }
+    if (hasData && typeof Chartist !== 'undefined') {
+        if (financeChart) { financeChart.detach(); financeChart = null; }
+        const maxLen = Math.max(revenueHistory.length, expenseHistory.length);
+        const labels = [];
+        for (let i = 0; i < maxLen; i++) labels.push('День ' + (i + 1));
+        const expenses = expenseHistory.length >= maxLen ? expenseHistory : [...expenseHistory, ...Array(maxLen - expenseHistory.length).fill(0)];
+
+        financeChart = new Chartist.Line('#financeChart', {
+            labels,
+            series: [
+                { name: 'Доходы', data: revenueHistory },
+                { name: 'Расходы', data: expenses }
+            ]
+        }, {
+            fullWidth: true,
+            showArea: true,
+            showPoint: true,
+            lineSmooth: true,
+            axisX: {
+                showGrid: false,
+                labelInterpolationFnc(value, index) {
+                    const step = Math.max(1, Math.floor(maxLen / 10));
+                    return index % step === 0 ? value : null;
                 }
-            });
-        } catch (e) {
-            console.error('Chart init failed:', e);
-        }
+            },
+            axisY: {
+                showGrid: true,
+                labelInterpolationFnc(value) {
+                    return value >= 1000 ? formatMoney(value) : '$' + value;
+                }
+            },
+            chartPadding: { top: 8, right: 8, bottom: 20, left: 52 }
+        });
+
+        financeChart.on('draw', function(data) {
+            if (data.type === 'point') {
+                const val = data.value.y;
+                const label = data.series.name;
+                const day = data.index + 1;
+                data.element._node.setAttribute('title', label + ': ' + formatMoney(val) + ' (День ' + day + ')');
+            }
+        });
     }
 }
 
