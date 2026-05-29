@@ -1,3 +1,14 @@
+const BUILDING_BG = {
+    0: "https://image.pollinations.ai/prompt/Empty%20room%20interior%2C%20beige%20walls%2C%20wooden%20floor%2C%20warm%20cozy%20lighting%2C%20game%20background%2C%20flat%20style%2C%20no%20people?model=flux&seed=88&width=1400&height=700&nologo=true&private=true&safe=false",
+    1: "https://image.pollinations.ai/prompt/Stone%20basement%20interior%2C%20brick%20walls%2C%20dim%20warm%20light%2C%20game%20background%2C%20flat%20vector%20style%2C%20no%20people?model=flux&seed=111&width=1400&height=700&nologo=true&private=true&safe=false",
+    2: "https://image.pollinations.ai/prompt/Small%20brewery%20workshop%20interior%2C%20white%20tile%20walls%2C%20concrete%20floor%2C%20clean%20industrial%2C%20game%20background%2C%20flat%20style%2C%20no%20people?model=flux&seed=222&width=1400&height=700&nologo=true&private=true&safe=false",
+    3: "https://image.pollinations.ai/prompt/Large%20industrial%20hall%20interior%2C%20steel%20beams%2C%20concrete%20floor%2C%20cool%20lighting%2C%20game%20background%2C%20flat%20style%2C%20no%20people?model=flux&seed=333&width=1400&height=700&nologo=true&private=true&safe=false",
+    4: "https://image.pollinations.ai/prompt/Craft%20brewery%20loft%20interior%2C%20exposed%20brick%20walls%2C%20warm%20wood%20ceiling%2C%20trendy%20decor%2C%20game%20background%2C%20flat%20style%2C%20no%20people?model=flux&seed=444&width=1400&height=700&nologo=true&private=true&safe=false",
+    5: "https://image.pollinations.ai/prompt/Large%20brewery%20factory%20interior%2C%20stainless%20steel%20tanks%20in%20background%2C%20bright%20clean%2C%20game%20background%2C%20flat%20style%2C%20no%20people?model=flux&seed=555&width=1400&height=700&nologo=true&private=true&safe=false",
+    6: "https://image.pollinations.ai/prompt/Modern%20laboratory%20interior%2C%20white%20clean%20surfaces%2C%20blue%20accents%2C%20sleek%20scientific%2C%20game%20background%2C%20flat%20style%2C%20no%20people?model=flux&seed=666&width=1400&height=700&nologo=true&private=true&safe=false",
+    7: "https://image.pollinations.ai/prompt/Corporate%20modern%20office%20interior%2C%20sleek%20dark%20wood%2C%20glass%20walls%2C%20premium%20atmosphere%2C%20game%20background%2C%20flat%20style%2C%20no%20people?model=flux&seed=777&width=1400&height=700&nologo=true&private=true&safe=false",
+};
+
 async function doRenameBrewery() {
     const b = GAME_STATE.brewery;
     if (!b) return;
@@ -74,10 +85,9 @@ function renderBrewery() {
         <div class="brewery-svg-container">
             <svg viewBox="0 0 1800 600" xmlns="http://www.w3.org/2000/svg" style="width:100%">
                 <defs>
-                    <linearGradient id="wall_${b.building_id}" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="${v.wall[0]}"/>
-                        <stop offset="100%" stop-color="${v.wall[1]}"/>
-                    </linearGradient>
+                    <clipPath id="bgClip">
+                        <rect x="10" y="10" width="1780" height="580" rx="10"/>
+                    </clipPath>
                     <linearGradient id="kettle_${b.building_id}" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stop-color="${v.kettle[0]}"/>
                         <stop offset="100%" stop-color="${v.kettle[1]}"/>
@@ -90,19 +100,19 @@ function renderBrewery() {
                         <stop offset="0%" stop-color="${v.cond[0]}"/>
                         <stop offset="100%" stop-color="${v.cond[1]}"/>
                     </linearGradient>
-                    <linearGradient id="floor_${b.building_id}" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="${v.floor[0]}"/>
-                        <stop offset="100%" stop-color="${v.floor[1]}"/>
-                    </linearGradient>
                     <filter id="glow">
                         <feGaussianBlur stdDeviation="2" result="blur"/>
                         <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
                     </filter>
                 </defs>
 
-                <rect x="10" y="10" width="1780" height="580" rx="10" fill="url(#wall_${b.building_id})" stroke="${v.wallStroke}" stroke-width="2"/>
-                <rect x="10" y="510" width="1780" height="80" rx="0" fill="url(#floor_${b.building_id})" opacity="0.6"/>
-                <line x1="10" y1="510" x2="1790" y2="510" stroke="${v.floorLine}" stroke-width="1.5"/>
+                ${(() => {
+                    const bg = BUILDING_BG[b.building_id] || BUILDING_BG[2];
+                    const isLight = b.building_id === 6;
+                    return `<image href="${bg}" x="10" y="10" width="1780" height="580" preserveAspectRatio="xMidYMid slice" clip-path="url(#bgClip)"/>
+                    <rect x="10" y="10" width="1780" height="580" rx="10" fill="${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(0,0,0,0.12)'}"/>
+                    <rect x="10" y="470" width="1780" height="120" rx="0" fill="rgba(0,0,0,0.2)"/>`;
+                })()}
 
                 <text x="900" y="38" text-anchor="middle" fill="${v.titleColor}" font-size="18" font-weight="bold">${v.title}</text>
 
