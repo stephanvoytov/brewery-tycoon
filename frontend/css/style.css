@@ -651,6 +651,40 @@ input:focus, select:focus {
     color: var(--accent-light);
 }
 
+.loan-controls {
+    margin-top: 12px;
+}
+.loan-label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+}
+.loan-input-row {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+}
+.loan-input-row input {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text);
+    font-size: 0.9rem;
+    outline: none;
+}
+.loan-input-row input:focus {
+    border-color: var(--accent);
+}
+.loan-btn {
+    width: auto !important;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
 /* User info in sidebar */
 .user-info-bar {
     font-size: 0.85rem;

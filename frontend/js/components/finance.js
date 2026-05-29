@@ -84,11 +84,13 @@ async function renderFinance() {
                     <p style="font-size:0.8rem;color:var(--text-dim)">
                         Формула: $5,000 + репутация×$200 + уровень×$1,000
                     </p>
-                    <div style="margin-top:12px">
-                        <label>Сумма кредита</label>
-                        <input type="number" id="loanAmount" value="${Math.min(1000, Math.round(li.max_loan - (s.bank_loan || 0)))}" min="100" max="${li.max_loan - (s.bank_loan || 0)}" step="100" style="width:120px;padding:6px 8px;margin-right:8px">
-                        <button class="btn btn-primary" onclick="doTakeLoan()">📥 Взять</button>
-                        <button class="btn btn-secondary" onclick="doRepayLoan()">📤 Погасить</button>
+                    <div class="loan-controls">
+                        <label class="loan-label">Сумма кредита</label>
+                        <div class="loan-input-row">
+                            <input type="number" id="loanAmount" value="${Math.min(1000, Math.round(li.max_loan - (s.bank_loan || 0)))}" min="100" max="${li.max_loan - (s.bank_loan || 0)}" step="100">
+                            <button class="btn btn-primary loan-btn" onclick="doTakeLoan()">📥 Взять</button>
+                            <button class="btn btn-secondary loan-btn" onclick="doRepayLoan()">📤 Погасить</button>
+                        </div>
                     </div>
                 </div>
                 <div class="help-card">
@@ -138,7 +140,7 @@ async function renderFinance() {
             <div class="card">
                 <h3>🛡 Страховка</h3>
                 <p>${s.has_insurance ? '✅ Страховка активна (покрывает поломку)' : '❌ Страховка не куплена'}</p>
-                ${!s.has_insurance ? `<button class="btn btn-sm btn-primary" onclick="doBuyInsurance()">Купить $500</button>` : ''}
+                ${!s.has_insurance ? `<div style="margin-top:10px"><button class="btn btn-primary" onclick="doBuyInsurance()">Купить $500</button></div>` : ''}
             </div>
         </div>
 
