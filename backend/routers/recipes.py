@@ -6,8 +6,8 @@ from backend.database import get_db
 from backend.models import GameState, BeerRecipe, BeerBatch, BatchStage, Brewery, Equipment, EquipmentType, Ingredient, IngredientType, User
 from backend.schemas import BeerRecipeCreate, BeerRecipeSchema, BrewRequest
 from backend.dependencies import get_current_user, resolve_game
-from backend.game_engine import STYLE_INGREDIENT_MAP, INGREDIENT_TEMPLATES, detect_style, EXPERIMENTAL_STYLE
-from backend.config import Buildings, EquipmentBonuses
+from backend.game_engine import STYLE_INGREDIENT_MAP, INGREDIENT_TEMPLATES, detect_style, EXPERIMENTAL_STYLE, get_total_kettle_volume, get_kettle_count, get_fermenter_count, get_cond_tank_count
+from backend.config import Buildings, EquipmentBonuses, KettleTypes
 
 router = APIRouter(prefix="/api/recipes", tags=["recipes"])
 
@@ -103,7 +103,8 @@ def start_brew(recipe_id: int, req: BrewRequest, game_id: int = None, current_us
     if not recipe or not brewery:
         raise HTTPException(404, "Рецепт или пивоварня не найдена")
 
-    max_batch = brewery.tank_count * brewery.tank_volume
+    total_kettle_vol = get_total_kettle_volume(brewery)
+    max_batch = total_kettle_vol
 
     has_kegging = db.query(Equipment).filter(
         Equipment.game_state_id == game.id,
@@ -117,14 +118,15 @@ def start_brew(recipe_id: int, req: BrewRequest, game_id: int = None, current_us
         if allowed > max_batch:
             batch_size = allowed
     if batch_size > max_batch:
-        raise HTTPException(400, f"Объём партии превышает ёмкость котлов ({brewery.tank_count}×{brewery.tank_volume}л = {max_batch}л)")
+        kettle_count = get_kettle_count(brewery)
+        raise HTTPException(400, f"Объём партии превышает ёмкость котлов ({kettle_count} шт. = {max_batch}л)")
 
     active_tanks = db.query(BeerBatch).filter(
         BeerBatch.game_state_id == game_id,
         BeerBatch.stage.in_([BatchStage.mash, BatchStage.boil])
     ).count()
 
-    if active_tanks >= brewery.tank_count:
+    if active_tanks >= get_kettle_count(brewery):
         raise HTTPException(400, "Все варочные котлы заняты")
 
     active_fermenters = db.query(BeerBatch).filter(
@@ -132,7 +134,7 @@ def start_brew(recipe_id: int, req: BrewRequest, game_id: int = None, current_us
         BeerBatch.stage == BatchStage.ferment
     ).count()
 
-    if active_fermenters >= brewery.fermenter_count:
+    if active_fermenters >= get_fermenter_count(brewery):
         raise HTTPException(400, "Все ферментеры заняты")
 
     total_ingredient_cost = recipe.cost_per_liter * batch_size
@@ -254,25 +256,25 @@ def can_brew(recipe_id: int, game_id: int = None, current_user: User = Depends(g
     if not recipe or not brewery:
         raise HTTPException(404, "Рецепт или пивоварня не найдена")
 
-    max_batch = brewery.tank_count * brewery.tank_volume
+    max_batch = get_total_kettle_volume(brewery)
 
     active_tanks = db.query(BeerBatch).filter(
         BeerBatch.game_state_id == game.id,
         BeerBatch.stage.in_([BatchStage.mash, BatchStage.boil])
     ).count()
-    free_tanks = brewery.tank_count - active_tanks
+    free_tanks = get_kettle_count(brewery) - active_tanks
 
     active_ferm = db.query(BeerBatch).filter(
         BeerBatch.game_state_id == game.id,
         BeerBatch.stage == BatchStage.ferment
     ).count()
-    free_ferm = brewery.fermenter_count - active_ferm
+    free_ferm = get_fermenter_count(brewery) - active_ferm
 
     active_cond = db.query(BeerBatch).filter(
         BeerBatch.game_state_id == game.id,
         BeerBatch.stage == BatchStage.condition
     ).count()
-    free_cond = brewery.conditioning_tank_count - active_cond
+    free_cond = get_cond_tank_count(brewery) - active_cond
 
     brew_plus_boil = 2
     total_brew_ferment = brew_plus_boil + (recipe.ferment_time_days or 5)
@@ -309,8 +311,8 @@ def can_brew(recipe_id: int, game_id: int = None, current_user: User = Depends(g
     need_ferm_by = brew_plus_boil
     need_cond_by = total_brew_ferment
 
-    fermenter_ok = free_ferm > 0 or ferm_wait <= need_ferm_by or (free_ferm == 0 and brewery.fermenter_count == 0)
-    cond_ok = free_cond > 0 or cond_wait <= need_cond_by or brewery.conditioning_tank_count == 0
+    fermenter_ok = free_ferm > 0 or ferm_wait <= need_ferm_by or (free_ferm == 0 and get_fermenter_count(brewery) == 0)
+    cond_ok = free_cond > 0 or cond_wait <= need_cond_by or get_cond_tank_count(brewery) == 0
 
     earliest_start = tank_wait
     if not fermenter_ok and brew_plus_boil < ferm_wait:
@@ -358,9 +360,9 @@ def can_brew(recipe_id: int, game_id: int = None, current_user: User = Depends(g
     can_brew = tank_free and fermenter_ok and cond_ok and ing_ok and money_ok and earliest_start == 0
 
     resources = {
-        "kettle": {"total": brewery.tank_count, "occupied": active_tanks, "free_in_days": tank_wait, "need_by_day": 0, "ok": tank_free},
-        "fermenter": {"total": brewery.fermenter_count, "occupied": active_ferm, "free_in_days": ferm_wait, "need_by_day": need_ferm_by, "ok": fermenter_ok},
-        "cond_tank": {"total": brewery.conditioning_tank_count, "occupied": active_cond, "free_in_days": cond_wait, "need_by_day": need_cond_by, "ok": cond_ok},
+        "kettle": {"total": get_kettle_count(brewery), "occupied": active_tanks, "free_in_days": tank_wait, "need_by_day": 0, "ok": tank_free},
+        "fermenter": {"total": get_fermenter_count(brewery), "occupied": active_ferm, "free_in_days": ferm_wait, "need_by_day": need_ferm_by, "ok": fermenter_ok},
+        "cond_tank": {"total": get_cond_tank_count(brewery), "occupied": active_cond, "free_in_days": cond_wait, "need_by_day": need_cond_by, "ok": cond_ok},
     }
 
     blockers = []

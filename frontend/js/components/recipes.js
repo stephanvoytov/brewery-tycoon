@@ -153,8 +153,8 @@ function showBrewModal(recipeId) {
             <div id="canBrewStatus" style="margin-bottom:12px">⏳ Проверка ресурсов...</div>
             <div class="form-row">
                 <div class="form-group">
-                    <label>Объём партии (л) <span style="font-size:0.75rem;color:var(--text-dim)">(макс. ${brewery.tank_count * brewery.tank_volume}л)</span></label>
-                    <input type="number" id="brewSize" value="50" min="10" max="${brewery.tank_count * brewery.tank_volume}">
+                    <label>Объём партии (л) <span style="font-size:0.75rem;color:var(--text-dim)">(макс. ${brewery.kettle_vol_actual || brewery.tank_count * brewery.tank_volume}л)</span></label>
+                    <input type="number" id="brewSize" value="50" min="10" max="${brewery.kettle_vol_actual || brewery.tank_count * brewery.tank_volume}">
                 </div>
                 <button class="btn btn-success" id="brewConfirmBtn" disabled>Начать варку</button>
                 <button class="btn btn-danger" id="brewCancelBtn">Отмена</button>
@@ -251,7 +251,7 @@ function showBrewModal(recipeId) {
 
         document.getElementById('brewInfo').innerHTML =
             `<b>${recipe.name}</b> (${STYLE_RU[recipe.style]})<br>` +
-            `Макс. партия: ${(brewery.tank_count * brewery.tank_volume)}л (${brewery.tank_count}×${brewery.tank_volume}л)<br>` +
+            `Макс. партия: ${brewery.kettle_vol_actual || brewery.tank_count * brewery.tank_volume}л (${brewery.kettle_count_actual || brewery.tank_count}×<span style="font-size:0.7rem">котёл</span>)<br>` +
             `Себестоимость: ${formatMoney(recipe.cost_per_liter * 100)}/100л<br>` +
             `Варка: ${recipe.brew_time_days}д → Ферментация: ${recipe.ferment_time_days}д → Дозревание: ${recipe.condition_time_days}д<br>` +
             `Потребуется на ${size}л:<br>` +

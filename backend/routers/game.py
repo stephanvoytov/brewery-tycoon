@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.database import get_db
 from backend.models import GameState, Brewery, BeerRecipe, BeerBatch, BatchStage, Ingredient, Equipment, Staff, Contract, Research, Competitor, ActiveEvent, User
-from backend.schemas import FullGameState, GameStateSchema, TickResult, CurrencyRequest, SelectGameRequest, ResolveEventRequest, BeerBatchSchema
-from backend.game_engine import init_new_game, process_tick, get_market_conditions, get_active_events, resolve_choice_event, generate_contracts
+from backend.schemas import FullGameState, GameStateSchema, BrewerySchema, TickResult, CurrencyRequest, SelectGameRequest, ResolveEventRequest, BeerBatchSchema
+from backend.game_engine import init_new_game, process_tick, get_market_conditions, get_active_events, resolve_choice_event, generate_contracts, get_kettle_count, get_total_kettle_volume, get_fermenter_count, get_cond_tank_count
 from backend.dependencies import get_current_user, resolve_game
 
 router = APIRouter(prefix="/api/game", tags=["game"])
@@ -70,7 +70,26 @@ def get_state(game_id: int = None, current_user: User = Depends(get_current_user
 
     return FullGameState(
         game=GameStateSchema.model_validate(game),
-        brewery=brewery,
+        brewery=BrewerySchema(
+            id=brewery.id,
+            name=brewery.name,
+            level=brewery.level,
+            tank_count=brewery.tank_count,
+            tank_volume=brewery.tank_volume,
+            building_id=brewery.building_id,
+            fermenter_count=brewery.fermenter_count,
+            conditioning_tank_count=brewery.conditioning_tank_count,
+            storage_capacity=brewery.storage_capacity,
+            has_taproom=brewery.has_taproom,
+            taproom_level=brewery.taproom_level,
+            rent=brewery.rent,
+            quality_bonus=brewery.quality_bonus,
+            marketing_level=brewery.marketing_level,
+            kettle_count_actual=get_kettle_count(brewery),
+            kettle_vol_actual=get_total_kettle_volume(brewery),
+            fermenter_count_actual=get_fermenter_count(brewery),
+            cond_tank_count_actual=get_cond_tank_count(brewery),
+        ),
         recipes=recipes,
         batches=batch_list,
         ingredients=ingredients,

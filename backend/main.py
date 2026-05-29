@@ -126,6 +126,15 @@ if "name" in eq_cols_new:
             )
         conn.commit()
 
+# Migrate old brewery equipment to new individual equipment system
+try:
+    from sqlalchemy.orm import Session as _Session
+    from backend.game_engine import migrate_old_brewery_equipment
+    with _Session(engine) as _s:
+        migrate_old_brewery_equipment(_s)
+except Exception as e:
+    print(f"[migrate_equipment] {e}")
+
 app = FastAPI(title="Пивоваренный Тайкун", description="Brewery Tycoon Game API")
 
 app.add_middleware(

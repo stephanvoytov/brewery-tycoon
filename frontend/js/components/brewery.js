@@ -21,6 +21,18 @@ function renderBrewery() {
     const ownedEquip = equip.filter(e => e.is_owned);
     const availableEquip = equip.filter(e => !e.is_owned);
 
+    const shopKettles = (GAME_STATE.shop && GAME_STATE.shop.owned_kettles) || [];
+    const shopFerms = (GAME_STATE.shop && GAME_STATE.shop.owned_fermenters) || [];
+    const shopConds = (GAME_STATE.shop && GAME_STATE.shop.owned_cond_tanks) || [];
+
+    function scaleByVol(vol, baseW) {
+        if (vol <= 50) return baseW;
+        if (vol <= 100) return baseW * 1.2;
+        if (vol <= 200) return baseW * 1.5;
+        if (vol <= 500) return baseW * 2.0;
+        return baseW * 2.5;
+    }
+
     const svgTanks = [];
     const svgFermenters = [];
     const svgConditioning = [];
@@ -28,17 +40,20 @@ function renderBrewery() {
     const batches = GAME_STATE.batches || [];
     const activeBatches = batches.filter(b => !['sold', 'spoiled'].includes(b.stage));
 
-    for (let i = 0; i < b.tank_count; i++) {
+    for (let i = 0; i < shopKettles.length; i++) {
         const occupied = i < activeBatches.filter(b => ['mash', 'boil'].includes(b.stage)).length;
-        svgTanks.push({ id: i + 1, occupied });
+        const vol = shopKettles[i].volume || 50;
+        svgTanks.push({ id: i + 1, occupied, vol });
     }
-    for (let i = 0; i < b.fermenter_count; i++) {
+    for (let i = 0; i < shopFerms.length; i++) {
         const occupied = i < activeBatches.filter(b => b.stage === 'ferment').length;
-        svgFermenters.push({ id: i + 1, occupied });
+        const vol = shopFerms[i].volume || 50;
+        svgFermenters.push({ id: i + 1, occupied, vol });
     }
-    for (let i = 0; i < b.conditioning_tank_count; i++) {
+    for (let i = 0; i < shopConds.length; i++) {
         const occupied = i < activeBatches.filter(b => b.stage === 'condition' || b.stage === 'packaged').length;
-        svgConditioning.push({ id: i + 1, occupied });
+        const vol = shopConds[i].volume || 50;
+        svgConditioning.push({ id: i + 1, occupied, vol });
     }
 
     const el = document.getElementById('page-brewery');
@@ -93,9 +108,17 @@ function renderBrewery() {
 
                 ${(() => {
                     const showCond = curBld.cond_tanks > 0;
-                    const tankW = svgTanks.length * 145;
-                    const fermW = svgFermenters.length * 82;
-                    const condW = showCond ? svgConditioning.length * 135 : 0;
+                    const BASE_KETTLE_W = 130, BASE_FERM_W = 68, BASE_COND_W = 110;
+                    const KETTLE_GAP = 15, FERM_GAP = 14, COND_GAP = 25;
+                    const BASE_H = 150;
+
+                    const kettleWidths = svgTanks.map(t => scaleByVol(t.vol, BASE_KETTLE_W));
+                    const fermWidths = svgFermenters.map(t => scaleByVol(t.vol, BASE_FERM_W));
+                    const condWidths = svgConditioning.map(t => scaleByVol(t.vol, BASE_COND_W));
+
+                    const tankW = kettleWidths.reduce((a, b) => a + b, 0) + Math.max(0, svgTanks.length - 1) * KETTLE_GAP;
+                    const fermW = fermWidths.reduce((a, b) => a + b, 0) + Math.max(0, svgFermenters.length - 1) * FERM_GAP;
+                    const condW = showCond ? condWidths.reduce((a, b) => a + b, 0) + Math.max(0, svgConditioning.length - 1) * COND_GAP : 0;
                     const gap = 70;
                     const sections = showCond ? 3 : 2;
                     const contentW = tankW + fermW + condW + (sections - 1) * gap;
@@ -104,9 +127,9 @@ function renderBrewery() {
                     const fermX = tankX + tankW + gap;
                     const condX = showCond ? fermX + fermW + gap : 0;
 
-                    let headerTankW = Math.max(630, tankW + 40);
-                    let headerFermW = Math.max(280, fermW + 40);
-                    let headerCondW = showCond ? Math.max(280, condW + 40) : 0;
+                    let headerTankW = tankW + 40;
+                    let headerFermW = fermW + 40;
+                    let headerCondW = showCond ? condW + 40 : 0;
                     let headerTotal = headerTankW + headerFermW + headerCondW + (sections - 1) * 20;
                     let headerStart = Math.max(20, (1800 - headerTotal) / 2);
 
@@ -125,66 +148,75 @@ function renderBrewery() {
                     }
 
                     // Kettles
+                    let kAccX = tankX;
                     svgTanks.forEach((t, i) => {
-                        const x = tankX + i * 145;
+                        const w = kettleWidths[i];
+                        const x = kAccX;
                         const color = t.occupied ? v.occupiedColor : v.freeColor;
                         html += `<g>
-                            <rect x="${x}" y="95" width="130" height="150" rx="8" fill="url(#kettle_${b.building_id})" stroke="${color}" stroke-width="2.5"/>
-                            <rect x="${x + 12}" y="105" width="106" height="45" rx="5" fill="#1a0a00" opacity="0.4"/>
-                            <rect x="${x + 12}" y="${225 - (t.occupied ? 35 : 0)}" width="106" height="${t.occupied ? 35 : 6}" rx="3" fill="${v.glowColor}" opacity="${t.occupied ? 0.85 : 0.2}"/>
-                            <text x="${x + 65}" y="165" text-anchor="middle" fill="${v.kettleTitle}" font-size="14" font-weight="bold">Котёл ${t.id}</text>
-                            <text x="${x + 65}" y="190" text-anchor="middle" fill="${color}" font-size="12" font-weight="bold">${t.occupied ? '🔥 Варка' : '✅ Свободен'}</text>
+                            <rect x="${x}" y="95" width="${w}" height="150" rx="8" fill="url(#kettle_${b.building_id})" stroke="${color}" stroke-width="2.5"/>
+                            <rect x="${x + 12}" y="105" width="${w - 24}" height="45" rx="5" fill="#1a0a00" opacity="0.4"/>
+                            <rect x="${x + 12}" y="${225 - (t.occupied ? 35 : 0)}" width="${w - 24}" height="${t.occupied ? 35 : 6}" rx="3" fill="${v.glowColor}" opacity="${t.occupied ? 0.85 : 0.2}"/>
+                            <text x="${x + w / 2}" y="165" text-anchor="middle" fill="${v.kettleTitle}" font-size="14" font-weight="bold">${t.vol}л</text>
+                            <text x="${x + w / 2}" y="190" text-anchor="middle" fill="${color}" font-size="12" font-weight="bold">${t.occupied ? '🔥 Варка' : '✅ Свободен'}</text>
                             ${t.occupied ? `
                                 <circle cx="${x + 30}" cy="120" r="6" fill="${v.glowColor}" opacity="0.85" filter="url(#glow)">
                                     <animate attributeName="opacity" values="0.85;0.2;0.85" dur="1s" repeatCount="indefinite"/>
                                 </circle>
-                                <circle cx="${x + 65}" cy="112" r="5" fill="${v.glowColor}" opacity="0.65">
+                                <circle cx="${x + w * 0.5}" cy="112" r="5" fill="${v.glowColor}" opacity="0.65">
                                     <animate attributeName="opacity" values="0.65;0.1;0.65" dur="1.5s" repeatCount="indefinite"/>
                                 </circle>
-                                <circle cx="${x + 100}" cy="125" r="4" fill="${v.glowColor}" opacity="0.55">
+                                <circle cx="${x + w - 30}" cy="125" r="4" fill="${v.glowColor}" opacity="0.55">
                                     <animate attributeName="opacity" values="0.55;0.1;0.55" dur="1.2s" repeatCount="indefinite"/>
                                 </circle>
                             ` : ''}
-                            <rect x="${x + 30}" y="245" width="70" height="10" rx="3" fill="${v.floorLine}"/>
+                            <rect x="${x + w * 0.25}" y="245" width="${w * 0.5}" height="10" rx="3" fill="${v.floorLine}"/>
                         </g>`;
+                        kAccX += w + KETTLE_GAP;
                     });
 
                     // Baseline under kettles
                     html += `<line x1="${tankX}" y1="85" x2="${tankX + tankW}" y2="85" stroke="${v.floorLine}" stroke-width="2.5"/>`;
 
                     // Fermenters
+                    let fAccX = fermX;
                     svgFermenters.forEach((t, i) => {
-                        const x = fermX + i * 82;
+                        const w = fermWidths[i];
+                        const x = fAccX;
                         const color = t.occupied ? v.occupiedColor : v.fermLabel;
                         html += `<g>
-                            <rect x="${x}" y="105" width="68" height="140" rx="34" fill="url(#ferm_${b.building_id})" stroke="${color}" stroke-width="2.5"/>
-                            <rect x="${x + 10}" y="118" width="48" height="65" rx="24" fill="#0a1a2e" opacity="0.3"/>
-                            <text x="${x + 34}" y="172" text-anchor="middle" fill="${v.fermTitle}" font-size="10">Ф${t.id}</text>
-                            <text x="${x + 34}" y="192" text-anchor="middle" fill="${color}" font-size="11" font-weight="bold">${t.occupied ? '⏳' : '✅'}</text>
+                            <rect x="${x}" y="105" width="${w}" height="140" rx="${w * 0.5}" fill="url(#ferm_${b.building_id})" stroke="${color}" stroke-width="2.5"/>
+                            <rect x="${x + w * 0.15}" y="118" width="${w * 0.7}" height="65" rx="24" fill="#0a1a2e" opacity="0.3"/>
+                            <text x="${x + w / 2}" y="172" text-anchor="middle" fill="${v.fermTitle}" font-size="10">${t.vol}л</text>
+                            <text x="${x + w / 2}" y="192" text-anchor="middle" fill="${color}" font-size="11" font-weight="bold">${t.occupied ? '⏳' : '✅'}</text>
                             ${t.occupied ? `
-                                <circle cx="${x + 22}" cy="135" r="4" fill="${v.fermBubble}" opacity="0.75">
+                                <circle cx="${x + w * 0.32}" cy="135" r="4" fill="${v.fermBubble}" opacity="0.75">
                                     <animate attributeName="cy" values="135;122;135" dur="2s" repeatCount="indefinite"/>
                                 </circle>
-                                <circle cx="${x + 46}" cy="140" r="4" fill="${v.fermBubble}" opacity="0.55">
+                                <circle cx="${x + w * 0.68}" cy="140" r="4" fill="${v.fermBubble}" opacity="0.55">
                                     <animate attributeName="cy" values="140;125;140" dur="2.8s" repeatCount="indefinite"/>
                                 </circle>
                             ` : ''}
-                            <rect x="${x + 17}" y="245" width="34" height="10" rx="3" fill="${v.floorLine}"/>
+                            <rect x="${x + w * 0.25}" y="245" width="${w * 0.5}" height="10" rx="3" fill="${v.floorLine}"/>
                         </g>`;
+                        fAccX += w + FERM_GAP;
                     });
 
                     // Conditioning tanks
                     if (showCond) {
+                        let cAccX = condX;
                         svgConditioning.forEach((t, i) => {
-                            const x = condX + i * 135;
+                            const w = condWidths[i];
+                            const x = cAccX;
                             const color = t.occupied ? v.occupiedColor : v.condLabel;
                             html += `<g>
-                                <rect x="${x}" y="95" width="110" height="150" rx="10" fill="url(#cond_${b.building_id})" stroke="${color}" stroke-width="2.5"/>
-                                <ellipse cx="${x + 55}" cy="122" rx="42" ry="14" fill="#0a1a0a" opacity="0.35"/>
-                                <text x="${x + 55}" y="172" text-anchor="middle" fill="${v.condTitle}" font-size="13" font-weight="bold">Танк ${t.id}</text>
-                                <text x="${x + 55}" y="195" text-anchor="middle" fill="${color}" font-size="12" font-weight="bold">${t.occupied ? '⏳ Созревает' : '✅ Свободен'}</text>
-                                <rect x="${x + 25}" y="245" width="60" height="10" rx="3" fill="${v.floorLine}"/>
+                                <rect x="${x}" y="95" width="${w}" height="150" rx="10" fill="url(#cond_${b.building_id})" stroke="${color}" stroke-width="2.5"/>
+                                <ellipse cx="${x + w / 2}" cy="122" rx="${w * 0.38}" ry="14" fill="#0a1a0a" opacity="0.35"/>
+                                <text x="${x + w / 2}" y="172" text-anchor="middle" fill="${v.condTitle}" font-size="13" font-weight="bold">${t.vol}л</text>
+                                <text x="${x + w / 2}" y="195" text-anchor="middle" fill="${color}" font-size="12" font-weight="bold">${t.occupied ? '⏳ Созревает' : '✅ Свободен'}</text>
+                                <rect x="${x + w * 0.23}" y="245" width="${w * 0.54}" height="10" rx="3" fill="${v.floorLine}"/>
                             </g>`;
+                            cAccX += w + COND_GAP;
                         });
                     }
 
@@ -245,10 +277,6 @@ function renderBrewery() {
                     return html;
                 })()}
 
-                <g transform="translate(40, 445)">
-                    <rect x="0" y="0" width="1720" height="42" rx="6" fill="${v.bottomBar}" opacity="0.8"/>
-                    <text x="860" y="26" text-anchor="middle" fill="${v.bottomText}" font-size="14">📦 Хранилище: ${b.storage_capacity} л • Аренда: ${formatMonthly(b.rent)} • Уровень: ${b.level} • Котлы: ${b.tank_count}×${b.tank_volume}л (макс. партия ${b.tank_count * b.tank_volume}л)</text>
-                </g>
             </svg>
         </div>
 
@@ -256,16 +284,6 @@ function renderBrewery() {
             <div class="card">
                 <h3>🏗 Улучшения <span class="help-link" onclick="scrollToHelp('help-guide-taproom'); return false;" title="Подробнее о тапруме и маркетинге">❓</span></h3>
                 <table>
-                    <tr>
-                        <td>Варочные котлы</td>
-                        <td>${b.tank_count} шт. × ${b.tank_volume}л</td>
-                        <td><button class="btn btn-sm btn-primary" onclick="doUpgrade('tanks')" ${!getUpgradeCost('tanks', b.tank_count, b.building_id) ? 'disabled' : ''}>${getUpgradeCost('tanks', b.tank_count, b.building_id) ? `+1 (${formatMoney(getUpgradeCost('tanks', b.tank_count, b.building_id))})` : '🔒 MAX'}</button></td>
-                    </tr>
-                    <tr>
-                        <td>Ферментеры</td>
-                        <td>${b.fermenter_count} шт.</td>
-                        <td><button class="btn btn-sm btn-primary" onclick="doUpgrade('fermenters')" ${!getUpgradeCost('fermenters', b.fermenter_count, b.building_id) ? 'disabled' : ''}>${getUpgradeCost('fermenters', b.fermenter_count, b.building_id) ? `+1 (${formatMoney(getUpgradeCost('fermenters', b.fermenter_count, b.building_id))})` : '🔒 MAX'}</button></td>
-                    </tr>
                     <tr>
                         <td>Хранилище</td>
                         <td>${b.storage_capacity} л</td>
@@ -283,14 +301,6 @@ function renderBrewery() {
                 </table>
                 <div class="mobile-card-list">
                     <div class="mobile-card">
-                        <div class="mobile-card-row"><span class="label">Варочные котлы:</span><span class="value">${b.tank_count}×${b.tank_volume}л</span></div>
-                        <div class="mobile-card-actions"><button class="btn btn-sm btn-primary" onclick="doUpgrade('tanks')" ${!getUpgradeCost('tanks', b.tank_count, b.building_id) ? 'disabled' : ''}>${getUpgradeCost('tanks', b.tank_count, b.building_id) ? `+1 (${formatMoney(getUpgradeCost('tanks', b.tank_count, b.building_id))})` : '🔒 MAX'}</button></div>
-                    </div>
-                    <div class="mobile-card">
-                        <div class="mobile-card-row"><span class="label">Ферментеры:</span><span class="value">${b.fermenter_count} шт.</span></div>
-                        <div class="mobile-card-actions"><button class="btn btn-sm btn-primary" onclick="doUpgrade('fermenters')" ${!getUpgradeCost('fermenters', b.fermenter_count, b.building_id) ? 'disabled' : ''}>${getUpgradeCost('fermenters', b.fermenter_count, b.building_id) ? `+1 (${formatMoney(getUpgradeCost('fermenters', b.fermenter_count, b.building_id))})` : '🔒 MAX'}</button></div>
-                    </div>
-                    <div class="mobile-card">
                         <div class="mobile-card-row"><span class="label">Хранилище:</span><span class="value">${b.storage_capacity} л</span></div>
                         <div class="mobile-card-actions"><button class="btn btn-sm btn-primary" onclick="doUpgrade('storage')" ${!getUpgradeCost('storage', b.storage_capacity) ? 'disabled' : ''}>${getUpgradeCost('storage', b.storage_capacity) ? `+1000л (${formatMoney(getUpgradeCost('storage', b.storage_capacity))})` : '🔒 MAX'}</button></div>
                     </div>
@@ -305,22 +315,86 @@ function renderBrewery() {
             </div>
 
             <div class="card">
-                <h3>🔧 Оборудование <span class="help-link" onclick="scrollToHelp('help-guide-equipment'); return false;" title="Подробнее об оборудовании">❓</span> <span style="font-size:0.75rem;color:var(--text-dim);font-weight:400">(уникальные бонусы)</span></h3>
-                <h4 style="color:var(--green);font-size:0.85rem;margin-bottom:8px">Приобретено:</h4>
+                <h3>🔧 Оборудование пивоварни</h3>
+                ${(() => {
+                    const shop = GAME_STATE.shop || {};
+                    const kettles = shop.owned_kettles || b.kettles || [];
+                    const ferms = shop.owned_fermenters || b.fermenters || [];
+                    const conds = shop.owned_cond_tanks || b.cond_tanks || [];
+                    const bld = BUILDINGS[curBld.id] || BUILDINGS[0];
+                    const maxTanks = bld.max_tanks || 1;
+                    const maxFerms = bld.max_fermenters || 1;
+                    const maxConds = bld.max_cond_tanks || 0;
+                    const showCond = curBld.cond_tanks > 0;
+                    let html = '';
+
+                    // Kettles
+                    html += `<h4 style="color:var(--boilLabel, #d4a017);font-size:0.85rem;margin-bottom:4px">⚡ Котлы (${kettles.length}/${maxTanks})</h4>`;
+                    if (kettles.length === 0) {
+                        html += '<div class="empty-state">Нет котлов</div>';
+                    } else {
+                        kettles.forEach(k => {
+                            const kt = KETTLE_TYPES[k.type_id] || {name: 'Котёл', volume: 50, price: 0};
+                            html += `<div class="equip-row" style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid var(--border)">
+                                <span>${kt.name} <span style="color:var(--text-dim);font-size:0.75rem">(${kt.volume}л)</span></span>
+                                <button class="btn btn-sm btn-danger" onclick="doSellKettle(${k.id})" style="font-size:0.75rem">Продать</button>
+                            </div>`;
+                        });
+                    }
+                    html += kettles.length < maxTanks ? `<button class="btn btn-sm btn-primary" onclick="showEquipmentShop('kettle')" style="margin-top:4px;font-size:0.8rem">+ Купить котёл</button>` : `<span style="color:var(--red);font-size:0.75rem">Макс. ${maxTanks} котёл(ов)</span>`;
+
+                    // Fermenters
+                    html += `<h4 style="color:var(--fermLabel, #3498db);font-size:0.85rem;margin:8px 0 4px">🧪 Ферментеры (${ferms.length}/${maxFerms})</h4>`;
+                    if (ferms.length === 0) {
+                        html += '<div class="empty-state">Нет ферментеров</div>';
+                    } else {
+                        ferms.forEach(f => {
+                            const ft = FERMENTER_TYPES[f.type_id] || {name: 'Ферментер', volume: 50, price: 0};
+                            html += `<div class="equip-row" style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid var(--border)">
+                                <span>${ft.name} <span style="color:var(--text-dim);font-size:0.75rem">(${ft.volume}л)</span></span>
+                                <button class="btn btn-sm btn-danger" onclick="doSellFermenter(${f.id})" style="font-size:0.75rem">Продать</button>
+                            </div>`;
+                        });
+                    }
+                    html += ferms.length < maxFerms ? `<button class="btn btn-sm btn-primary" onclick="showEquipmentShop('fermenter')" style="margin-top:4px;font-size:0.8rem">+ Купить ферментер</button>` : `<span style="color:var(--red);font-size:0.75rem">Макс. ${maxFerms} ферментер(ов)</span>`;
+
+                    // Cond tanks
+                    if (showCond) {
+                        html += `<h4 style="color:var(--condLabel, #2ecc71);font-size:0.85rem;margin:8px 0 4px">🧊 Танки дозревания (${conds.length}/${maxConds})</h4>`;
+                        if (conds.length === 0) {
+                            html += '<div class="empty-state">Нет танков</div>';
+                        } else {
+                            conds.forEach(c => {
+                                const ct = COND_TANK_TYPES[c.type_id] || {name: 'Танк', volume: 50, price: 0};
+                                html += `<div class="equip-row" style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid var(--border)">
+                                    <span>${ct.name} <span style="color:var(--text-dim);font-size:0.75rem">(${ct.volume}л)</span></span>
+                                    <button class="btn btn-sm btn-danger" onclick="doSellCondTank(${c.id})" style="font-size:0.75rem">Продать</button>
+                                </div>`;
+                            });
+                        }
+                        html += conds.length < maxConds ? `<button class="btn btn-sm btn-primary" onclick="showEquipmentShop('cond_tank')" style="margin-top:4px;font-size:0.8rem">+ Купить танк</button>` : `<span style="color:var(--red);font-size:0.75rem">Макс. ${maxConds} танк(ов)</span>`;
+                    }
+
+                    return html;
+                })()}
+
+                <hr style="margin:12px 0;border-color:var(--border)">
+                <h3 style="font-size:0.95rem">🔧 Бонусное оборудование</h3>
+                <h4 style="color:var(--green);font-size:0.8rem;margin-bottom:6px">Приобретено:</h4>
                 ${ownedEquip.length === 0 ? '<div class="empty-state">Нет оборудования</div>' : ownedEquip.map(e => {
                     const wearColor = e.wear_tear > 80 ? 'var(--green)' : e.wear_tear > 40 ? 'var(--accent)' : 'var(--red)';
                     const broken = e.wear_tear < 20;
                     const repairCost = Math.round(e.price * 0.3);
-                    return `<div class="equip-row" style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)">
+                    return `<div class="equip-row" style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid var(--border)">
                         <span>${broken ? '❌' : '✅'} ${e.name} <span style="color:${wearColor};font-size:0.75rem">(износ: ${Math.round(e.wear_tear)}%)</span></span>
                         <span>${broken ? `<button class="btn btn-sm btn-danger" onclick="doRepairEquipment(${e.id})">Ремонт $${repairCost}</button>` : `<span style="color:var(--text-dim);font-size:0.75rem">${EQUIP_DESC[e.name] || ''}</span>`}</span>
                     </div>`;
                 }).join('')}
 
-                <h4 style="color:var(--accent);font-size:0.85rem;margin:10px 0 8px">Доступно к покупке:</h4>
+                <h4 style="color:var(--accent);font-size:0.8rem;margin:8px 0 4px">Доступно к покупке:</h4>
                 ${availableEquip.length === 0 ? '<div class="empty-state">Всё куплено</div>' : availableEquip.map(e => {
                     const equipLocked = e.locked !== undefined ? e.locked : (b.level < (e.min_level || 1));
-                    return `<div class="equip-row" style="display:flex;flex-direction:column;padding:4px 0;border-bottom:1px solid var(--border)">
+                    return `<div class="equip-row" style="display:flex;flex-direction:column;padding:3px 0;border-bottom:1px solid var(--border)">
                         <div style="display:flex;justify-content:space-between;align-items:center;width:100%">
                             <span>${equipLocked ? '🔒' : '📦'} <strong>${e.name}</strong>${equipLocked ? ` <span style="color:var(--red);font-size:0.75rem">ур. ${e.min_level}</span>` : ''}</span>
                             <span>${formatMoney(e.price)} ${equipLocked ? '' : `<button class="btn btn-sm btn-success" onclick="doBuyEquipment(${e.id})">Купить</button>`}</span>
@@ -400,11 +474,14 @@ function showBuildingModal() {
                 ${Object.values(BUILDINGS).map(bld => {
                     const isCurrent = b.building_id === bld.id;
                     const isLocked = b.level < bld.min_level;
+                    const kettleCount = (GAME_STATE.shop?.owned_kettles || b.kettles || []).length;
+                    const fermCount = (GAME_STATE.shop?.owned_fermenters || b.fermenters || []).length;
+                    const condCount = (GAME_STATE.shop?.owned_cond_tanks || b.cond_tanks || []).length;
                     const moveCost = isCurrent || isLocked ? 0 : (
                         bld.rent * 15
-                        + b.tank_count * 500
-                        + b.fermenter_count * 300
-                        + b.conditioning_tank_count * 300
+                        + kettleCount * 500
+                        + fermCount * 300
+                        + condCount * 300
                         + (b.has_taproom ? 2000 : 0)
                         + (GAME_STATE.equipment || []).filter(e => e.is_owned).length * 200
                     );
@@ -460,4 +537,112 @@ async function doChangeBuilding(buildingId) {
     } catch (e) {
         showError(e.message);
     }
+}
+
+async function doSellKettle(kettleId) {
+    if (!confirm('Продать этот котёл за 60% от цены?')) return;
+    try {
+        const res = await API.sellKettle(kettleId);
+        showSuccess(res.message);
+        await loadGameState();
+        renderBrewery();
+    } catch (e) {
+        showError(e.message);
+    }
+}
+
+async function doSellFermenter(fermenterId) {
+    if (!confirm('Продать этот ферментер за 60% от цены?')) return;
+    try {
+        const res = await API.sellFermenter(fermenterId);
+        showSuccess(res.message);
+        await loadGameState();
+        renderBrewery();
+    } catch (e) {
+        showError(e.message);
+    }
+}
+
+async function doSellCondTank(tankId) {
+    if (!confirm('Продать этот танк за 60% от цены?')) return;
+    try {
+        const res = await API.sellCondTank(tankId);
+        showSuccess(res.message);
+        await loadGameState();
+        renderBrewery();
+    } catch (e) {
+        showError(e.message);
+    }
+}
+
+async function buyShopItem(category, typeId) {
+    try {
+        let res;
+        if (category === 'kettle') res = await API.buyKettle(typeId);
+        else if (category === 'fermenter') res = await API.buyFermenter(typeId);
+        else if (category === 'cond_tank') res = await API.buyCondTank(typeId);
+        showSuccess(res.message);
+        document.querySelectorAll('.dialog-overlay').forEach(el => { el.classList.add('anim-sell'); setTimeout(() => el.remove(), 400); });
+        await loadGameState();
+        renderBrewery();
+    } catch (e) {
+        showError(e.message);
+    }
+}
+
+function showEquipmentShop(category) {
+    const shop = GAME_STATE.shop || {};
+    const b = GAME_STATE.brewery;
+    if (!b) return;
+
+    let items = [];
+    let title = '';
+    const typeMap = {};
+
+    if (category === 'kettle') {
+        items = shop.kettles || [];
+        title = '⚡ Купить котёл';
+        Object.values(KETTLE_TYPES).forEach(t => { typeMap[t.name] = t; });
+    } else if (category === 'fermenter') {
+        items = shop.fermenters || [];
+        title = '🧪 Купить ферментер';
+        Object.values(FERMENTER_TYPES).forEach(t => { typeMap[t.name] = t; });
+    } else if (category === 'cond_tank') {
+        items = shop.cond_tanks || [];
+        title = '🧊 Купить танк дозревания';
+        Object.values(COND_TANK_TYPES).forEach(t => { typeMap[t.name] = t; });
+    }
+
+    const overlay = document.createElement('div');
+    overlay.className = 'dialog-overlay';
+    overlay.style.zIndex = '20001';
+    overlay.innerHTML = `
+        <div class="dialog-box" style="max-width:500px;max-height:80vh;overflow-y:auto">
+            <h3>${title}</h3>
+            <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:12px">Ваш уровень: ${b.level}</p>
+            <div class="building-list">
+                ${items.length === 0 ? '<div class="empty-state">Нет доступных позиций</div>' : items.map(item => `
+                    <div class="building-card" style="padding:8px">
+                        <div class="building-card-header">
+                            <span class="building-name">${item.name}</span>
+                            <span class="building-badge" style="background:var(--accent)">${item.volume}л</span>
+                        </div>
+                        <div class="building-stats" style="margin-top:4px">
+                            <span>💰 ${formatMoney(item.price)}</span>
+                            <span>🎚 Ур. ${item.min_level}</span>
+                        </div>
+                        <button class="btn btn-sm btn-success" onclick="buyShopItem('${category}', ${item.id})" style="margin-top:6px;width:100%">
+                            Купить за ${formatMoney(item.price)}
+                        </button>
+                    </div>
+                `).join('')}
+            </div>
+            <div class="dialog-actions" style="margin-top:16px">
+                <button class="btn btn-secondary" id="shopModalClose">Закрыть</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#shopModalClose').onclick = () => overlay.remove();
+    overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
 }

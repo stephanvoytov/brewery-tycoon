@@ -62,6 +62,38 @@ const API = {
         return this.request('POST', '/api/brewery/upgrade', { upgrade_type: upgradeType });
     },
 
+    async getShop() {
+        return this.request('GET', '/api/brewery/shop');
+    },
+
+    async buyKettle(typeId) {
+        return this.request('POST', `/api/brewery/buy-kettle?type_id=${typeId}`);
+    },
+
+    async buyFermenter(typeId) {
+        return this.request('POST', `/api/brewery/buy-fermenter?type_id=${typeId}`);
+    },
+
+    async buyCondTank(typeId) {
+        return this.request('POST', `/api/brewery/buy-cond-tank?type_id=${typeId}`);
+    },
+
+    async sellKettle(kettleId) {
+        return this.request('POST', `/api/brewery/sell-kettle/${kettleId}`);
+    },
+
+    async sellFermenter(fermenterId) {
+        return this.request('POST', `/api/brewery/sell-fermenter/${fermenterId}`);
+    },
+
+    async sellCondTank(tankId) {
+        return this.request('POST', `/api/brewery/sell-cond-tank/${tankId}`);
+    },
+
+    async getEquipmentList() {
+        return this.request('GET', '/api/brewery/equipment-list');
+    },
+
     async renameBrewery(name) {
         return this.request('POST', '/api/brewery/rename', { name });
     },

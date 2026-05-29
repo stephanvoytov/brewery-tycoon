@@ -49,6 +49,10 @@ class BrewerySchema(BaseModel):
     rent: float
     quality_bonus: float
     marketing_level: int
+    kettle_count_actual: int = 0
+    kettle_vol_actual: int = 0
+    fermenter_count_actual: int = 0
+    cond_tank_count_actual: int = 0
 
     class Config:
         from_attributes = True

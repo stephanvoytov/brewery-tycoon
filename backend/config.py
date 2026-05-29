@@ -134,6 +134,38 @@ class EquipmentWear:
 
 EVENT_CHANCE_PER_TICK = 0.10
 
+SELL_REFUND_RATIO = 0.6
+
+
+class KettleTypes:
+    LIST = {
+        1: {"name": "Медный котёл 50л", "volume": 50, "min_level": 1, "price": 2000},
+        2: {"name": "Стальной котёл 100л", "volume": 100, "min_level": 2, "price": 4000},
+        3: {"name": "Профессиональный котёл 200л", "volume": 200, "min_level": 4, "price": 8000},
+        4: {"name": "Индустриальный котёл 500л", "volume": 500, "min_level": 7, "price": 15000},
+        5: {"name": "Гигантский котёл 1000л", "volume": 1000, "min_level": 12, "price": 30000},
+    }
+
+
+class FermenterTypes:
+    LIST = {
+        1: {"name": "Пластиковая бочка 50л", "volume": 50, "min_level": 1, "price": 1000},
+        2: {"name": "Алюминиевый ферментер 100л", "volume": 100, "min_level": 2, "price": 2000},
+        3: {"name": "Нержавеющий ферментер 200л", "volume": 200, "min_level": 4, "price": 4000},
+        4: {"name": "Промышленный ферментер 500л", "volume": 500, "min_level": 8, "price": 10000},
+        5: {"name": "Гигантский ферментер 1000л", "volume": 1000, "min_level": 14, "price": 20000},
+    }
+
+
+class CondTankTypes:
+    LIST = {
+        1: {"name": "Лагерный танк 50л", "volume": 50, "min_level": 2, "price": 1500},
+        2: {"name": "Лагерный танк 100л", "volume": 100, "min_level": 3, "price": 3000},
+        3: {"name": "Лагерный танк 200л", "volume": 200, "min_level": 5, "price": 6000},
+        4: {"name": "Лагерный танк 500л", "volume": 500, "min_level": 10, "price": 14000},
+        5: {"name": "Лагерный танк 1000л", "volume": 1000, "min_level": 16, "price": 28000},
+    }
+
 
 class Buildings:
     DEFAULT_ID = 0
@@ -142,36 +174,44 @@ class Buildings:
         0: {"name": "Комната", "desc": "Тесная комната. Дешево, но без танка дозревания.",
             "min_level": 1, "rent": 3, "storage": 100, "tanks": 1, "fermenters": 1,
             "cond_tanks": 0, "quality_bonus": -0.15, "taproom": False, "kettle_vol": 50,
-            "spoilage_reduction": 0, "spoil_mod": 1.0, "max_tanks": 1, "max_fermenters": 2},
+            "spoilage_reduction": 0, "spoil_mod": 1.0,
+            "max_tanks": 1, "max_kettle_vol": 50, "max_fermenters": 2, "max_fermenter_vol": 50, "max_cond_tanks": 0, "max_cond_vol": 0},
         1: {"name": "Подвал", "desc": "Сырой подвал, дёшево и сердито. Порча ингредиентов −50%.",
             "min_level": 1, "rent": 7, "storage": 500, "tanks": 2, "fermenters": 2,
             "cond_tanks": 1, "quality_bonus": -0.05, "taproom": False, "kettle_vol": 50,
-            "spoilage_reduction": 0.5, "spoil_mod": 0.5},
+            "spoilage_reduction": 0.5, "spoil_mod": 0.5,
+            "max_tanks": 2, "max_kettle_vol": 100, "max_fermenters": 2, "max_fermenter_vol": 100, "max_cond_tanks": 1, "max_cond_vol": 100},
         2: {"name": "Небольшой цех", "desc": "Стандартное помещение для старта.",
             "min_level": 1, "rent": 25, "storage": 1000, "tanks": 2, "fermenters": 4,
             "cond_tanks": 2, "quality_bonus": 0, "taproom": False, "kettle_vol": 300,
-            "spoilage_reduction": 0, "spoil_mod": 1.0},
+            "spoilage_reduction": 0, "spoil_mod": 1.0,
+            "max_tanks": 2, "max_kettle_vol": 300, "max_fermenters": 4, "max_fermenter_vol": 300, "max_cond_tanks": 2, "max_cond_vol": 300},
         3: {"name": "Промышленное здание", "desc": "Большой цех с выгодным расположением. Спрос +5%.",
             "min_level": 4, "rent": 200, "storage": 2000, "tanks": 3, "fermenters": 6,
             "cond_tanks": 3, "quality_bonus": -0.05, "taproom": False, "kettle_vol": 100,
-            "spoilage_reduction": 0, "spoil_mod": 1.0, "demand_bonus": 0.05},
+            "spoilage_reduction": 0, "spoil_mod": 1.0, "demand_bonus": 0.05,
+            "max_tanks": 3, "max_kettle_vol": 500, "max_fermenters": 6, "max_fermenter_vol": 500, "max_cond_tanks": 3, "max_cond_vol": 500},
         4: {"name": "Крафт-лофт", "desc": "Престижный лофт с дегустационным залом. Качество +10%, тапрум встроен.",
             "min_level": 7, "rent": 300, "storage": 1500, "tanks": 2, "fermenters": 4,
             "cond_tanks": 2, "quality_bonus": 0.1, "taproom": True, "kettle_vol": 100,
-            "spoilage_reduction": 0, "spoil_mod": 1.0, "max_batch_limit": 1000},
+            "spoilage_reduction": 0, "spoil_mod": 1.0, "max_batch_limit": 1000,
+            "max_tanks": 3, "max_kettle_vol": 500, "max_fermenters": 6, "max_fermenter_vol": 500, "max_cond_tanks": 3, "max_cond_vol": 500},
         5: {"name": "Пивоваренный завод", "desc": "Промышленные масштабы! Себестоимость −15%, +1 слот контракта.",
             "min_level": 12, "rent": 500, "storage": 5000, "tanks": 4, "fermenters": 8,
             "cond_tanks": 4, "quality_bonus": -0.1, "taproom": False, "kettle_vol": 200,
             "spoilage_reduction": 0, "spoil_mod": 1.0, "cost_reduction": 0.15, "extra_contract_slot": 1,
-            "brewing_speed_bonus": 0.05},
+            "brewing_speed_bonus": 0.05,
+            "max_tanks": 4, "max_kettle_vol": 1000, "max_fermenters": 8, "max_fermenter_vol": 1000, "max_cond_tanks": 4, "max_cond_vol": 1000},
         6: {"name": "Лаборатория", "desc": "Экспериментальный цех для премиум-пива. Quality может >100%, легендарные рецепты.",
             "min_level": 15, "rent": 800, "storage": 3000, "tanks": 2, "fermenters": 6,
             "cond_tanks": 3, "quality_bonus": 0.2, "taproom": False, "kettle_vol": 100,
-            "spoilage_reduction": 0, "spoil_mod": 1.0, "unlock_legendary": True, "quality_cap_100": False},
+            "spoilage_reduction": 0, "spoil_mod": 1.0, "unlock_legendary": True, "quality_cap_100": False,
+            "max_tanks": 5, "max_kettle_vol": 1000, "max_fermenters": 10, "max_fermenter_vol": 1000, "max_cond_tanks": 5, "max_cond_vol": 1000},
         7: {"name": "Холдинг", "desc": "Империя пивоварения. −30% себестоимость, +2 слота контрактов, +10% спрос на всё.",
             "min_level": 18, "rent": 1200, "storage": 8000, "tanks": 6, "fermenters": 12,
             "cond_tanks": 6, "quality_bonus": -0.05, "taproom": False, "kettle_vol": 200,
-            "spoilage_reduction": 0, "spoil_mod": 1.0, "cost_reduction": 0.3, "extra_contract_slot": 2, "demand_bonus": 0.1},
+            "spoilage_reduction": 0, "spoil_mod": 1.0, "cost_reduction": 0.3, "extra_contract_slot": 2, "demand_bonus": 0.1,
+            "max_tanks": 6, "max_kettle_vol": 1000, "max_fermenters": 12, "max_fermenter_vol": 1000, "max_cond_tanks": 6, "max_cond_vol": 1000},
     }
 
     MOVE_COST_MULTIPLIER = 15

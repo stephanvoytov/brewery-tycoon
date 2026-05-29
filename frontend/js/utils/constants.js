@@ -97,15 +97,39 @@ const EQUIP_DESC = {
     "🔬 Фильтрация": "−1 день варки (затирание+кипячение)",
 };
 
+const KETTLE_TYPES = {
+    1: { name: "Медный котёл 50л", volume: 50, min_level: 1, price: 2000 },
+    2: { name: "Стальной котёл 100л", volume: 100, min_level: 2, price: 4000 },
+    3: { name: "Профессиональный котёл 200л", volume: 200, min_level: 4, price: 8000 },
+    4: { name: "Индустриальный котёл 500л", volume: 500, min_level: 7, price: 15000 },
+    5: { name: "Гигантский котёл 1000л", volume: 1000, min_level: 12, price: 30000 },
+};
+
+const FERMENTER_TYPES = {
+    1: { name: "Пластиковая бочка 50л", volume: 50, min_level: 1, price: 1000 },
+    2: { name: "Алюминиевый ферментер 100л", volume: 100, min_level: 2, price: 2000 },
+    3: { name: "Нержавеющий ферментер 200л", volume: 200, min_level: 4, price: 4000 },
+    4: { name: "Промышленный ферментер 500л", volume: 500, min_level: 8, price: 10000 },
+    5: { name: "Гигантский ферментер 1000л", volume: 1000, min_level: 14, price: 20000 },
+};
+
+const COND_TANK_TYPES = {
+    1: { name: "Лагерный танк 50л", volume: 50, min_level: 2, price: 1500 },
+    2: { name: "Лагерный танк 100л", volume: 100, min_level: 3, price: 3000 },
+    3: { name: "Лагерный танк 200л", volume: 200, min_level: 5, price: 6000 },
+    4: { name: "Лагерный танк 500л", volume: 500, min_level: 10, price: 14000 },
+    5: { name: "Лагерный танк 1000л", volume: 1000, min_level: 16, price: 28000 },
+};
+
 const BUILDINGS = {
-    0: { id: 0, name: "Комната", icon: "🚪", desc: "Тесная комната. Дёшево, без танка.", min_level: 1, rent: 3, storage: 100, tanks: 1, fermenters: 1, cond_tanks: 0, quality_bonus: -15, taproom: false, kettle_vol: 50, max_tanks: 1, max_fermenters: 2 },
-    1: { id: 1, name: "Подвал", icon: "🕳", desc: "Сырой подвал. Порча −50%, 2 котла.", min_level: 1, rent: 7, storage: 500, tanks: 2, fermenters: 2, cond_tanks: 1, quality_bonus: -5, taproom: false, kettle_vol: 50 },
-    2: { id: 2, name: "Небольшой цех", icon: "🏗", desc: "Стандартное помещение.", min_level: 1, rent: 25, storage: 1000, tanks: 2, fermenters: 4, cond_tanks: 2, quality_bonus: 0, taproom: false, kettle_vol: 300 },
-    3: { id: 3, name: "Промышленное здание", icon: "🏭", desc: "Большой цех. Спрос +5%.", min_level: 4, rent: 200, storage: 2000, tanks: 3, fermenters: 6, cond_tanks: 3, quality_bonus: -5, taproom: false, kettle_vol: 100, demand_bonus: 5 },
-    4: { id: 4, name: "Крафт-лофт", icon: "🎨", desc: "Престижный лофт. Тапрум встроен, качество +10%.", min_level: 7, rent: 300, storage: 1500, tanks: 2, fermenters: 4, cond_tanks: 2, quality_bonus: 10, taproom: true, kettle_vol: 100 },
-    5: { id: 5, name: "Пивоваренный завод", icon: "🏭", desc: "Промышленные масштабы! Себест. −15%, +1 слот.", min_level: 12, rent: 500, storage: 5000, tanks: 4, fermenters: 8, cond_tanks: 4, quality_bonus: -10, taproom: false, kettle_vol: 200, cost_reduction: 15, extra_slots: 1 },
-    6: { id: 6, name: "Лаборатория", icon: "🔬", desc: "+20% quality, quality может >100%, легендарные рецепты.", min_level: 15, rent: 800, storage: 3000, tanks: 2, fermenters: 6, cond_tanks: 3, quality_bonus: 20, taproom: false, kettle_vol: 100 },
-    7: { id: 7, name: "Холдинг", icon: "🌐", desc: "−30% себест., +2 слота, +10% спрос.", min_level: 18, rent: 1200, storage: 8000, tanks: 6, fermenters: 12, cond_tanks: 6, quality_bonus: -5, taproom: false, kettle_vol: 200, cost_reduction: 30, extra_slots: 2, demand_bonus: 10 },
+    0: { id: 0, name: "Комната", icon: "🚪", desc: "Тесная комната. Дёшево, без танка.", min_level: 1, rent: 3, storage: 100, tanks: 1, fermenters: 1, cond_tanks: 0, quality_bonus: -15, taproom: false, kettle_vol: 50, max_tanks: 1, max_kettle_vol: 50, max_fermenters: 2, max_fermenter_vol: 50, max_cond_tanks: 0, max_cond_vol: 0, forbidden_equipment_types: ["conditioning_tank", "bottling_line", "kegging_line"] },
+    1: { id: 1, name: "Подвал", icon: "🕳", desc: "Сырой подвал. Порча −50%, 2 котла.", min_level: 1, rent: 7, storage: 500, tanks: 2, fermenters: 2, cond_tanks: 1, quality_bonus: -5, taproom: false, kettle_vol: 50, max_tanks: 2, max_kettle_vol: 100, max_fermenters: 2, max_fermenter_vol: 100, max_cond_tanks: 1, max_cond_vol: 100 },
+    2: { id: 2, name: "Небольшой цех", icon: "🏗", desc: "Стандартное помещение.", min_level: 1, rent: 25, storage: 1000, tanks: 2, fermenters: 4, cond_tanks: 2, quality_bonus: 0, taproom: false, kettle_vol: 300, max_tanks: 2, max_kettle_vol: 300, max_fermenters: 4, max_fermenter_vol: 300, max_cond_tanks: 2, max_cond_vol: 300 },
+    3: { id: 3, name: "Промышленное здание", icon: "🏭", desc: "Большой цех. Спрос +5%.", min_level: 4, rent: 200, storage: 2000, tanks: 3, fermenters: 6, cond_tanks: 3, quality_bonus: -5, taproom: false, kettle_vol: 100, demand_bonus: 5, max_tanks: 3, max_kettle_vol: 500, max_fermenters: 6, max_fermenter_vol: 500, max_cond_tanks: 3, max_cond_vol: 500 },
+    4: { id: 4, name: "Крафт-лофт", icon: "🎨", desc: "Престижный лофт. Тапрум встроен, качество +10%.", min_level: 7, rent: 300, storage: 1500, tanks: 2, fermenters: 4, cond_tanks: 2, quality_bonus: 10, taproom: true, kettle_vol: 100, max_tanks: 3, max_kettle_vol: 500, max_fermenters: 6, max_fermenter_vol: 500, max_cond_tanks: 3, max_cond_vol: 500 },
+    5: { id: 5, name: "Пивоваренный завод", icon: "🏭", desc: "Промышленные масштабы! Себест. −15%, +1 слот.", min_level: 12, rent: 500, storage: 5000, tanks: 4, fermenters: 8, cond_tanks: 4, quality_bonus: -10, taproom: false, kettle_vol: 200, cost_reduction: 15, extra_slots: 1, max_tanks: 4, max_kettle_vol: 1000, max_fermenters: 8, max_fermenter_vol: 1000, max_cond_tanks: 4, max_cond_vol: 1000 },
+    6: { id: 6, name: "Лаборатория", icon: "🔬", desc: "+20% quality, quality может >100%, легендарные рецепты.", min_level: 15, rent: 800, storage: 3000, tanks: 2, fermenters: 6, cond_tanks: 3, quality_bonus: 20, taproom: false, kettle_vol: 100, max_tanks: 5, max_kettle_vol: 1000, max_fermenters: 10, max_fermenter_vol: 1000, max_cond_tanks: 5, max_cond_vol: 1000 },
+    7: { id: 7, name: "Холдинг", icon: "🌐", desc: "−30% себест., +2 слота, +10% спрос.", min_level: 18, rent: 1200, storage: 8000, tanks: 6, fermenters: 12, cond_tanks: 6, quality_bonus: -5, taproom: false, kettle_vol: 200, cost_reduction: 30, extra_slots: 2, demand_bonus: 10, max_tanks: 6, max_kettle_vol: 1000, max_fermenters: 12, max_fermenter_vol: 1000, max_cond_tanks: 6, max_cond_vol: 1000 },
 };
 
 const BUILDING_VISUALS = {
@@ -205,22 +229,13 @@ const BUILDING_VISUALS = {
 };
 
 function getUpgradeCost(type, current, buildingId) {
-    if (buildingId !== undefined) {
-        const bld = BUILDINGS[buildingId];
-        if (bld) {
-            if (type === 'tanks' && bld.max_tanks !== undefined && current >= bld.max_tanks) return null;
-            if (type === 'fermenters' && bld.max_fermenters !== undefined && current >= bld.max_fermenters) return null;
-        }
-    }
     const costs = {
-        tanks: { 2: 3000, 3: 6000, 4: 10000 },
-        fermenters: { 2: 500, 3: 1000, 4: 1500, 5: 2500, 6: 3500, 7: 4500, 8: 5500, 9: 6500, 10: 8000 },
         storage: { 1000: 2000, 2000: 4000, 4000: 8000 },
         taproom: { 1: 5000, 2: 10000 },
         marketing: { 2: 2000, 3: 4000, 4: 7000 },
     };
     const m = costs[type];
     if (!m) return null;
-    const key = type === 'tanks' ? current + 1 : type === 'taproom' || type === 'marketing' ? current + 1 : type === 'fermenters' ? current + 1 : current;
+    const key = type === 'taproom' || type === 'marketing' ? current + 1 : current;
     return m[key] || m[Object.keys(m).find(k => Number(k) > current)] || null;
 }

@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.database import get_db
-from backend.models import GameState, Ingredient, Equipment, User
+from backend.models import GameState, Ingredient, Equipment, Brewery, User, EquipmentType
 from backend.schemas import BuyIngredientRequest, BuyEquipmentRequest
-from backend.config import BulkDiscount
+from backend.config import BulkDiscount, Buildings
 from backend.dependencies import get_current_user, resolve_game
+from backend.game_engine import get_available_equipment
 
 router = APIRouter(prefix="/api/inventory", tags=["inventory"])
 
@@ -74,6 +75,18 @@ def buy_equipment(req: BuyEquipmentRequest, game_id: int = None, current_user: U
         raise HTTPException(400, "Оборудование уже приобретено")
     if game.money < equip.price:
         raise HTTPException(400, f"Недостаточно средств. Нужно ${equip.price:.0f}")
+
+    brewery = db.query(Brewery).filter(Brewery.game_state_id == game.id).first()
+    bld = Buildings.LIST.get(brewery.building_id, Buildings.LIST[Buildings.DEFAULT_ID])
+
+    all_eq = get_available_equipment(brewery.level)
+    eq_def = next((e for e in all_eq if e["name"] == equip.name), None)
+    if eq_def and brewery.level < eq_def["min_level"]:
+        raise HTTPException(400, f"Требуется уровень {eq_def['min_level']} для покупки {equip.name}")
+
+    forbidden = bld.get("forbidden_equipment_types", [])
+    if equip.type.value in forbidden:
+        raise HTTPException(400, "Это оборудование нельзя установить в текущем здании")
 
     game.money -= equip.price
     game.total_expenses += equip.price

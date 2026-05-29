@@ -136,6 +136,42 @@ class Brewery(Base):
     marketing_level = Column(Integer, default=1)
 
     game_state = relationship("GameState", back_populates="brewery")
+    kettles = relationship("BreweryKettle", back_populates="brewery", cascade="all, delete-orphan")
+    fermenters_list = relationship("BreweryFermenter", back_populates="brewery", cascade="all, delete-orphan")
+    cond_tanks_list = relationship("BreweryCondTank", back_populates="brewery", cascade="all, delete-orphan")
+
+
+class BreweryKettle(Base):
+    __tablename__ = "brewery_kettles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    brewery_id = Column(Integer, ForeignKey("breweries.id"))
+    type_id = Column(Integer)
+    purchase_price = Column(Float, default=0)
+
+    brewery = relationship("Brewery", back_populates="kettles")
+
+
+class BreweryFermenter(Base):
+    __tablename__ = "brewery_fermenters"
+
+    id = Column(Integer, primary_key=True, index=True)
+    brewery_id = Column(Integer, ForeignKey("breweries.id"))
+    type_id = Column(Integer)
+    purchase_price = Column(Float, default=0)
+
+    brewery = relationship("Brewery", back_populates="fermenters_list")
+
+
+class BreweryCondTank(Base):
+    __tablename__ = "brewery_cond_tanks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    brewery_id = Column(Integer, ForeignKey("breweries.id"))
+    type_id = Column(Integer)
+    purchase_price = Column(Float, default=0)
+
+    brewery = relationship("Brewery", back_populates="cond_tanks_list")
 
 
 class BeerRecipe(Base):

@@ -1658,3 +1658,15 @@ input:focus, select:focus {
     color: var(--accent);
     font-weight: 600;
 }
+
+@keyframes flash-buy {
+    0% { box-shadow: 0 0 0 rgba(46, 125, 50, 0); transform: scale(1); }
+    50% { box-shadow: 0 0 30px rgba(46, 125, 50, 0.6); transform: scale(1.05); }
+    100% { box-shadow: 0 0 0 rgba(46, 125, 50, 0); transform: scale(1); }
+}
+@keyframes fade-sell {
+    0% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(0.8); }
+}
+.anim-buy { animation: flash-buy 0.5s ease; }
+.anim-sell { animation: fade-sell 0.4s ease forwards; }

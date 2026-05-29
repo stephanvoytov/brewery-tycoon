@@ -11,8 +11,10 @@ from backend.config import (
     Rent, Taproom, Marketing, StaffSkill, Loan, Reputation,
     StartingBalance, Salaries, DAYS_PER_MONTH, EquipmentWear,
     BANKRUPTCY_THRESHOLD, BANKRUPTCY_DAYS, EVENT_CHANCE_PER_TICK,
-    Inflation, Tax, BulkSpoilage, EquipmentBonuses, TankVolume, LevelFormula, Buildings,
+    Inflation, Tax, BulkSpoilage, EquipmentBonuses, TankVolume, LevelFormula,
+    Buildings, KettleTypes, FermenterTypes, CondTankTypes, SELL_REFUND_RATIO,
 )
+from backend.models import BreweryKettle, BreweryFermenter, BreweryCondTank
 
 
 def get_available_equipment(level: int):
@@ -121,6 +123,73 @@ def detect_style(malt_name: str, hops_name: str, yeast_name: str):
     return DETECTABLE_STYLES.get(key)
 
 
+def get_bld(building_id: int):
+    return Buildings.LIST.get(building_id, Buildings.LIST[Buildings.DEFAULT_ID])
+
+def get_kettle_count(brewery):
+    return len(brewery.kettles)
+
+def get_total_kettle_volume(brewery):
+    return sum(KettleTypes.LIST[k.type_id]["volume"] for k in brewery.kettles)
+
+def get_fermenter_count(brewery):
+    return len(brewery.fermenters_list)
+
+def get_cond_tank_count(brewery):
+    return len(brewery.cond_tanks_list)
+
+def _best_kettle_type_for_vol(volume: int):
+    best_id = 1
+    for tid, t in KettleTypes.LIST.items():
+        if t["volume"] <= volume:
+            best_id = tid
+    return best_id
+
+def _best_fermenter_type_for_vol(volume: int):
+    best_id = 1
+    for tid, t in FermenterTypes.LIST.items():
+        if t["volume"] <= volume:
+            best_id = tid
+    return best_id
+
+def _best_cond_type_for_vol(volume: int):
+    best_id = 1
+    for tid, t in CondTankTypes.LIST.items():
+        if t["volume"] <= volume:
+            best_id = tid
+    return best_id
+
+def _create_initial_equipment(brewery, db: Session):
+    if brewery.kettles:
+        return
+    bld = get_bld(brewery.building_id)
+    for _ in range(bld["tanks"]):
+        tid = _best_kettle_type_for_vol(bld["kettle_vol"])
+        db.add(BreweryKettle(brewery_id=brewery.id, type_id=tid, purchase_price=KettleTypes.LIST[tid]["price"]))
+    for _ in range(bld["fermenters"]):
+        tid = _best_fermenter_type_for_vol(50)
+        db.add(BreweryFermenter(brewery_id=brewery.id, type_id=tid, purchase_price=FermenterTypes.LIST[tid]["price"]))
+    for _ in range(bld.get("cond_tanks", 0)):
+        tid = _best_cond_type_for_vol(50)
+        db.add(BreweryCondTank(brewery_id=brewery.id, type_id=tid, purchase_price=CondTankTypes.LIST[tid]["price"]))
+    db.flush()
+
+
+def migrate_old_brewery_equipment(db: Session):
+    breweries = db.query(Brewery).all()
+    for brewery in breweries:
+        if brewery.kettles:
+            continue
+        for _ in range(brewery.tank_count):
+            tid = _best_kettle_type_for_vol(brewery.tank_volume)
+            db.add(BreweryKettle(brewery_id=brewery.id, type_id=tid, purchase_price=KettleTypes.LIST[tid]["price"]))
+        for _ in range(brewery.fermenter_count):
+            db.add(BreweryFermenter(brewery_id=brewery.id, type_id=1, purchase_price=FermenterTypes.LIST[1]["price"]))
+        for _ in range(brewery.conditioning_tank_count):
+            db.add(BreweryCondTank(brewery_id=brewery.id, type_id=1, purchase_price=CondTankTypes.LIST[1]["price"]))
+    db.commit()
+
+
 def init_new_game(db: Session) -> GameState:
     game = GameState(
         name="Моя пивоварня",
@@ -148,6 +217,8 @@ def init_new_game(db: Session) -> GameState:
         rent=default_bld["rent"],
     )
     db.add(brewery)
+    db.flush()
+    _create_initial_equipment(brewery, db)
 
     for tpl in RECIPE_TEMPLATES:
         if tpl["name"] in ("Классический Лагер", "Золотой Эль"):
@@ -255,7 +326,7 @@ def check_achievements(game: GameState, db: Session) -> list:
         "first_batch": batch_count >= 1,
         "first_staff": staff_count >= 1,
         "first_contract": game.total_revenue > 0,
-        "first_upgrade": brewery and (brewery.tank_count > 2 or brewery.fermenter_count > 4 or brewery.taproom_level > 0 or brewery.marketing_level > 1 or brewery.storage_capacity > 1000),
+        "first_upgrade": brewery and (brewery.taproom_level > 0 or brewery.marketing_level > 1 or brewery.storage_capacity > 1000),
         "revenue_10k": game.total_revenue >= 10000,
         "revenue_50k": game.total_revenue >= 50000,
         "revenue_100k": game.total_revenue >= 100000,
@@ -626,9 +697,9 @@ def process_tick(game: GameState, db: Session) -> dict:
                     BeerBatch.game_state_id == game.id,
                     BeerBatch.stage == BatchStage.condition
                 ).count()
-                cond_available = brewery.conditioning_tank_count - active_cond
+                cond_available = get_cond_tank_count(brewery) - active_cond
 
-                if batch.skip_condition or brewery.conditioning_tank_count == 0:
+                if batch.skip_condition or get_cond_tank_count(brewery) == 0:
                     batch.stage = BatchStage.packaged
                     batch.stage_progress = 100
                     recipe.mastery_count = (recipe.mastery_count or 0) + 1
