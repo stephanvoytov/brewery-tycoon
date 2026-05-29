@@ -75,7 +75,9 @@ def expedite_batch(batch_id: int, game_id: int = None, current_user: User = Depe
 
     batch.skip_condition = True
     db.commit()
-    return {"message": "Партия будет продана сразу после ферментации (без дозревания)", "skip_condition": True}@router.post("/{batch_id}/sell")
+    return {"message": "Партия будет продана сразу после ферментации (без дозревания)", "skip_condition": True}
+
+@router.post("/{batch_id}/sell")
 def sell_batch(batch_id: int, game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     game = resolve_game(game_id, current_user, db)
     batch = db.query(BeerBatch).filter(
