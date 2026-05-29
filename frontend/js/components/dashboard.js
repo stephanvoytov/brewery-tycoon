@@ -105,11 +105,11 @@ function renderDashboard() {
         <div class="card">
             <h3>📌 Активные события (${(GAME_STATE.active_events || []).filter(e => e.is_choice_event && !e.choice_made).length + '/' + (GAME_STATE.active_events || []).length})</h3>
             ${(!GAME_STATE.active_events || GAME_STATE.active_events.length === 0) ? '<div class="empty-state">Нет активных событий</div>' : GAME_STATE.active_events.filter(e => !e.resolved).map(e => `
-                <div class="event-item event-${e.event_type}" style="padding:8px;margin-bottom:6px;background:rgba(255,255,255,0.03);border-radius:6px;border-left:3px solid ${e.is_choice_event && !e.choice_made ? 'var(--accent)' : 'var(--text-dim)'}">
+                <div class="event-item ${e.is_choice_event && !e.choice_made ? 'event-choice' : ''}">
                     <strong>${e.title}</strong>
-                    <div style="font-size:0.8rem;color:var(--text-dim)">${e.description}</div>
-                    ${e.duration_days > 0 ? `<div style="font-size:0.75rem;color:var(--text-dim)">Осталось: ${e.days_left} дн.</div>` : ''}
-                    ${e.is_choice_event && !e.choice_made ? `<button class="btn btn-sm btn-primary" style="margin-top:4px" onclick="showEventChoice(${e.id})">⚖️ Сделать выбор</button>` : ''}
+                    <div class="event-desc">${e.description}</div>
+                    ${e.duration_days > 0 ? `<div class="event-meta">Осталось: ${e.days_left} дн.</div>` : ''}
+                    ${e.is_choice_event && !e.choice_made ? `<button class="btn btn-sm btn-primary event-choice-btn" onclick="showEventChoice(${e.id})">⚖️ Сделать выбор</button>` : ''}
                 </div>
             `).join('')}
         </div>
