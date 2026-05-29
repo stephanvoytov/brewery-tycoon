@@ -1,10 +1,12 @@
+import random
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from backend.database import get_db
-from backend.models import GameState, BeerRecipe, BeerBatch, BatchStage, Brewery, Ingredient, IngredientType, User
+from backend.models import GameState, BeerRecipe, BeerBatch, BatchStage, Brewery, Equipment, Ingredient, IngredientType, User
 from backend.schemas import BeerRecipeCreate, BeerRecipeSchema, BrewRequest
 from backend.dependencies import get_current_user, resolve_game
-from backend.game_engine import STYLE_INGREDIENT_MAP, INGREDIENT_TEMPLATES
+from backend.game_engine import STYLE_INGREDIENT_MAP, INGREDIENT_TEMPLATES, detect_style, EXPERIMENTAL_STYLE
 
 router = APIRouter(prefix="/api/recipes", tags=["recipes"])
 
@@ -35,14 +37,57 @@ def create_recipe(req: BeerRecipeCreate, game_id: int = None, current_user: User
         req.malt_ingredient_name, req.hops_ingredient_name,
         req.yeast_ingredient_name, req.malt_amount, req.hops_amount
     )
+
+    style = req.style.strip() if req.style else ""
+    is_discovery = False
+    discovered_style = None
+
+    if not style or style == "experimental":
+        detected = detect_style(req.malt_ingredient_name, req.hops_ingredient_name, req.yeast_ingredient_name)
+        if detected:
+            existing = db.query(BeerRecipe).filter(
+                BeerRecipe.game_state_id == game.id,
+                BeerRecipe.style == detected.value
+            ).first()
+            if not existing:
+                discovered_style = detected
+                is_discovery = True
+                style = detected.value
+            else:
+                style = detected.value
+                # already unlocked, but add_mastery later
+        else:
+            style = EXPERIMENTAL_STYLE
+
+    base_price_mult = 3.5
+    if style == EXPERIMENTAL_STYLE:
+        base_price_mult = 2.5
+
     data = req.model_dump()
+    data["style"] = style
     data["cost_per_liter"] = cost_per_liter
-    data["base_price_per_liter"] = cost_per_liter * 3.5
-    db_recipe = BeerRecipe(game_state_id=game.id, **data)
+    data["base_price_per_liter"] = cost_per_liter * base_price_mult
+    if "hidden_params" not in data or not data["hidden_params"]:
+        data["hidden_params"] = {"mash_temp": "medium", "water_type": "soft", "boil_time": 60}
+
+    db_recipe = BeerRecipe(game_state_id=game.id, is_unlocked=True, **data)
     db.add(db_recipe)
     db.commit()
     db.refresh(db_recipe)
-    return db_recipe
+
+    result = {
+        "recipe": db_recipe,
+        "is_discovery": is_discovery,
+        "discovered_style": discovered_style.value if discovered_style else None,
+        "message": f"Рецепт '{db_recipe.name}' создан!",
+    }
+    if is_discovery and discovered_style:
+        game.reputation = min(100, game.reputation + 5)
+        db.commit()
+        result["message"] = f"🔬 Открыт новый стиль: {discovered_style.value}! Репутация +5"
+        result["is_discovery"] = True
+
+    return result
 
 
 @router.post("/{recipe_id}/brew")
@@ -100,15 +145,31 @@ def start_brew(recipe_id: int, req: BrewRequest, game_id: int = None, current_us
         raise HTTPException(400, f"Недостаточно дрожжей. Нужно {yeast_needed:.1f}кг" if yeast_ing else f"Дрожжи не найдены")
     yeast_ing.quantity -= yeast_needed
 
-    quality = 50.0
+    ingredient_score = 40
     recommended = STYLE_INGREDIENT_MAP.get(recipe.style)
     if recommended:
         if recipe.malt_ingredient_name != recommended["malt"]:
-            quality -= 10
+            ingredient_score -= 10
         if recipe.hops_ingredient_name != recommended["hops"]:
-            quality -= 10
+            ingredient_score -= 10
         if recipe.yeast_ingredient_name != recommended["yeast"]:
-            quality -= 5
+            ingredient_score -= 5
+    ingredient_score = max(15, ingredient_score)
+
+    avg_wear = db.query(Equipment).filter(
+        Equipment.game_state_id == game.id,
+        Equipment.is_owned == True
+    ).with_entities(func.avg(Equipment.wear_tear)).scalar() or 100
+
+    equipment_score = int(30 * (avg_wear / 100))
+
+    skill_score = min(20, game.brewing_level * 2)
+
+    mastery_score = min(5, int(recipe.mastery_count * 0.5))
+
+    random_score = random.randint(-5, 5)
+
+    quality = ingredient_score + equipment_score + skill_score + mastery_score + random_score
     quality = max(10, min(100, quality))
 
     game.money -= total_ingredient_cost
@@ -131,7 +192,7 @@ def start_brew(recipe_id: int, req: BrewRequest, game_id: int = None, current_us
 
     quality_note = ""
     if quality < 50:
-        quality_note = " (качество снижено из-за нерекомендованных ингредиентов)"
+        quality_note = f" (качество: {quality:.0f})"
 
     return {
         "message": f"Варка начата! Партия #{batch.id}{quality_note}",

@@ -23,6 +23,8 @@ class GameStateSchema(BaseModel):
     currency: str = "$"
     has_insurance: bool = False
     player_total_liters: float = 0.0
+    brewing_level: int = 1
+    total_batches_completed: int = 0
 
     class Config:
         from_attributes = True
@@ -48,7 +50,7 @@ class BrewerySchema(BaseModel):
 
 class BeerRecipeCreate(BaseModel):
     name: str
-    style: str
+    style: str = ""
     malt_amount: float = 5.0
     hops_amount: float = 0.5
     malt_ingredient_name: str = "Солод Пильзнер"
@@ -62,6 +64,7 @@ class BeerRecipeCreate(BaseModel):
     brew_time_days: int = 1
     ferment_time_days: int = 5
     condition_time_days: int = 7
+    hidden_params: dict = {"mash_temp": "medium", "water_type": "soft", "boil_time": 60}
 
 
 class BeerRecipeSchema(BaseModel):
@@ -83,6 +86,9 @@ class BeerRecipeSchema(BaseModel):
     condition_time_days: int
     cost_per_liter: float
     base_price_per_liter: float
+    is_unlocked: bool = True
+    mastery_count: int = 0
+    hidden_params: dict = {}
 
     class Config:
         from_attributes = True

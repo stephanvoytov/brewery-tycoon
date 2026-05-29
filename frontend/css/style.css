@@ -295,6 +295,7 @@ tr:hover {
 .badge-packaged { background: var(--accent); }
 .badge-sold { background: var(--text-dim); }
 .badge-spoiled { background: var(--red); }
+.badge-mastery { background: #f39c12; color: #000; margin-left: 4px; }
 
 .chart-bar {
     height: 8px;

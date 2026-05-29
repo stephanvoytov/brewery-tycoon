@@ -113,6 +113,16 @@ RESEARCH_TREE = [
 ]
 
 
+EXPERIMENTAL_STYLE = "experimental"
+
+DETECTABLE_STYLES = {v["malt"] + "|" + v["hops"] + "|" + v["yeast"]: k for k, v in STYLE_INGREDIENT_MAP.items()}
+
+
+def detect_style(malt_name: str, hops_name: str, yeast_name: str):
+    key = malt_name + "|" + hops_name + "|" + yeast_name
+    return DETECTABLE_STYLES.get(key)
+
+
 def init_new_game(db: Session) -> GameState:
     game = GameState(
         name="Моя пивоварня",
@@ -139,8 +149,9 @@ def init_new_game(db: Session) -> GameState:
     db.add(brewery)
 
     for tpl in RECIPE_TEMPLATES:
-        recipe = BeerRecipe(game_state_id=game.id, **tpl)
-        db.add(recipe)
+        if tpl["name"] in ("Классический Лагер", "Золотой Эль"):
+            recipe = BeerRecipe(game_state_id=game.id, is_unlocked=True, **tpl)
+            db.add(recipe)
 
     for ing in INGREDIENT_TEMPLATES:
         ingredient = Ingredient(
@@ -546,7 +557,7 @@ def process_tick(game: GameState, db: Session) -> dict:
                 batch.stage_progress = 0
                 batch.days_in_stage = 0
 
-                quality = (batch.quality or 50) + recipe.complexity * 5 + (brewery.quality_bonus or 0) * 10 + random.uniform(-5, 10)
+                quality = (batch.quality or 50) * 0.7 + recipe.complexity * 5 + (brewery.quality_bonus or 0) * 10 + random.uniform(-5, 10)
                 quality = max(10, min(100, quality))
                 batch.quality = quality
                 events.append(f"Партия #{batch.id} начала ферментацию (качество: {quality:.0f})")
@@ -558,7 +569,18 @@ def process_tick(game: GameState, db: Session) -> dict:
             elif batch.stage == BatchStage.condition:
                 batch.stage = BatchStage.packaged
                 batch.stage_progress = 100
-                events.append(f"Партия #{batch.id} готова к продаже!")
+                recipe.mastery_count = (recipe.mastery_count or 0) + 1
+                game.total_batches_completed = (game.total_batches_completed or 0) + 1
+                game.brewing_level = min(10, 1 + (game.total_batches_completed // 5))
+                if batch.quality and batch.quality < 30:
+                    game.reputation = max(0, game.reputation - 10)
+                    events.append(f"⚠️ Партия #{batch.id} получена с качеством {batch.quality:.0f}! Репутация -10, пивоварня простаивает")
+                    if batch.quality < 20:
+                        events.append(f"🚫 Партия #{batch.id} ужасного качества! Придётся вылить и стерилизовать оборудование")
+                else:
+                    rep_change = (batch.quality - 50) * 0.2 if batch.quality else 0
+                    game.reputation = min(100, max(0, game.reputation + rep_change))
+                events.append(f"🍺 Партия #{batch.id} готова к продаже! (качество: {batch.quality:.0f})")
 
     contracts = db.query(Contract).filter(
         Contract.game_state_id == game.id,

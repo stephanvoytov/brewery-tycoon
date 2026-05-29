@@ -2,6 +2,8 @@ function renderRecipes() {
     const recipes = GAME_STATE.recipes || [];
     const ingredients = GAME_STATE.ingredients || [];
     const brewery = GAME_STATE.brewery;
+    const unlockedRecipes = recipes.filter(r => r.is_unlocked !== false);
+    const unlockedStyles = [...new Set(unlockedRecipes.map(r => r.style))].filter(Boolean);
 
     const el = document.getElementById('page-recipes');
     el.innerHTML = `
@@ -9,23 +11,23 @@ function renderRecipes() {
 
         <div class="grid-2">
             <div class="card">
-                <h3>🍺 Рецепты</h3>
+                <h3>🍺 Рецепты (${unlockedRecipes.length} открыто)</h3>
                     <table>
                         <tr>
                             <th></th>
                             <th>Название</th>
                             <th>Стиль</th>
-                            <th title="ABV (Alcohol By Volume) — крепость пива в процентах">ABV</th>
-                            <th title="IBU (International Bitterness Units) — горечь пива от хмеля">IBU</th>
-                            <th title="Солод на 100л">🌾 Солод</th>
-                            <th title="Хмель на 100л">🌿 Хмель</th>
+                            <th title="ABV — крепость">ABV</th>
+                            <th title="IBU — горечь">IBU</th>
+                            <th>🌾 Солод</th>
+                            <th>🌿 Хмель</th>
                             <th>Себест./100л</th>
                             <th></th>
                         </tr>
-                        ${recipes.map(r => `
+                        ${unlockedRecipes.map(r => `
                             <tr>
-                                <td><span class="srm-dot" style="background:${SRM_COLORS[r.style] || '#ccc'}" title="SRM ${r.srm || '?'} — цвет пива"></span></td>
-                                <td>${r.name}</td>
+                                <td><span class="srm-dot" style="background:${SRM_COLORS[r.style] || '#ccc'}" title="SRM ${r.srm || '?'}"></span></td>
+                                <td><span class="recipe-name" onclick="showRecipeDetail(${r.id})" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted">${r.name}</span>${r.mastery_count > 0 ? `<span class="badge badge-mastery" title="Мастерство: +${Math.min(5, r.mastery_count * 0.5).toFixed(1)} к качеству">⭐${r.mastery_count}</span>` : ''}</td>
                                 <td title="${STYLE_INFO[r.style] || ''}">${STYLE_RU[r.style] || r.style}</td>
                                 <td>${r.abv}%</td>
                                 <td>${r.ibu}</td>
@@ -84,8 +86,9 @@ function renderRecipes() {
                 </div>
                 <div class="form-group">
                     <label>Стиль</label>
-                    <select id="newRecipeStyle" onchange="updateIngredientRecs()">
-                        ${Object.entries(STYLE_RU).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
+                    <select id="newRecipeStyle" onchange="updateIngredientRecs(); updateRecipeCost()">
+                        <option value="">🔬 Эксперимент (автоопределение)</option>
+                        ${unlockedStyles.map(s => `<option value="${s}">${STYLE_RU[s] || s}</option>`).join('')}
                     </select>
                     <div id="styleRec" style="font-size:0.75rem;color:var(--text-dim);margin-top:4px"></div>
                 </div>
@@ -120,6 +123,23 @@ function renderRecipes() {
                 <div class="form-group">
                     <label>IBU</label>
                     <input type="number" id="newRecipeIbu" value="25">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>🌡 Температура затирания</label>
+                    <select id="newRecipeMashTemp">
+                        <option value="low">Низкая (62°C) — суше</option>
+                        <option value="medium" selected>Средняя (67°C)</option>
+                        <option value="high">Высокая (72°C) — полнее</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>💧 Тип воды</label>
+                    <select id="newRecipeWaterType">
+                        <option value="soft" selected>Мягкая — чистый вкус</option>
+                        <option value="hard">Жёсткая — плотное тело</option>
+                    </select>
                 </div>
             </div>
             <div id="recipeCostPreview" style="margin:8px 0;font-size:0.85rem;color:var(--accent-light)"></div>
@@ -177,9 +197,26 @@ function showBrewModal(recipeId) {
             await loadGameState();
             modal.style.display = 'none';
             renderRecipes();
-        } catch (e) {
-            showError(e.message);
-        }
+    } catch (e) {
+        showError(e.message);
+    }
+}
+
+function showRecipeDetail(recipeId) {
+    const recipe = GAME_STATE.recipes.find(r => r.id === recipeId);
+    if (!recipe) return;
+    const hp = recipe.hidden_params || {};
+    const mashLabel = {low: 'Низкая (62°C) — суше', medium: 'Средняя (67°C)', high: 'Высокая (72°C) — полнее'};
+    const waterLabel = {soft: 'Мягкая', hard: 'Жёсткая'};
+    showNotification(`
+        <b>${recipe.name}</b><br>
+        Стиль: ${STYLE_RU[recipe.style] || recipe.style}<br>
+        ABV: ${recipe.abv}% | IBU: ${recipe.ibu} | SRM: ${recipe.srm || '?'}<br>
+        🌡 Затирание: ${mashLabel[hp.mash_temp] || 'Средняя (67°C)'}<br>
+        💧 Вода: ${waterLabel[hp.water_type] || 'Мягкая'}<br>
+        ⭐ Мастерство: ${recipe.mastery_count || 0} варок (+${Math.min(5, (recipe.mastery_count || 0) * 0.5).toFixed(1)} к качеству)
+    `, 'info', 5000);
+}
     };
 }
 
@@ -230,9 +267,10 @@ function updateRecipeCost() {
 async function doCreateRecipe() {
     const name = document.getElementById('newRecipeName').value.trim();
     if (!name) { showError('Введите название рецепта'); return; }
+    const style = document.getElementById('newRecipeStyle').value;
     const recipe = {
         name,
-        style: document.getElementById('newRecipeStyle').value,
+        style,
         malt_ingredient_name: document.getElementById('newRecipeMaltName').value,
         hops_ingredient_name: document.getElementById('newRecipeHopsName').value,
         yeast_ingredient_name: document.getElementById('newRecipeYeastName').value,
@@ -246,12 +284,20 @@ async function doCreateRecipe() {
         brew_time_days: 1,
         ferment_time_days: 5,
         condition_time_days: 7,
+        hidden_params: {
+            mash_temp: document.getElementById('newRecipeMashTemp').value,
+            water_type: document.getElementById('newRecipeWaterType').value,
+            boil_time: 60,
+        },
     };
     try {
         const res = await API.createRecipe(recipe);
-        showSuccess(`Рецепт "${res.name}" создан!`);
         await loadGameState();
         renderRecipes();
+        if (res.is_discovery) {
+            showNotification(`🔬 Открыт новый стиль! Репутация +5`, 'achievement');
+        }
+        showSuccess(res.message || `Рецепт "${res.recipe?.name || name}" создан!`);
     } catch (e) {
         showError(e.message);
     }

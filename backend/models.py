@@ -107,6 +107,8 @@ class GameState(Base):
     expense_history = Column(JSON, default=list)
     has_insurance = Column(Boolean, default=False)
     player_total_liters = Column(Float, default=0.0)
+    brewing_level = Column(Integer, default=1)
+    total_batches_completed = Column(Integer, default=0)
 
 
 class Brewery(Base):
@@ -152,6 +154,8 @@ class BeerRecipe(Base):
     cost_per_liter = Column(Float, default=0.5)
     base_price_per_liter = Column(Float, default=2.0)
     is_unlocked = Column(Boolean, default=True)
+    mastery_count = Column(Integer, default=0)
+    hidden_params = Column(JSON, default=dict)
 
     game_state = relationship("GameState", back_populates="recipes")
     batches = relationship("BeerBatch", back_populates="recipe")

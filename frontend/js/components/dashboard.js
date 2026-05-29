@@ -40,6 +40,10 @@ function renderDashboard() {
                 <div class="stat-label" title="Высокая репутация = выше цены продажи и больше контрактов">Репутация</div>
             </div>
             <div class="card stat">
+                <div class="stat-value">${s.brewing_level || 1}</div>
+                <div class="stat-label" title="Растёт с каждой сваренной партией">Уровень пивовара</div>
+            </div>
+            <div class="card stat">
                 <div class="stat-value">${b.level}</div>
                 <div class="stat-label">Уровень пивоварни</div>
             </div>

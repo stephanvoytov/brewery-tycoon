@@ -46,11 +46,24 @@ for col_name in ["has_insurance", "player_total_liters"]:
                 conn.execute(text("ALTER TABLE game_states ADD COLUMN player_total_liters FLOAT DEFAULT 0.0"))
             conn.commit()
 
+for col_name in ["brewing_level", "total_batches_completed"]:
+    if col_name not in game_cols:
+        with engine.connect() as conn:
+            conn.execute(text(f"ALTER TABLE game_states ADD COLUMN {col_name} INTEGER DEFAULT 1" if col_name == "brewing_level" else f"ALTER TABLE game_states ADD COLUMN {col_name} INTEGER DEFAULT 0"))
+            conn.commit()
+
 eq_cols = [c["name"] for c in insp.get_columns("equipment")]
 if "wear_tear" not in eq_cols:
     with engine.connect() as conn:
         conn.execute(text("ALTER TABLE equipment ADD COLUMN wear_tear FLOAT DEFAULT 100.0"))
         conn.commit()
+
+recipe_cols_new = [c["name"] for c in insp.get_columns("beer_recipes")]
+for col_name, col_type in [("mastery_count", "INTEGER DEFAULT 0"), ("hidden_params", "JSON DEFAULT '{}'"), ("is_unlocked", "INTEGER DEFAULT 1")]:
+    if col_name not in recipe_cols_new:
+        with engine.connect() as conn:
+            conn.execute(text(f"ALTER TABLE beer_recipes ADD COLUMN {col_name} {col_type}"))
+            conn.commit()
 
 app = FastAPI(title="Пивоваренный Тайкун", description="Brewery Tycoon Game API")
 
