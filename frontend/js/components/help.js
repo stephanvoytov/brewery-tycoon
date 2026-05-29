@@ -258,8 +258,9 @@ function renderGuideTab() {
                     <h3>📋 Все здания</h3>
                     <table>
                         <tr><th>Здание</th><th>Ур.</th><th>Аренда</th><th>Чаны</th><th>Ферм.</th><th>Кач-во</th></tr>
-                        <tr><td>🕳 Подвал</td><td>1</td><td>${formatMoney(40)}</td><td>1×50л</td><td>2</td><td>−5%</td></tr>
-                        <tr><td>🏗 Цех</td><td>1</td><td>${formatMoney(100)}</td><td>2×100л</td><td>4</td><td>0%</td></tr>
+                        <tr><td>🚪 Комната</td><td>1</td><td>${formatMoney(3)}</td><td>1×50л</td><td>1</td><td>−15%</td></tr>
+                        <tr><td>🕳 Подвал</td><td>1</td><td>${formatMoney(7)}</td><td>2×50л</td><td>2</td><td>−5%</td></tr>
+                        <tr><td>🏗 Цех</td><td>1</td><td>${formatMoney(25)}</td><td>2×300л</td><td>4</td><td>0%</td></tr>
                         <tr><td>🏭 Промздание</td><td>4</td><td>${formatMoney(200)}</td><td>3×100л</td><td>6</td><td>−5%</td></tr>
                         <tr><td>🎨 Крафт-лофт</td><td>7</td><td>${formatMoney(300)}</td><td>2×100л</td><td>4</td><td>+10%</td></tr>
                         <tr><td>🏭 Завод</td><td>12</td><td>${formatMoney(500)}</td><td>4×200л</td><td>8</td><td>−10%</td></tr>

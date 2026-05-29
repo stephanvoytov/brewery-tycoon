@@ -68,18 +68,18 @@ def _make_recipe(name, style, malt_amount, hops_amount, abv, ibu, srm, brew_time
     }
 
 RECIPE_TEMPLATES = [
-    _make_recipe("Классический Лагер", BeerStyle.lager, 4.5, 0.3, 4.8, 18, 3, 1, 7, 14),
-    _make_recipe("Золотой Эль", BeerStyle.ale, 5.0, 0.4, 5.2, 25, 6, 1, 4, 5),
-    _make_recipe("Тёмный Стаут", BeerStyle.stout, 6.5, 0.5, 5.5, 35, 40, 1, 5, 10),
-    _make_recipe("Хмельная IPA", BeerStyle.ipa, 5.5, 1.5, 6.5, 70, 8, 1, 5, 7),
-    _make_recipe("Портер", BeerStyle.porter, 6.0, 0.6, 5.8, 30, 30, 1, 5, 12),
-    _make_recipe("Пшеничное", BeerStyle.wheat, 4.5, 0.3, 4.5, 12, 4, 1, 4, 4),
-    _make_recipe("Пильзнер", BeerStyle.pilsner, 4.0, 0.4, 4.5, 22, 3, 1, 6, 14),
-    _make_recipe("Кислый Эль", BeerStyle.sour, 4.5, 0.2, 4.0, 8, 5, 1, 10, 20),
-    _make_recipe("Бок", BeerStyle.bock, 7.0, 0.4, 7.0, 20, 20, 1, 7, 21),
-    _make_recipe("Пэйл Эль", BeerStyle.pale_ale, 5.0, 0.8, 5.5, 40, 10, 1, 4, 7),
-    _make_recipe("Янтарный Эль", BeerStyle.amber_ale, 5.2, 0.6, 5.5, 28, 18, 1, 4, 7),
-    _make_recipe("Бельгийский Трипель", BeerStyle.belgian_tripel, 7.5, 0.5, 9.5, 25, 6, 1, 8, 21),
+    _make_recipe("Классический Лагер", BeerStyle.lager, 4.5, 0.3, 4.8, 18, 3, 1, 4, 7),
+    _make_recipe("Золотой Эль", BeerStyle.ale, 5.0, 0.4, 5.2, 25, 6, 1, 3, 3),
+    _make_recipe("Тёмный Стаут", BeerStyle.stout, 6.5, 0.5, 5.5, 35, 40, 1, 3, 6),
+    _make_recipe("Хмельная IPA", BeerStyle.ipa, 5.5, 1.5, 6.5, 70, 8, 1, 3, 5),
+    _make_recipe("Портер", BeerStyle.porter, 6.0, 0.6, 5.8, 30, 30, 1, 3, 7),
+    _make_recipe("Пшеничное", BeerStyle.wheat, 4.5, 0.3, 4.5, 12, 4, 1, 2, 2),
+    _make_recipe("Пильзнер", BeerStyle.pilsner, 4.0, 0.4, 4.5, 22, 3, 1, 4, 7),
+    _make_recipe("Кислый Эль", BeerStyle.sour, 4.5, 0.2, 4.0, 8, 5, 1, 6, 10),
+    _make_recipe("Бок", BeerStyle.bock, 7.0, 0.4, 7.0, 20, 20, 1, 4, 10),
+    _make_recipe("Пэйл Эль", BeerStyle.pale_ale, 5.0, 0.8, 5.5, 40, 10, 1, 3, 4),
+    _make_recipe("Янтарный Эль", BeerStyle.amber_ale, 5.2, 0.6, 5.5, 28, 18, 1, 3, 4),
+    _make_recipe("Бельгийский Трипель", BeerStyle.belgian_tripel, 7.5, 0.5, 9.5, 25, 6, 1, 5, 12),
 ]
 
 INGREDIENT_TEMPLATES = [
@@ -177,7 +177,7 @@ def init_new_game(db: Session) -> GameState:
         hops_cost = _unit_cost(recipe.hops_ingredient_name) * recipe.hops_amount
         yeast_cost = _unit_cost(recipe.yeast_ingredient_name) * 0.1
         recipe.cost_per_liter = (malt_cost + hops_cost + yeast_cost) / 10
-        recipe.base_price_per_liter = recipe.cost_per_liter * 3.5
+        recipe.base_price_per_liter = recipe.cost_per_liter * 4.5
 
     for eq in get_available_equipment(1):
         equipment = Equipment(
@@ -622,10 +622,40 @@ def process_tick(game: GameState, db: Session) -> dict:
 
                 events.append(f"Партия #{batch.id} начала ферментацию (качество: {quality:.0f})")
             elif batch.stage == BatchStage.ferment:
-                batch.stage = BatchStage.condition
-                batch.stage_progress = 0
-                batch.days_in_stage = 0
-                events.append(f"Партия #{batch.id} на дозревании")
+                active_cond = db.query(BeerBatch).filter(
+                    BeerBatch.game_state_id == game.id,
+                    BeerBatch.stage == BatchStage.condition
+                ).count()
+                cond_available = brewery.conditioning_tank_count - active_cond
+
+                if batch.skip_condition or brewery.conditioning_tank_count == 0:
+                    batch.stage = BatchStage.packaged
+                    batch.stage_progress = 100
+                    recipe.mastery_count = (recipe.mastery_count or 0) + 1
+                    game.total_batches_completed = (game.total_batches_completed or 0) + 1
+                    game.brewing_level = min(10, 1 + (game.total_batches_completed // 5))
+                    quality_val = round(batch.quality or 50)
+                    qh = list(game.quality_history or [])
+                    qh.append({"day": game.day, "quality": quality_val, "name": recipe.name})
+                    if len(qh) > 30:
+                        qh = qh[-30:]
+                    game.quality_history = qh
+                    if batch.quality and batch.quality < 30:
+                        game.reputation = max(0, game.reputation - 10)
+                        events.append(f"⚠️ Партия #{batch.id} без дозревания, качество {batch.quality:.0f}! Репутация -10")
+                        if batch.quality < 20:
+                            events.append(f"🚫 Партия #{batch.id} ужасного качества! Придётся вылить")
+                    else:
+                        rep_change = (batch.quality - 50) * 0.2 if batch.quality else 0
+                        game.reputation = min(100, max(0, game.reputation + rep_change))
+                    events.append(f"🍺 Партия #{batch.id} готова к продаже (без дозревания)!")
+                elif cond_available > 0:
+                    batch.stage = BatchStage.condition
+                    batch.stage_progress = 0
+                    batch.days_in_stage = 0
+                    events.append(f"Партия #{batch.id} на дозревании")
+                else:
+                    events.append(f"Партия #{batch.id} ожидает свободный танк дозревания")
             elif batch.stage == BatchStage.condition:
                 batch.stage = BatchStage.packaged
                 batch.stage_progress = 100

@@ -136,16 +136,20 @@ EVENT_CHANCE_PER_TICK = 0.10
 
 
 class Buildings:
-    DEFAULT_ID = 1
+    DEFAULT_ID = 0
 
     LIST = {
+        0: {"name": "Комната", "desc": "Тесная комната. Дешево, но без танка дозревания.",
+            "min_level": 1, "rent": 3, "storage": 100, "tanks": 1, "fermenters": 1,
+            "cond_tanks": 0, "quality_bonus": -0.15, "taproom": False, "kettle_vol": 50,
+            "spoilage_reduction": 0, "spoil_mod": 1.0},
         1: {"name": "Подвал", "desc": "Сырой подвал, дёшево и сердито. Порча ингредиентов −50%.",
-            "min_level": 1, "rent": 40, "storage": 500, "tanks": 1, "fermenters": 2,
+            "min_level": 1, "rent": 7, "storage": 500, "tanks": 2, "fermenters": 2,
             "cond_tanks": 1, "quality_bonus": -0.05, "taproom": False, "kettle_vol": 50,
             "spoilage_reduction": 0.5, "spoil_mod": 0.5},
-        2: {"name": "Небольшой цех", "desc": "Стандартное помещение для старта. Без излишеств.",
-            "min_level": 1, "rent": 100, "storage": 1000, "tanks": 2, "fermenters": 4,
-            "cond_tanks": 2, "quality_bonus": 0, "taproom": False, "kettle_vol": 100,
+        2: {"name": "Небольшой цех", "desc": "Стандартное помещение для старта.",
+            "min_level": 1, "rent": 25, "storage": 1000, "tanks": 2, "fermenters": 4,
+            "cond_tanks": 2, "quality_bonus": 0, "taproom": False, "kettle_vol": 300,
             "spoilage_reduction": 0, "spoil_mod": 1.0},
         3: {"name": "Промышленное здание", "desc": "Большой цех с выгодным расположением. Спрос +5%.",
             "min_level": 4, "rent": 200, "storage": 2000, "tanks": 3, "fermenters": 6,

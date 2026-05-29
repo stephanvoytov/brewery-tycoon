@@ -98,8 +98,9 @@ const EQUIP_DESC = {
 };
 
 const BUILDINGS = {
-    1: { id: 1, name: "Подвал", icon: "🕳", desc: "Сырой подвал, дёшево и сердито. Порча −50%.", min_level: 1, rent: 40, storage: 500, tanks: 1, fermenters: 2, cond_tanks: 1, quality_bonus: -5, taproom: false, kettle_vol: 50 },
-    2: { id: 2, name: "Небольшой цех", icon: "🏗", desc: "Стандартное помещение для старта.", min_level: 1, rent: 100, storage: 1000, tanks: 2, fermenters: 4, cond_tanks: 2, quality_bonus: 0, taproom: false, kettle_vol: 100 },
+    0: { id: 0, name: "Комната", icon: "🚪", desc: "Тесная комната. Дёшево, без танка.", min_level: 1, rent: 3, storage: 100, tanks: 1, fermenters: 1, cond_tanks: 0, quality_bonus: -15, taproom: false, kettle_vol: 50 },
+    1: { id: 1, name: "Подвал", icon: "🕳", desc: "Сырой подвал. Порча −50%, 2 котла.", min_level: 1, rent: 7, storage: 500, tanks: 2, fermenters: 2, cond_tanks: 1, quality_bonus: -5, taproom: false, kettle_vol: 50 },
+    2: { id: 2, name: "Небольшой цех", icon: "🏗", desc: "Стандартное помещение.", min_level: 1, rent: 25, storage: 1000, tanks: 2, fermenters: 4, cond_tanks: 2, quality_bonus: 0, taproom: false, kettle_vol: 300 },
     3: { id: 3, name: "Промышленное здание", icon: "🏭", desc: "Большой цех. Спрос +5%.", min_level: 4, rent: 200, storage: 2000, tanks: 3, fermenters: 6, cond_tanks: 3, quality_bonus: -5, taproom: false, kettle_vol: 100, demand_bonus: 5 },
     4: { id: 4, name: "Крафт-лофт", icon: "🎨", desc: "Престижный лофт. Тапрум встроен, качество +10%.", min_level: 7, rent: 300, storage: 1500, tanks: 2, fermenters: 4, cond_tanks: 2, quality_bonus: 10, taproom: true, kettle_vol: 100 },
     5: { id: 5, name: "Пивоваренный завод", icon: "🏭", desc: "Промышленные масштабы! Себест. −15%, +1 слот.", min_level: 12, rent: 500, storage: 5000, tanks: 4, fermenters: 8, cond_tanks: 4, quality_bonus: -10, taproom: false, kettle_vol: 200, cost_reduction: 15, extra_slots: 1 },
@@ -108,6 +109,18 @@ const BUILDINGS = {
 };
 
 const BUILDING_VISUALS = {
+    0: {
+        wall: ['#2a2a1a','#1a1a0a'], floor: ['#3a2a1a','#2a1a0a'], wallStroke: '#3a3a2a',
+        title: '🚪 КОМНАТА', titleColor: '#7a7a5a', sectionBg: '#1a1a0a',
+        boilLabel: '#7a7a3a', fermLabel: '#2a5a6a', condLabel: '#2a3a4a',
+        kettle: ['#5a4a2a','#3a2a1a'], kettleTitle: '#ddd',
+        ferm: ['#2a3a5a','#1a2a4a'], fermTitle: '#ddd',
+        cond: ['#2a3a3a','#1a2a2a'], condTitle: '#ddd',
+        occupiedColor: '#e74c3c', freeColor: '#7a6a4a', floorLine: '#2a1a0a',
+        glowColor: '#7a6a4a', fermBubble: '#4a6a8a', condBubble: '#4a6a6a',
+        bottomBar: '#1a1a0a', bottomText: '#5a5a4a',
+        isRoom: true,
+    },
     1: {
         wall: ['#1a1a2a','#0e0e1e'], floor: ['#2a1a0a','#1a0a00'], wallStroke: '#2a2a3a',
         title: '🕳 ПОДВАЛ', titleColor: '#8a8a7a', sectionBg: '#0e0e1a',

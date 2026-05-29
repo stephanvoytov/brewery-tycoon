@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.database import get_db
-from backend.models import GameState, Brewery, BeerRecipe, BeerBatch, Ingredient, Equipment, Staff, Contract, Research, Competitor, ActiveEvent, User
-from backend.schemas import FullGameState, GameStateSchema, TickResult, CurrencyRequest, SelectGameRequest, ResolveEventRequest
+from backend.models import GameState, Brewery, BeerRecipe, BeerBatch, BatchStage, Ingredient, Equipment, Staff, Contract, Research, Competitor, ActiveEvent, User
+from backend.schemas import FullGameState, GameStateSchema, TickResult, CurrencyRequest, SelectGameRequest, ResolveEventRequest, BeerBatchSchema
 from backend.game_engine import init_new_game, process_tick, get_market_conditions, get_active_events, resolve_choice_event, generate_contracts
 from backend.dependencies import get_current_user, resolve_game
 
@@ -30,6 +30,26 @@ def get_state(game_id: int = None, current_user: User = Depends(get_current_user
     equipment = db.query(Equipment).filter(Equipment.game_state_id == game.id).all()
     staff = db.query(Staff).filter(Staff.game_state_id == game.id).all()
     contracts = db.query(Contract).filter(Contract.game_state_id == game.id).all()
+
+    batch_list = []
+    for b in batches:
+        r = db.query(BeerRecipe).filter(BeerRecipe.id == b.recipe_id).first()
+        batch_list.append(BeerBatchSchema(
+            id=b.id,
+            recipe_id=b.recipe_id,
+            recipe_name=r.name if r else "Unknown",
+            batch_size_liters=b.batch_size_liters,
+            stage=b.stage.value,
+            started_day=b.started_day,
+            stage_progress=b.stage_progress,
+            quality=b.quality,
+            days_in_stage=b.days_in_stage,
+            actual_abv=b.actual_abv or 0.0,
+            actual_ibu=b.actual_ibu or 0,
+            actual_srm=b.actual_srm or 0,
+            skip_condition=b.skip_condition or False,
+            waiting_for_tank=(b.stage == BatchStage.ferment and b.stage_progress >= 100 and not b.skip_condition),
+        ))
     unsigned_count = sum(1 for c in contracts if not c.is_active)
     if unsigned_count < 3:
         new_contracts = generate_contracts(game, db, 5)
@@ -52,7 +72,7 @@ def get_state(game_id: int = None, current_user: User = Depends(get_current_user
         game=GameStateSchema.model_validate(game),
         brewery=brewery,
         recipes=recipes,
-        batches=batches,
+        batches=batch_list,
         ingredients=ingredients,
         equipment=equipment,
         staff=staff,

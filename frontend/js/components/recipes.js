@@ -150,12 +150,13 @@ function showBrewModal(recipeId) {
     overlay.innerHTML = `
         <div class="dialog-box brew-modal-dialog">
             <h3>🍺 Начать варку: ${esc(recipe?.name || '')}</h3>
+            <div id="canBrewStatus" style="margin-bottom:12px">⏳ Проверка ресурсов...</div>
             <div class="form-row">
                 <div class="form-group">
                     <label>Объём партии (л) <span style="font-size:0.75rem;color:var(--text-dim)">(макс. ${brewery.tank_count * brewery.tank_volume}л)</span></label>
                     <input type="number" id="brewSize" value="50" min="10" max="${brewery.tank_count * brewery.tank_volume}">
                 </div>
-                <button class="btn btn-success" id="brewConfirmBtn">Начать варку</button>
+                <button class="btn btn-success" id="brewConfirmBtn" disabled>Начать варку</button>
                 <button class="btn btn-danger" id="brewCancelBtn">Отмена</button>
             </div>
             <div id="brewInfo" class="brew-info"></div>
@@ -164,6 +165,55 @@ function showBrewModal(recipeId) {
     document.body.appendChild(overlay);
 
     function closeModal() { overlay.remove(); }
+
+    async function loadCanBrew() {
+        const size = parseFloat(document.getElementById('brewSize').value) || 50;
+        const statusEl = document.getElementById('canBrewStatus');
+        try {
+            const res = await API.request('GET', `/api/recipes/${recipeId}/can-brew`);
+            let html = '';
+            const r = res.resources || {};
+            const b = r.kettle || {}; const f = r.fermenter || {}; const c = r.cond_tank || {};
+
+            html += '<div style="font-size:0.85rem;background:var(--bg-card);padding:8px;border-radius:6px;margin-bottom:8px">';
+            html += `<b>📊 Pipeline:</b><br>`;
+            html += `${b.ok ? '🟢' : '🔴'} Котёл: ${b.occupied||0}/${b.total} занято${b.free_in_days ? `, осв. через ${b.free_in_days} дн.` : b.ok ? ', свободен' : ''}<br>`;
+            html += `${f.ok ? '🟢' : (f.free_in_days <= 2 ? '🟡' : '🔴')} Ферментер: ${f.occupied||0}/${f.total} занято${f.free_in_days ? `, осв. через ${f.free_in_days} дн.` : f.ok ? ', свободен' : ''}`;
+            if (f.need_by_day) html += ` (нужен через ${f.need_by_day} дн.)`;
+            html += '<br>';
+            const condLabel = c.total === 0 ? '(нет танка — после ферментации сразу в продажу)' : '';
+            html += `${c.ok || c.total === 0 ? '🟢' : (c.free_in_days <= 3 ? '🟡' : '🔴')} Танк дозревания: ${c.total === 0 ? 'нет' : `${c.occupied||0}/${c.total} занято${c.free_in_days ? `, осв. через ${c.free_in_days} дн.` : ', свободен'}`} ${condLabel}<br>`;
+
+            if (!res.ingredients_ok) html += `🔴 Ингредиенты: ❌ недостаточно<br>`;
+            else html += `🟢 Ингредиенты: ✅<br>`;
+            if (!res.money_ok) html += `🔴 Деньги: ❌ (нужно ~$${res.estimated_cost_50l})<br>`;
+            else html += `🟢 Деньги: ✅<br>`;
+
+            if (res.can_brew) {
+                html += `<span style="color:var(--green);font-weight:bold;font-size:1rem">✅ Можно варить!</span>`;
+            } else if (res.earliest_start_day > 0) {
+                html += `<span style="color:var(--yellow);font-weight:bold">⏳ Можно будет через ${res.earliest_start_day} дн.</span>`;
+            } else {
+                const reasons = res.blockers?.map(x => x.message).join('; ') || 'неизвестно';
+                html += `<span style="color:var(--red);font-weight:bold">❌ ${reasons}</span>`;
+            }
+
+            const confirmBtn = document.getElementById('brewConfirmBtn');
+            confirmBtn.disabled = !res.can_brew || !res.ingredients_ok || !res.money_ok;
+            if (res.can_brew) {
+                confirmBtn.textContent = '✅ Начать варку';
+            } else if (res.earliest_start_day > 0) {
+                confirmBtn.textContent = `⏳ Подождать ${res.earliest_start_day} дн.`;
+            } else {
+                confirmBtn.textContent = '❌ Варка недоступна';
+            }
+
+            html += '</div>';
+            statusEl.innerHTML = html;
+        } catch (e) {
+            statusEl.innerHTML = `<span style="color:var(--red)">⚠️ Ошибка проверки: ${e.message}</span>`;
+        }
+    }
 
     function updateBrewInfo() {
         if (!recipe) return;
@@ -244,6 +294,7 @@ function showBrewModal(recipeId) {
                     GAME_STATE = await API.getState();
                     renderStatusBar();
                     updateBrewInfo();
+                    loadCanBrew();
                 } catch (e) {
                     showError(e.message);
                     buyBtn.disabled = false;
@@ -253,8 +304,9 @@ function showBrewModal(recipeId) {
         }
     }
 
+    loadCanBrew();
     updateBrewInfo();
-    document.getElementById('brewSize').oninput = updateBrewInfo;
+    document.getElementById('brewSize').oninput = () => { updateBrewInfo(); loadCanBrew(); };
     document.getElementById('brewCancelBtn').onclick = closeModal;
     overlay.onclick = e => { if (e.target === overlay) closeModal(); };
 
@@ -317,7 +369,7 @@ function updateRecipeCost() {
     const maltAmount = (parseFloat(document.getElementById('newRecipeMalt').value) || 50) / 10;
     const hopsAmount = (parseFloat(document.getElementById('newRecipeHops').value) || 5) / 10;
     const costPerLiter = (maltCost * maltAmount + hopsCost * hopsAmount + yeastCost * 0.1) / 10;
-    const pricePerLiter = costPerLiter * 3.5;
+    const pricePerLiter = costPerLiter * 4.5;
     document.getElementById('recipeCostPreview').innerHTML =
         `Расчёт: себест. ${formatMoney(costPerLiter * 100)}/100л, цена продажи ${formatMoney(pricePerLiter * 100)}/100л`;
 }

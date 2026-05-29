@@ -42,7 +42,7 @@ function renderBrewery() {
     }
 
     const el = document.getElementById('page-brewery');
-    const curBld = BUILDINGS[b.building_id] || BUILDINGS[2];
+    const curBld = BUILDINGS[b.building_id] || BUILDINGS[0];
     el.innerHTML = `
         <div class="brewery-header" style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
             <h2 style="margin-bottom:0">🏭 Пивоварня «${b.name}»</h2>

@@ -22,21 +22,23 @@ function renderBatches() {
                 batches.sort((a, b) => b.id - a.id).map(b => `
                     <tr>
                         <td>${b.id}</td>
-                        <td>${b.recipe_name || '—'}</td>
+                        <td>${b.recipe_name || '—'}${b.skip_condition ? ' ⚡' : ''}</td>
                         <td>${b.batch_size_liters} л</td>
-                        <td><span class="badge badge-${b.stage}">${STAGE_RU[b.stage] || b.stage}</span></td>
+                        <td><span class="badge badge-${b.stage}">${b.waiting_for_tank ? '⏳ ждёт танк' : b.stage === 'ferment' && b.skip_condition ? '⚡ без дозревания' : STAGE_RU[b.stage] || b.stage}</span></td>
                         <td>
+                            ${b.stage === 'ferment' && b.skip_condition ? '<span style="color:var(--yellow);font-size:0.75rem">→ продажа</span>' : `
                             <div class="chart-bar" style="width:100px">
                                 <div class="chart-bar-fill" style="width:${b.stage_progress}%"></div>
                             </div>
-                            ${b.stage_progress}%
+                            ${b.stage_progress}%`}
                         </td>
                         <td>${b.stage === 'ferment' || b.stage === 'condition' || b.stage === 'packaged' ? Math.round(b.quality) + '%' : '—'}</td>
                         <td style="font-size:0.8rem">${b.stage === 'ferment' || b.stage === 'condition' || b.stage === 'packaged' ? (b.actual_abv || '—') + '% / ' + (b.actual_ibu || '—') + ' / ' + (b.actual_srm || '—') : '—'}</td>
                         <td>${b.started_day}</td>
                         <td>
                             ${b.stage === 'packaged' ? `<button class="btn btn-sm btn-success" onclick="doSellBatch(${b.id})">Продать</button>` : ''}
-                            ${b.stage === 'packaged' ? `<span style="color:var(--green);font-size:0.75rem">Готова!</span>` : `<span style="color:var(--text-dim);font-size:0.75rem">${b.stage_progress}%</span>`}
+                            ${b.stage === 'ferment' && !b.skip_condition ? `<button class="btn btn-sm btn-warning" onclick="doExpediteBatch(${b.id})">Продать без дозр.</button>` : ''}
+                            ${b.waiting_for_tank ? `<span style="color:var(--yellow);font-size:0.75rem">⏳ ждёт</span>` : b.stage === 'packaged' ? `<span style="color:var(--green);font-size:0.75rem">Готова!</span>` : `<span style="color:var(--text-dim);font-size:0.75rem">${b.stage_progress}%</span>`}
                         </td>
                     </tr>
                 `).join('')}
@@ -66,7 +68,9 @@ function renderBatches() {
                             <span class="label">День старта:</span><span class="value">${b.started_day}</span>
                         </div>
                         <div class="mobile-card-actions">
-                            ${b.stage === 'packaged' ? `<button class="btn btn-sm btn-success" onclick="doSellBatch(${b.id})">💰 Продать</button>` : `<span style="color:var(--text-dim);font-size:0.75rem;padding:8px">${b.stage_progress}%</span>`}
+                            ${b.stage === 'packaged' ? `<button class="btn btn-sm btn-success" onclick="doSellBatch(${b.id})">💰 Продать</button>` : ''}
+                            ${b.stage === 'ferment' && !b.skip_condition ? `<button class="btn btn-sm btn-warning" onclick="doExpediteBatch(${b.id})">⚡ Продать без дозр.</button>` : ''}
+                            ${b.waiting_for_tank ? `<span style="color:var(--yellow);font-size:0.75rem;padding:8px">⏳ ждёт танк</span>` : b.stage !== 'packaged' && !(b.stage === 'ferment' && !b.skip_condition) ? `<span style="color:var(--text-dim);font-size:0.75rem;padding:8px">${b.stage_progress}%</span>` : ''}
                         </div>
                     </div>
                 `).join('')}
@@ -107,5 +111,18 @@ async function doSellBatch(id) {
         renderBatches();
     } catch (e) {
         showError(e.message);
+}
+
+async function doExpediteBatch(id) {
+    const ok = await showConfirm('Продать без дозревания?', 'Качество и цена будут ниже. Партия поступит в продажу сразу после ферментации.');
+    if (!ok) return;
+    try {
+        const res = await API.request('POST', `/api/batches/${id}/expedite`);
+        showSuccess(res.message);
+        await loadGameState();
+        renderBatches();
+    } catch (e) {
+        showError(e.message);
     }
+}
 }

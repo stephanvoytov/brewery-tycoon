@@ -113,6 +113,8 @@ class BeerBatchSchema(BaseModel):
     actual_abv: float = 0.0
     actual_ibu: int = 0
     actual_srm: int = 0
+    skip_condition: bool = False
+    waiting_for_tank: bool = False
 
     class Config:
         from_attributes = True

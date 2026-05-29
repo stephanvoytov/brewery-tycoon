@@ -78,7 +78,7 @@ for col_name, col_type in [("mastery_count", "INTEGER DEFAULT 0"), ("hidden_para
             conn.commit()
 
 batch_cols = [c["name"] for c in insp.get_columns("beer_batches")]
-for col_name, col_type in [("actual_abv", "FLOAT DEFAULT 0.0"), ("actual_ibu", "INTEGER DEFAULT 0"), ("actual_srm", "INTEGER DEFAULT 0")]:
+for col_name, col_type in [("actual_abv", "FLOAT DEFAULT 0.0"), ("actual_ibu", "INTEGER DEFAULT 0"), ("actual_srm", "INTEGER DEFAULT 0"), ("skip_condition", "INTEGER DEFAULT 0")]:
     if col_name not in batch_cols:
         with engine.connect() as conn:
             conn.execute(text(f"ALTER TABLE beer_batches ADD COLUMN {col_name} {col_type}"))

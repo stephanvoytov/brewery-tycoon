@@ -27,6 +27,8 @@ def get_batches(game_id: int = None, current_user: User = Depends(get_current_us
             "stage_progress": b.stage_progress,
             "quality": b.quality,
             "days_in_stage": b.days_in_stage,
+            "skip_condition": b.skip_condition,
+            "waiting_for_tank": b.stage == BatchStage.ferment and b.stage_progress >= 100 and not b.skip_condition,
         })
     return result
 
@@ -52,10 +54,28 @@ def get_batch(batch_id: int, game_id: int = None, current_user: User = Depends(g
         "stage_progress": batch.stage_progress,
         "quality": batch.quality,
         "days_in_stage": batch.days_in_stage,
+        "skip_condition": batch.skip_condition,
+        "waiting_for_tank": batch.stage == BatchStage.ferment and batch.stage_progress >= 100 and not batch.skip_condition,
     }
 
 
-@router.post("/{batch_id}/sell")
+@router.post("/{batch_id}/expedite")
+def expedite_batch(batch_id: int, game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
+    batch = db.query(BeerBatch).filter(
+        BeerBatch.id == batch_id,
+        BeerBatch.game_state_id == game.id
+    ).first()
+    if not batch:
+        raise HTTPException(404, "Партия не найдена")
+    if batch.stage != BatchStage.ferment:
+        raise HTTPException(400, "Партия должна быть на ферментации")
+    if batch.skip_condition:
+        raise HTTPException(400, "Уже отмечено для продажи без дозревания")
+
+    batch.skip_condition = True
+    db.commit()
+    return {"message": "Партия будет продана сразу после ферментации (без дозревания)", "skip_condition": True}@router.post("/{batch_id}/sell")
 def sell_batch(batch_id: int, game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     game = resolve_game(game_id, current_user, db)
     batch = db.query(BeerBatch).filter(

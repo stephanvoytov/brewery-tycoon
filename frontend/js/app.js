@@ -61,7 +61,7 @@ function renderStatusBar() {
 
     const activeCount = batches.filter(b => !['sold', 'spoiled'].includes(b.stage)).length;
     const repClass = g.reputation >= 70 ? 'high' : g.reputation >= 40 ? 'mid' : 'low';
-    const curBld = BUILDINGS[b.building_id] || BUILDINGS[2];
+    const curBld = BUILDINGS[b.building_id] || BUILDINGS[0];
     const items = [];
 
     items.push(`<span class="sb-item sb-money">💰 ${formatMoney(g.money)}</span>`);

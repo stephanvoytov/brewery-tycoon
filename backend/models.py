@@ -183,6 +183,7 @@ class BeerBatch(Base):
     actual_abv = Column(Float, default=0.0)
     actual_ibu = Column(Integer, default=0)
     actual_srm = Column(Integer, default=0)
+    skip_condition = Column(Boolean, default=False)
 
     game_state = relationship("GameState", back_populates="batches")
     recipe = relationship("BeerRecipe", back_populates="batches")

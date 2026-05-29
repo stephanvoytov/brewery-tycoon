@@ -60,7 +60,7 @@ def create_recipe(req: BeerRecipeCreate, game_id: int = None, current_user: User
         else:
             style = EXPERIMENTAL_STYLE
 
-    base_price_mult = 3.5
+    base_price_mult = 4.5
     if style == EXPERIMENTAL_STYLE:
         base_price_mult = 2.5
 
@@ -239,4 +239,152 @@ def start_brew(recipe_id: int, req: BrewRequest, game_id: int = None, current_us
             "random": random_score,
             "total": quality,
         },
+    }
+
+
+@router.get("/{recipe_id}/can-brew")
+def can_brew(recipe_id: int, game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
+    recipe = db.query(BeerRecipe).filter(
+        BeerRecipe.id == recipe_id,
+        BeerRecipe.game_state_id == game.id
+    ).first()
+    brewery = db.query(Brewery).filter(Brewery.game_state_id == game.id).first()
+
+    if not recipe or not brewery:
+        raise HTTPException(404, "Рецепт или пивоварня не найдена")
+
+    max_batch = brewery.tank_count * brewery.tank_volume
+
+    active_tanks = db.query(BeerBatch).filter(
+        BeerBatch.game_state_id == game.id,
+        BeerBatch.stage.in_([BatchStage.mash, BatchStage.boil])
+    ).count()
+    free_tanks = brewery.tank_count - active_tanks
+
+    active_ferm = db.query(BeerBatch).filter(
+        BeerBatch.game_state_id == game.id,
+        BeerBatch.stage == BatchStage.ferment
+    ).count()
+    free_ferm = brewery.fermenter_count - active_ferm
+
+    active_cond = db.query(BeerBatch).filter(
+        BeerBatch.game_state_id == game.id,
+        BeerBatch.stage == BatchStage.condition
+    ).count()
+    free_cond = brewery.conditioning_tank_count - active_cond
+
+    brew_plus_boil = 2
+    total_brew_ferment = brew_plus_boil + (recipe.ferment_time_days or 5)
+
+    tank_free = free_tanks > 0
+    if not tank_free:
+        earliest_tank = db.query(BeerBatch).filter(
+            BeerBatch.game_state_id == game.id,
+            BeerBatch.stage.in_([BatchStage.mash, BatchStage.boil])
+        ).first()
+        tank_wait = max(1, 2 - (earliest_tank.days_in_stage or 0)) if earliest_tank else 1
+    else:
+        tank_wait = 0
+
+    fermenter_ready = free_ferm > 0
+    if not fermenter_ready:
+        earliest_ferm = db.query(BeerBatch).filter(
+            BeerBatch.game_state_id == game.id,
+            BeerBatch.stage == BatchStage.ferment
+        ).first()
+        ferm_wait = max(1, (recipe.ferment_time_days or 7) - (earliest_ferm.days_in_stage or 0)) if earliest_ferm else 1
+    else:
+        ferm_wait = 0
+
+    cond_ready = free_cond > 0 or brewery.conditioning_tank_count == 0
+    cond_wait = 0
+    if not cond_ready:
+        earliest_cond = db.query(BeerBatch).filter(
+            BeerBatch.game_state_id == game.id,
+            BeerBatch.stage == BatchStage.condition
+        ).first()
+        cond_wait = max(1, (recipe.condition_time_days or 7) - (earliest_cond.days_in_stage or 0)) if earliest_cond else 1
+
+    need_ferm_by = brew_plus_boil
+    need_cond_by = total_brew_ferment
+
+    fermenter_ok = free_ferm > 0 or ferm_wait <= need_ferm_by or (free_ferm == 0 and brewery.fermenter_count == 0)
+    cond_ok = free_cond > 0 or cond_wait <= need_cond_by or brewery.conditioning_tank_count == 0
+
+    earliest_start = tank_wait
+    if not fermenter_ok and brew_plus_boil < ferm_wait:
+        earliest_start = max(earliest_start, ferm_wait - brew_plus_boil)
+    if not cond_ok and total_brew_ferment < cond_wait:
+        earliest_start = max(earliest_start, cond_wait - total_brew_ferment)
+
+    has_kegging = db.query(Equipment).filter(
+        Equipment.game_state_id == game.id,
+        Equipment.is_owned == True,
+        Equipment.name == "🛞 Линия кегов"
+    ).first()
+    effective_max = max_batch
+    if has_kegging:
+        effective_max = int(max_batch * (1 + EquipmentBonuses.KEGGING_LINE_BATCH_BONUS))
+
+    malt_cost = recipe.cost_per_liter or 1.0
+    bld = Buildings.LIST.get(brewery.building_id, Buildings.LIST[Buildings.DEFAULT_ID])
+    cost_red = bld.get("cost_reduction", 0)
+    est_cost_per_batch = malt_cost * 50 * (1 - cost_red)
+
+    malt_needed = recipe.malt_amount * 50 / 10
+    hops_needed = recipe.hops_amount * 50 / 10
+    yeast_needed = 0.1 * 50 / 10
+
+    malt_ing = db.query(Ingredient).filter(
+        Ingredient.game_state_id == game.id,
+        Ingredient.name == recipe.malt_ingredient_name
+    ).first()
+    hops_ing = db.query(Ingredient).filter(
+        Ingredient.game_state_id == game.id,
+        Ingredient.name == recipe.hops_ingredient_name
+    ).first()
+    yeast_ing = db.query(Ingredient).filter(
+        Ingredient.game_state_id == game.id,
+        Ingredient.name == recipe.yeast_ingredient_name
+    ).first()
+
+    ing_ok = (malt_ing and malt_ing.quantity >= malt_needed) and \
+             (hops_ing and hops_ing.quantity >= hops_needed) and \
+             (yeast_ing and yeast_ing.quantity >= yeast_needed)
+
+    money_ok = game.money >= est_cost_per_batch
+
+    can_brew = tank_free and fermenter_ok and cond_ok and ing_ok and money_ok and earliest_start == 0
+
+    resources = {
+        "kettle": {"total": brewery.tank_count, "occupied": active_tanks, "free_in_days": tank_wait, "need_by_day": 0, "ok": tank_free},
+        "fermenter": {"total": brewery.fermenter_count, "occupied": active_ferm, "free_in_days": ferm_wait, "need_by_day": need_ferm_by, "ok": fermenter_ok},
+        "cond_tank": {"total": brewery.conditioning_tank_count, "occupied": active_cond, "free_in_days": cond_wait, "need_by_day": need_cond_by, "ok": cond_ok},
+    }
+
+    blockers = []
+    if not tank_free:
+        blockers.append({"resource": "kettle", "message": f"Котёл занят, освободится через {tank_wait} дн."})
+    if not fermenter_ok:
+        blockers.append({"resource": "fermenter", "message": f"Ферментер освободится через {ferm_wait} дн., а нужен через {need_ferm_by} дн."})
+    if not cond_ok:
+        blockers.append({"resource": "cond_tank", "message": f"Танк освободится через {cond_wait} дн., а нужен через {need_cond_by} дн."})
+    if not ing_ok:
+        blockers.append({"resource": "ingredients", "message": "Недостаточно ингредиентов"})
+    if not money_ok:
+        blockers.append({"resource": "money", "message": f"Недостаточно денег (нужно ~${est_cost_per_batch:.0f})"})
+
+    return {
+        "can_brew": can_brew,
+        "earliest_start_day": earliest_start,
+        "blockers": blockers,
+        "resources": resources,
+        "max_batch_size": effective_max,
+        "estimated_cost_50l": round(est_cost_per_batch, 2),
+        "ingredients_ok": ing_ok,
+        "money_ok": money_ok,
+        "brew_plus_boil_days": brew_plus_boil,
+        "ferment_days": recipe.ferment_time_days or 5,
+        "condition_days": recipe.condition_time_days or 7,
     }
