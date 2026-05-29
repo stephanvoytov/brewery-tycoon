@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.database import get_db
 from backend.models import GameState, Brewery, Equipment, User
-from backend.schemas import BrewerySchema, UpgradeBreweryRequest, RenameBreweryRequest
-from backend.config import UpgradeCosts, EquipmentWear
+from backend.schemas import BrewerySchema, UpgradeBreweryRequest, RenameBreweryRequest, ChangeBuildingRequest
+from backend.config import UpgradeCosts, EquipmentWear, Buildings
 from backend.dependencies import get_current_user, resolve_game
 
 ACHIEVEMENT_UPGRADE_DISCOUNT = 0.1
@@ -152,3 +152,55 @@ def repair_equipment(equipment_id: int, game_id: int = None, current_user: User 
     eq.wear_tear = 100.0
     db.commit()
     return {"message": f"{eq.name} отремонтирован за ${repair_cost}", "wear_tear": eq.wear_tear}
+
+
+@router.post("/change-building")
+def change_building(req: ChangeBuildingRequest, game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
+    brewery = db.query(Brewery).filter(Brewery.game_state_id == game.id).first()
+    if not brewery:
+        raise HTTPException(404, "Пивоварня не найдена")
+
+    bld = Buildings.LIST.get(req.building_id)
+    if not bld:
+        raise HTTPException(400, "Здание не найдено")
+
+    if brewery.level < bld["min_level"]:
+        raise HTTPException(400, f"Требуется уровень пивоварни {bld['min_level']}")
+
+    if brewery.building_id == req.building_id:
+        raise HTTPException(400, "Вы уже в этом здании")
+
+    # Calculate move cost
+    owned_equip_count = db.query(Equipment).filter(
+        Equipment.game_state_id == game.id,
+        Equipment.is_owned == True
+    ).count()
+
+    move_cost = (
+        bld["rent"] * Buildings.MOVE_COST_MULTIPLIER
+        + brewery.tank_count * Buildings.MOVE_COST_PER_TANK
+        + brewery.fermenter_count * Buildings.MOVE_COST_PER_FERMENTER
+        + brewery.conditioning_tank_count * Buildings.MOVE_COST_PER_COND_TANK
+        + (Buildings.MOVE_COST_TAPROOM if brewery.has_taproom else 0)
+        + owned_equip_count * Buildings.MOVE_COST_PER_EQUIP
+    )
+
+    if game.money < move_cost:
+        raise HTTPException(400, f"Недостаточно средств для переезда. Нужно ${move_cost}")
+
+    # Apply building
+    game.money -= move_cost
+    game.total_expenses += move_cost
+    brewery.building_id = req.building_id
+    brewery.rent = bld["rent"]
+    brewery.storage_capacity = max(brewery.storage_capacity, bld["storage"])
+    brewery.tank_volume = max(brewery.tank_volume, bld["kettle_vol"])
+    brewery.tank_count = max(brewery.tank_count, bld["tanks"])
+    brewery.fermenter_count = max(brewery.fermenter_count, bld["fermenters"])
+    brewery.conditioning_tank_count = max(brewery.conditioning_tank_count, bld.get("cond_tanks", 2))
+    brewery.quality_bonus = bld["quality_bonus"]
+    brewery.has_taproom = bld["taproom"]
+    db.commit()
+
+    return {"message": f"Переехали в «{bld['name']}» за ${move_cost}", "building_id": req.building_id, "cost": move_cost}

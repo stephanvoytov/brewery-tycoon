@@ -11,7 +11,7 @@ from backend.config import (
     Rent, Taproom, Marketing, StaffSkill, Loan, Reputation,
     StartingBalance, Salaries, DAYS_PER_MONTH, EquipmentWear,
     BANKRUPTCY_THRESHOLD, BANKRUPTCY_DAYS, EVENT_CHANCE_PER_TICK,
-    Inflation, Tax, BulkSpoilage, EquipmentBonuses, TankVolume, LevelFormula,
+    Inflation, Tax, BulkSpoilage, EquipmentBonuses, TankVolume, LevelFormula, Buildings,
 )
 
 
@@ -143,6 +143,7 @@ def init_new_game(db: Session) -> GameState:
         level=1,
         tank_count=2,
         tank_volume=TankVolume.DEFAULT,
+        building_id=Buildings.DEFAULT_ID,
         fermenter_count=4,
         conditioning_tank_count=2,
         storage_capacity=1000,
@@ -831,7 +832,9 @@ def process_tick(game: GameState, db: Session) -> dict:
         brewery.level = new_level
         events.append(f"🏭 Пивоварня повысила уровень до {new_level}! +5% к цене продажи, +1 слот контрактов")
 
-    # Ingredient spoilage — scales with bulk
+    # Ingredient spoilage — scales with bulk, modified by building
+    bld = Buildings.LIST.get(brewery.building_id, Buildings.LIST[Buildings.DEFAULT_ID])
+    spoil_mod = bld.get("spoil_mod", 1.0)
     ingredients = db.query(Ingredient).filter(Ingredient.game_state_id == game.id).all()
     total_ing_kg = sum(ing.quantity for ing in ingredients)
     if total_ing_kg > BulkSpoilage.TIER2_KG:
@@ -840,6 +843,7 @@ def process_tick(game: GameState, db: Session) -> dict:
         spoilage_rate = BulkSpoilage.TIER1_RATE
     else:
         spoilage_rate = BulkSpoilage.NORMAL_RATE
+    spoilage_rate *= spoil_mod
     spoiled_total = 0
     for ing in ingredients:
         lost = ing.quantity * spoilage_rate

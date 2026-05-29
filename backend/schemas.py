@@ -40,6 +40,7 @@ class BrewerySchema(BaseModel):
     level: int
     tank_count: int
     tank_volume: int
+    building_id: int
     fermenter_count: int
     conditioning_tank_count: int
     storage_capacity: int
@@ -349,3 +350,7 @@ class CurrencyRequest(BaseModel):
 
 class RenameBreweryRequest(BaseModel):
     name: str
+
+
+class ChangeBuildingRequest(BaseModel):
+    building_id: int

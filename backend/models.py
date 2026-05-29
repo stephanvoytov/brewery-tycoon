@@ -125,6 +125,7 @@ class Brewery(Base):
     level = Column(Integer, default=1)
     tank_count = Column(Integer, default=2)
     tank_volume = Column(Integer, default=100)
+    building_id = Column(Integer, default=2)
     fermenter_count = Column(Integer, default=4)
     conditioning_tank_count = Column(Integer, default=2)
     storage_capacity = Column(Integer, default=1000)

@@ -7,6 +7,7 @@ from backend.models import GameState, BeerRecipe, BeerBatch, BatchStage, Brewery
 from backend.schemas import BeerRecipeCreate, BeerRecipeSchema, BrewRequest
 from backend.dependencies import get_current_user, resolve_game
 from backend.game_engine import STYLE_INGREDIENT_MAP, INGREDIENT_TEMPLATES, detect_style, EXPERIMENTAL_STYLE
+from backend.config import Buildings
 
 router = APIRouter(prefix="/api/recipes", tags=["recipes"])
 
@@ -115,6 +116,9 @@ def start_brew(recipe_id: int, req: BrewRequest, game_id: int = None, current_us
         raise HTTPException(400, "Все варочные котлы заняты")
 
     total_ingredient_cost = recipe.cost_per_liter * req.batch_size_liters
+    bld = Buildings.LIST.get(brewery.building_id, Buildings.LIST[Buildings.DEFAULT_ID])
+    cost_reduction = bld.get("cost_reduction", 0)
+    total_ingredient_cost *= (1 - cost_reduction)
     if game.money < total_ingredient_cost:
         raise HTTPException(400, f"Недостаточно средств. Нужно ${total_ingredient_cost:.0f}")
 

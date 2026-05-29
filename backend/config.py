@@ -144,3 +144,46 @@ class EquipmentWear:
 
 
 EVENT_CHANCE_PER_TICK = 0.10
+
+
+class Buildings:
+    DEFAULT_ID = 2
+
+    LIST = {
+        1: {"name": "Подвал", "desc": "Сырой подвал, дёшево и сердито. Порча ингредиентов −50%.",
+            "min_level": 1, "rent": 40, "storage": 500, "tanks": 1, "fermenters": 2,
+            "cond_tanks": 1, "quality_bonus": -0.05, "taproom": False, "kettle_vol": 50,
+            "spoilage_reduction": 0.5, "spoil_mod": 0.5},
+        2: {"name": "Небольшой цех", "desc": "Стандартное помещение для старта. Без излишеств.",
+            "min_level": 1, "rent": 100, "storage": 1000, "tanks": 2, "fermenters": 4,
+            "cond_tanks": 2, "quality_bonus": 0, "taproom": False, "kettle_vol": 100,
+            "spoilage_reduction": 0, "spoil_mod": 1.0},
+        3: {"name": "Промышленное здание", "desc": "Большой цех с выгодным расположением. Спрос +5%.",
+            "min_level": 4, "rent": 200, "storage": 2000, "tanks": 3, "fermenters": 6,
+            "cond_tanks": 3, "quality_bonus": -0.05, "taproom": False, "kettle_vol": 100,
+            "spoilage_reduction": 0, "spoil_mod": 1.0, "demand_bonus": 0.05},
+        4: {"name": "Крафт-лофт", "desc": "Престижный лофт с дегустационным залом. Качество +10%, тапрум встроен.",
+            "min_level": 7, "rent": 300, "storage": 1500, "tanks": 2, "fermenters": 4,
+            "cond_tanks": 2, "quality_bonus": 0.1, "taproom": True, "kettle_vol": 100,
+            "spoilage_reduction": 0, "spoil_mod": 1.0, "max_batch_limit": 1000},
+        5: {"name": "Пивоваренный завод", "desc": "Промышленные масштабы! Себестоимость −15%, +1 слот контракта.",
+            "min_level": 12, "rent": 500, "storage": 5000, "tanks": 4, "fermenters": 8,
+            "cond_tanks": 4, "quality_bonus": -0.1, "taproom": False, "kettle_vol": 200,
+            "spoilage_reduction": 0, "spoil_mod": 1.0, "cost_reduction": 0.15, "extra_contract_slot": 1,
+            "brewing_speed_bonus": 0.05},
+        6: {"name": "Лаборатория", "desc": "Экспериментальный цех для премиум-пива. Quality может >100%, легендарные рецепты.",
+            "min_level": 15, "rent": 800, "storage": 3000, "tanks": 2, "fermenters": 6,
+            "cond_tanks": 3, "quality_bonus": 0.2, "taproom": False, "kettle_vol": 100,
+            "spoilage_reduction": 0, "spoil_mod": 1.0, "unlock_legendary": True, "quality_cap_100": False},
+        7: {"name": "Холдинг", "desc": "Империя пивоварения. −30% себестоимость, +2 слота контрактов, +10% спрос на всё.",
+            "min_level": 18, "rent": 1200, "storage": 8000, "tanks": 6, "fermenters": 12,
+            "cond_tanks": 6, "quality_bonus": -0.05, "taproom": False, "kettle_vol": 200,
+            "spoilage_reduction": 0, "spoil_mod": 1.0, "cost_reduction": 0.3, "extra_contract_slot": 2, "demand_bonus": 0.1},
+    }
+
+    MOVE_COST_MULTIPLIER = 15
+    MOVE_COST_PER_TANK = 500
+    MOVE_COST_PER_FERMENTER = 300
+    MOVE_COST_PER_COND_TANK = 300
+    MOVE_COST_TAPROOM = 2000
+    MOVE_COST_PER_EQUIP = 200

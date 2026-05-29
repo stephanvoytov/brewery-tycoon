@@ -168,6 +168,16 @@ function esc(s) {
     return d.innerHTML;
 }
 
+const BUILDINGS = {
+    1: { name: "Подвал", icon: "🕳", desc: "Сырой подвал, дёшево и сердито.", min_level: 1, rent: 40, storage: 500, tanks: 1, fermenters: 2, quality_bonus: -5, taproom: false, kettle_vol: 50, spoilage_reduction: "−50%" },
+    2: { name: "Небольшой цех", icon: "🏗", desc: "Стандартное помещение для старта.", min_level: 1, rent: 100, storage: 1000, tanks: 2, fermenters: 4, quality_bonus: 0, taproom: false, kettle_vol: 100 },
+    3: { name: "Промышленное здание", icon: "🏭", desc: "Большой цех. Спрос +5%.", min_level: 4, rent: 200, storage: 2000, tanks: 3, fermenters: 6, quality_bonus: -5, taproom: false, kettle_vol: 100 },
+    4: { name: "Крафт-лофт", icon: "🎨", desc: "Престижный лофт. Тапрум встроен.", min_level: 7, rent: 300, storage: 1500, tanks: 2, fermenters: 4, quality_bonus: 10, taproom: true, kettle_vol: 100 },
+    5: { name: "Пивоваренный завод", icon: "🏭", desc: "Себест. −15%, +1 слот.", min_level: 12, rent: 500, storage: 5000, tanks: 4, fermenters: 8, quality_bonus: -10, taproom: false, kettle_vol: 200 },
+    6: { name: "Лаборатория", icon: "🔬", desc: "+20% quality, легендарные рецепты.", min_level: 15, rent: 800, storage: 3000, tanks: 2, fermenters: 6, quality_bonus: 20, taproom: false, kettle_vol: 100 },
+    7: { name: "Холдинг", icon: "🌐", desc: "−30% себест., +2 слота, +10% спрос.", min_level: 18, rent: 1200, storage: 8000, tanks: 6, fermenters: 12, quality_bonus: -5, taproom: false, kettle_vol: 200 },
+};
+
 const TUTORIAL_STEPS = [
     {
         icon: '🍺',

@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from backend.database import get_db
 from backend.models import GameState, Contract, Brewery, User
 from backend.game_engine import get_market_conditions, generate_contracts
+from backend.config import Buildings
 from backend.dependencies import get_current_user, resolve_game
 
 router = APIRouter(prefix="/api/market", tags=["market"])
@@ -59,6 +60,8 @@ def sign_contract(contract_id: int, game_id: int = None, current_user: User = De
 
     brewery = db.query(Brewery).filter(Brewery.game_state_id == game.id).first()
     max_slots = 1 + (brewery.level - 1) if brewery else 1
+    bld = Buildings.LIST.get(brewery.building_id, Buildings.LIST[Buildings.DEFAULT_ID])
+    max_slots += bld.get("extra_contract_slot", 0)
     active_count = db.query(Contract).filter(
         Contract.game_state_id == game.id,
         Contract.is_active == True

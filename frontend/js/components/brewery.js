@@ -41,10 +41,15 @@ function renderBrewery() {
     }
 
     const el = document.getElementById('page-brewery');
+    const curBld = BUILDINGS[b.building_id] || BUILDINGS[2];
     el.innerHTML = `
-        <div class="brewery-header" style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+        <div class="brewery-header" style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
             <h2 style="margin-bottom:0">🏭 Пивоварня «${b.name}»</h2>
             <button class="btn btn-small" onclick="doRenameBrewery()" title="Переименовать">✏️</button>
+        </div>
+        <div style="margin-bottom:16px;font-size:0.85rem;color:var(--accent-light)">
+            ${curBld.icon} ${curBld.name} &nbsp;·&nbsp; Аренда: ${formatMonthly(b.rent)}
+            <button class="btn btn-small" onclick="showBuildingModal()" style="margin-left:12px;">🏢 Сменить здание</button>
         </div>
 
         <div class="brewery-svg-container">
@@ -328,6 +333,78 @@ async function doRepairEquipment(id) {
     try {
         const res = await API.repairEquipment(id);
         showSuccess(res.message);
+        await loadGameState();
+        renderBrewery();
+    } catch (e) {
+        showError(e.message);
+    }
+}
+
+function showBuildingModal() {
+    const b = GAME_STATE.brewery;
+    if (!b) return;
+    const overlay = document.createElement('div');
+    overlay.className = 'dialog-overlay';
+    overlay.style.zIndex = '20001';
+    overlay.innerHTML = `
+        <div class="dialog-box" style="max-width:600px;max-height:80vh;overflow-y:auto">
+            <h3>🏢 Сменить здание</h3>
+            <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:12px">Текущее: ${BUILDINGS[b.building_id]?.name || 'Неизвестно'}</p>
+            <div class="building-list">
+                ${Object.values(BUILDINGS).map(bld => {
+                    const isCurrent = b.building_id === bld.id;
+                    const isLocked = b.level < bld.min_level;
+                    const moveCost = isCurrent || isLocked ? 0 : (
+                        bld.rent * 15
+                        + b.tank_count * 500
+                        + b.fermenter_count * 300
+                        + b.conditioning_tank_count * 300
+                        + (b.has_taproom ? 2000 : 0)
+                        + (GAME_STATE.equipment || []).filter(e => e.is_owned).length * 200
+                    );
+                    return `
+                        <div class="building-card ${isCurrent ? 'current' : ''} ${isLocked ? 'locked' : ''}">
+                            <div class="building-card-header">
+                                <span class="building-icon">${bld.icon}</span>
+                                <span class="building-name">${bld.name}</span>
+                                ${isCurrent ? '<span class="building-badge">✅ Здесь</span>' : ''}
+                                ${isLocked ? '<span class="building-badge locked">🔒 Ур. ' + bld.min_level + '</span>' : ''}
+                            </div>
+                            <div class="building-desc">${bld.desc}</div>
+                            <div class="building-stats">
+                                <span>💵 ${formatMoney(bld.rent)}/день</span>
+                                <span>📦 ${bld.storage}л</span>
+                                <span>⚡ ${bld.tanks}×${bld.kettle_vol}л</span>
+                                <span>🧪 ${bld.fermenters} ферм.</span>
+                                <span>⭐ ${bld.quality_bonus > 0 ? '+' : ''}${bld.quality_bonus}% q</span>
+                            </div>
+                            ${!isCurrent && !isLocked ? `
+                                <div class="building-cost" style="margin-top:8px">
+                                    💰 Переезд: ${formatMoney(moveCost)}
+                                </div>
+                                <button class="btn btn-sm btn-primary" onclick="doChangeBuilding(${bld.id})" style="margin-top:8px;width:100%">
+                                    🚚 Переехать
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+            <div class="dialog-actions" style="margin-top:16px">
+                <button class="btn btn-secondary" id="buildingModalClose">Закрыть</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#buildingModalClose').onclick = () => overlay.remove();
+    overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+}
+
+async function doChangeBuilding(buildingId) {
+    try {
+        const res = await API.changeBuilding(buildingId);
+        showSuccess(res.message);
+        document.querySelectorAll('.dialog-overlay').forEach(el => el.remove());
         await loadGameState();
         renderBrewery();
     } catch (e) {

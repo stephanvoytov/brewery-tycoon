@@ -89,6 +89,10 @@ if "tank_volume" not in brewery_cols:
     with engine.connect() as conn:
         conn.execute(text("ALTER TABLE breweries ADD COLUMN tank_volume INTEGER DEFAULT 100"))
         conn.commit()
+if "building_id" not in brewery_cols:
+    with engine.connect() as conn:
+        conn.execute(text("ALTER TABLE breweries ADD COLUMN building_id INTEGER DEFAULT 2"))
+        conn.commit()
 
 app = FastAPI(title="Пивоваренный Тайкун", description="Brewery Tycoon Game API")
 

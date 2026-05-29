@@ -234,6 +234,10 @@ const API = {
         return this.request('POST', '/api/brewery/buy-insurance');
     },
 
+    async changeBuilding(buildingId) {
+        return this.request('POST', '/api/brewery/change-building', { building_id: buildingId });
+    },
+
     async repairEquipment(equipmentId) {
         return this.request('POST', `/api/brewery/equipment/${equipmentId}/repair`);
     },

@@ -1171,3 +1171,75 @@ input:focus, select:focus {
     .brewery-header { flex-wrap: wrap; gap: 8px; }
     .equip-row { flex-wrap: wrap; gap: 4px; }
 }
+
+/* Building cards */
+.building-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.building-card {
+    background: var(--bg-main);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: left;
+    transition: border-color 0.2s;
+}
+.building-card.current {
+    border-color: var(--green);
+    background: rgba(46, 204, 113, 0.05);
+}
+.building-card.locked {
+    opacity: 0.5;
+    border-color: var(--border);
+}
+.building-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+.building-icon {
+    font-size: 1.3rem;
+}
+.building-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent-light);
+}
+.building-badge {
+    margin-left: auto;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: var(--accent);
+    color: #fff;
+}
+.building-badge.locked {
+    background: var(--bg-card);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+}
+.building-desc {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+}
+.building-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--text);
+}
+.building-stats span {
+    background: var(--bg-card);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+.building-cost {
+    font-size: 0.8rem;
+    color: var(--accent);
+    font-weight: 600;
+}
