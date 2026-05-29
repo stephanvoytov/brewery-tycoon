@@ -1,4 +1,18 @@
 let loanInfoCache = null;
+let financeChart = null;
+
+function makeGradient(ctx, c1, c2) {
+    const g = ctx.createLinearGradient(0, 0, 0, 240);
+    g.addColorStop(0, c1);
+    g.addColorStop(1, c2);
+    return g;
+}
+
+function buildChartLabels(n) {
+    const labels = [];
+    for (let i = 0; i < n; i++) labels.push('День ' + (i + 1));
+    return labels;
+}
 
 async function renderFinance() {
     const s = GAME_STATE.game;
@@ -9,7 +23,6 @@ async function renderFinance() {
     const revenueHistory = s.revenue_history || [];
     const expenseHistory = s.expense_history || [];
     const hasData = revenueHistory.length > 0 || expenseHistory.length > 0;
-    const maxVal = Math.max(...revenueHistory, ...expenseHistory, 1);
 
     if (!loanInfoCache) {
         try { loanInfoCache = await API.getLoanInfo(); } catch (e) { loanInfoCache = null; }
@@ -45,32 +58,10 @@ async function renderFinance() {
             </div>
         </div>
 
-        <div class="grid-2">
-            <div class="card">
-                <h3>📊 Доходы за последние 30 дней</h3>
-                <div style="position:relative;display:flex;align-items:flex-end;gap:2px;height:160px;padding:20px 0 10px">
-                    ${!hasData ? '<div class="empty-state" style="width:100%">Нажмите «Новый день» на дашборде</div>' :
-                    !revenueHistory.length ? '<div class="empty-state" style="width:100%">Нет данных о доходах</div>' :
-                    revenueHistory.map(v => {
-                        const h = (v / maxVal) * 100;
-                        return `<div style="flex:1;background:var(--green);height:${Math.max(h, 2)}%;min-width:10px;border-radius:2px 2px 0 0" title="День ${revenueHistory.indexOf(v) + 1}: ${formatMoney(v)}"></div>`;
-                    }).join('')}
-                    ${hasData ? `<div style="position:absolute;top:2px;right:4px;font-size:0.7rem;color:var(--text-dim)">max ${formatMoney(maxVal)}</div>` : ''}
-                    ${hasData ? `<div style="position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-between;font-size:0.65rem;color:var(--text-dim);padding:0 2px"><span>1</span><span>${Math.min(revenueHistory.length || expenseHistory.length, 30)}</span></div>` : ''}
-                </div>
-            </div>
-            <div class="card">
-                <h3>📊 Расходы за последние 30 дней</h3>
-                <div style="position:relative;display:flex;align-items:flex-end;gap:2px;height:160px;padding:20px 0 10px">
-                    ${!hasData ? '<div class="empty-state" style="width:100%">Нажмите «Новый день» на дашборде</div>' :
-                    !expenseHistory.length ? '<div class="empty-state" style="width:100%">Нет данных о расходах</div>' :
-                    expenseHistory.map(v => {
-                        const h = (v / maxVal) * 100;
-                        return `<div style="flex:1;background:var(--red);height:${Math.max(h, 2)}%;min-width:10px;border-radius:2px 2px 0 0" title="День ${expenseHistory.indexOf(v) + 1}: ${formatMoney(v)}"></div>`;
-                    }).join('')}
-                    ${hasData ? `<div style="position:absolute;top:2px;right:4px;font-size:0.7rem;color:var(--text-dim)">max ${formatMoney(maxVal)}</div>` : ''}
-                    ${hasData ? `<div style="position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-between;font-size:0.65rem;color:var(--text-dim);padding:0 2px"><span>1</span><span>${Math.min(expenseHistory.length || revenueHistory.length, 30)}</span></div>` : ''}
-                </div>
+        <div class="card">
+            <h3>📊 Доходы и расходы</h3>
+            <div class="finance-chart-wrap">
+                ${!hasData ? '<div class="empty-state">Нажмите «Новый день» на дашборде</div>' : '<canvas id="financeChart"></canvas>'}
             </div>
         </div>
 
@@ -157,6 +148,101 @@ async function renderFinance() {
             </div>
         </div>
     `;
+
+    if (hasData && typeof Chart !== 'undefined') {
+        try {
+            if (financeChart) financeChart.destroy();
+            const canvas = document.getElementById('financeChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const maxLen = Math.max(revenueHistory.length, expenseHistory.length);
+            const labels = buildChartLabels(maxLen);
+            financeChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Доходы',
+                            data: revenueHistory,
+                            borderColor: '#4caf50',
+                            backgroundColor: makeGradient(ctx, 'rgba(76,175,80,0.35)', 'rgba(76,175,80,0.02)'),
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 2,
+                            pointHoverRadius: 5,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Расходы',
+                            data: expenseHistory.length >= maxLen ? expenseHistory : [...expenseHistory, ...Array(maxLen - expenseHistory.length).fill(0)],
+                            borderColor: '#e74c3c',
+                            backgroundColor: makeGradient(ctx, 'rgba(231,76,60,0.35)', 'rgba(231,76,60,0.02)'),
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 2,
+                            pointHoverRadius: 5,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#e0dcd0',
+                                font: { size: 12 },
+                                usePointStyle: true,
+                                padding: 16
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#1f2d4a',
+                            titleColor: '#f0c040',
+                            bodyColor: '#e0dcd0',
+                            borderColor: '#3a4a6a',
+                            borderWidth: 1,
+                            padding: 10,
+                            callbacks: {
+                                label: ctx => ' ' + ctx.dataset.label + ': ' + formatMoney(ctx.parsed.y)
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: '#a0a090',
+                                font: { size: 10 },
+                                maxTicksLimit: 10
+                            },
+                            grid: {
+                                color: 'rgba(58,74,106,0.15)'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#a0a090',
+                                font: { size: 10 },
+                                callback: v => formatMoney(v)
+                            },
+                            grid: {
+                                color: 'rgba(58,74,106,0.15)'
+                            }
+                        }
+                    }
+                }
+            });
+        } catch (e) {
+            console.error('Chart init failed:', e);
+        }
+    }
 }
 
 async function doTakeLoan() {

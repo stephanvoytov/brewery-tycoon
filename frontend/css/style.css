@@ -992,6 +992,12 @@ input:focus, select:focus {
     border-bottom: none;
 }
 
+.finance-chart-wrap {
+    position: relative;
+    height: 240px;
+    margin-top: 4px;
+}
+
 .help-brew-svg {
     width: 100%;
     margin: 0 auto;
