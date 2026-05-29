@@ -1390,24 +1390,6 @@ input:focus, select:focus {
 
     th, td { padding: 6px 6px; font-size: 0.75rem; }
 
-    /* === Modals fullscreen === */
-    #brewModal[style*="display: block"],
-    #brewModal[style*="display:block"],
-    #brewModal[style*="display: flex"],
-    #brewModal[style*="display:flex"] {
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        z-index: var(--z-brew-modal);
-        border-radius: 0;
-        padding: 16px;
-        margin: 0;
-        overflow-y: auto;
-        flex-direction: column;
-        border: none;
-    }
-    #brewModal .grid-2 { grid-template-columns: 1fr; }
-    #brewModal .btn { min-height: 48px; font-size: 0.95rem; }
-
     .event-choice-overlay {
         position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
@@ -1512,6 +1494,30 @@ input:focus, select:focus {
     .dash-header { flex-wrap: wrap; gap: 8px; }
     .brewery-header { flex-wrap: wrap; gap: 8px; }
     .equip-row { flex-wrap: wrap; gap: 4px; }
+}
+
+/* Brew modal dialog (desktop) */
+.brew-modal-dialog {
+    max-width: 540px;
+    width: 90%;
+    text-align: left;
+}
+.brew-modal-dialog .brew-info {
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+}
+
+@media (max-width: 768px) {
+    .brew-modal-dialog {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 0;
+        border: none;
+        min-height: 100vh;
+        min-height: 100dvh;
+    }
+    .brew-modal-dialog .btn { min-height: 48px; font-size: 0.95rem; }
 }
 
 /* Building cards */

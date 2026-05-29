@@ -65,20 +65,6 @@ function renderRecipes() {
 
 
         </div>
-
-        <div class="card" id="brewModal" style="display:none">
-            <h3>🍺 Начать варку</h3>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Объём партии (л) <span style="font-size:0.75rem;color:var(--text-dim)">(макс. ${brewery.tank_count * brewery.tank_volume}л)</span></label>
-                    <input type="number" id="brewSize" value="50" min="10" max="${brewery.tank_count * brewery.tank_volume}">
-                </div>
-                <button class="btn btn-success" id="brewConfirmBtn">Начать варку</button>
-                <button class="btn btn-danger" onclick="document.getElementById('brewModal').style.display='none'">Отмена</button>
-            </div>
-            <div id="brewInfo" style="margin-top:10px;font-size:0.85rem;color:var(--text-dim)"></div>
-        </div>
-
         <div class="card">
             <h3>➕ Создать новый рецепт <span class="help-link" onclick="scrollToHelp('help-guide-hidden-params'); return false;" title="Подробнее о скрытых параметрах">❓</span></h3>
             <div class="grid-3">
@@ -156,15 +142,33 @@ let brewRecipeId = null;
 
 function showBrewModal(recipeId) {
     brewRecipeId = recipeId;
-    const modal = document.getElementById('brewModal');
-    modal.style.display = 'block';
     const recipe = GAME_STATE.recipes.find(r => r.id === recipeId);
     const ingredients = GAME_STATE.ingredients || [];
+    const brewery = GAME_STATE.brewery;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'dialog-overlay';
+    overlay.innerHTML = `
+        <div class="dialog-box brew-modal-dialog">
+            <h3>🍺 Начать варку: ${esc(recipe?.name || '')}</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Объём партии (л) <span style="font-size:0.75rem;color:var(--text-dim)">(макс. ${brewery.tank_count * brewery.tank_volume}л)</span></label>
+                    <input type="number" id="brewSize" value="50" min="10" max="${brewery.tank_count * brewery.tank_volume}">
+                </div>
+                <button class="btn btn-success" id="brewConfirmBtn">Начать варку</button>
+                <button class="btn btn-danger" id="brewCancelBtn">Отмена</button>
+            </div>
+            <div id="brewInfo" class="brew-info"></div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    function closeModal() { overlay.remove(); }
 
     function updateBrewInfo() {
         if (!recipe) return;
         const size = parseFloat(document.getElementById('brewSize').value) || 50;
-        const brewery = GAME_STATE.brewery;
         const maltPerL = (recipe.malt_amount || 0) / 10;
         const hopsPerL = (recipe.hops_amount || 0) / 10;
         const yeastPerL = 0.1 / 10;
@@ -179,11 +183,21 @@ function showBrewModal(recipeId) {
         const hasYeast = yeastIng && yeastIng.quantity >= needYeast;
         const totalOk = hasMalt && hasHops && hasYeast;
 
+        const missingMalt = Math.max(0, needMalt - (maltIng ? maltIng.quantity : 0));
+        const missingHops = Math.max(0, needHops - (hopsIng ? hopsIng.quantity : 0));
+        const missingYeast = Math.max(0, needYeast - (yeastIng ? yeastIng.quantity : 0));
+        const buyCost = missingMalt * (maltIng ? maltIng.unit_cost : 0) + missingHops * (hopsIng ? hopsIng.unit_cost : 0) + missingYeast * (yeastIng ? yeastIng.unit_cost : 0);
+
         const ingScore = 40 - (recipe.malt_ingredient_name && STYLE_RECS[recipe.style] && recipe.malt_ingredient_name !== STYLE_RECS[recipe.style].malt ? 10 : 0) - (recipe.hops_ingredient_name && STYLE_RECS[recipe.style] && recipe.hops_ingredient_name !== STYLE_RECS[recipe.style].hops ? 10 : 0) - (recipe.yeast_ingredient_name && STYLE_RECS[recipe.style] && recipe.yeast_ingredient_name !== STYLE_RECS[recipe.style].yeast ? 5 : 0);
         const eqScore = GAME_STATE.equipment && GAME_STATE.equipment.length ? Math.round(30 * GAME_STATE.equipment.filter(e => e.is_owned).reduce((s, e) => s + (e.wear_tear || 100), 0) / Math.max(1, GAME_STATE.equipment.filter(e => e.is_owned).length) / 100) : 30;
         const skillScore = Math.min(20, (GAME_STATE.game.brewing_level || 1) * 2);
         const mastScore = Math.min(5, Math.floor((recipe.mastery_count || 0) * 0.5));
         const estQuality = Math.min(100, Math.max(10, ingScore + eqScore + skillScore + mastScore));
+
+        let buyBtnHtml = '';
+        if (!totalOk) {
+            buyBtnHtml = `<div style="margin-top:8px"><button class="btn btn-sm btn-primary" id="brewBuyIngredientsBtn">🛒 Купить недостающее (≈${formatMoney(buyCost)})</button></div>`;
+        }
 
         document.getElementById('brewInfo').innerHTML =
             `<b>${recipe.name}</b> (${STYLE_RU[recipe.style]})<br>` +
@@ -194,15 +208,54 @@ function showBrewModal(recipeId) {
             `🌾 ${recipe.malt_ingredient_name || 'Солод'}: ${needMalt} кг ${hasMalt ? '✅' : '❌'}<br>` +
             `🌿 ${recipe.hops_ingredient_name || 'Хмель'}: ${needHops} кг ${hasHops ? '✅' : '❌'}<br>` +
             `🧫 ${recipe.yeast_ingredient_name || 'Дрожжи'}: ${needYeast} кг ${hasYeast ? '✅' : '❌'}<br>` +
-            `<span style="color:${totalOk ? 'var(--green)' : 'var(--red)'};font-weight:bold">${totalOk ? '✅ Ингредиентов достаточно' : '❌ Пополните запасы'}</span><br>` +
+            `<span style="color:${totalOk ? 'var(--green)' : 'var(--red)'};font-weight:bold">${totalOk ? '✅ Ингредиентов достаточно' : '❌ Пополните запасы'}</span>${buyBtnHtml}<br>` +
             `<div style="margin-top:8px;font-size:0.8rem;border-top:1px solid var(--border);padding-top:6px">` +
             `<b>⭐ Прогноз качества ≈${estQuality}</b><br>` +
             `<span class="text-dim">🌾 Ингредиенты ${ingScore}/40 · ⚙️ Оборудование ${eqScore}/30 · 🧑‍🍳 Навык ${skillScore}/20 · ⭐ Мастерство ${mastScore}/5 · 🎲 ±5</span>` +
             `</div>`;
+
+        const buyBtn = document.getElementById('brewBuyIngredientsBtn');
+        if (buyBtn) {
+            buyBtn.onclick = async () => {
+                buyBtn.disabled = true;
+                buyBtn.textContent = '⏳ Покупка...';
+                try {
+                    const bought = [];
+                    let totalCost = 0;
+                    if (missingMalt > 0.01 && maltIng) {
+                        const qty = Math.ceil(missingMalt * 10) / 10;
+                        const res = await API.buyIngredient(maltIng.id, qty);
+                        bought.push(`🌾 ${qty}кг`);
+                        totalCost += res.cost;
+                    }
+                    if (missingHops > 0.01 && hopsIng) {
+                        const qty = Math.ceil(missingHops * 10) / 10;
+                        const res = await API.buyIngredient(hopsIng.id, qty);
+                        bought.push(`🌿 ${qty}кг`);
+                        totalCost += res.cost;
+                    }
+                    if (missingYeast > 0.01 && yeastIng) {
+                        const qty = Math.ceil(missingYeast * 10) / 10;
+                        const res = await API.buyIngredient(yeastIng.id, qty);
+                        bought.push(`🧫 ${qty}кг`);
+                        totalCost += res.cost;
+                    }
+                    showSuccess(`Куплено: ${bought.join(', ')} за ${formatMoney(totalCost)}`);
+                    await loadGameState();
+                    updateBrewInfo();
+                } catch (e) {
+                    showError(e.message);
+                    buyBtn.disabled = false;
+                    buyBtn.textContent = `🛒 Купить недостающее (≈${formatMoney(buyCost)})`;
+                }
+            };
+        }
     }
 
     updateBrewInfo();
     document.getElementById('brewSize').oninput = updateBrewInfo;
+    document.getElementById('brewCancelBtn').onclick = closeModal;
+    overlay.onclick = e => { if (e.target === overlay) closeModal(); };
 
     document.getElementById('brewConfirmBtn').onclick = async () => {
         const size = parseFloat(document.getElementById('brewSize').value) || 50;
@@ -216,8 +269,8 @@ function showBrewModal(recipeId) {
                 detail = `\n⭐ Качество: ${qb.total} (🌾${qb.ingredient} ⚙️${qb.equipment} 🧑‍🍳${qb.skill} ⭐${qb.mastery} 🎲${qb.random > 0 ? '+' : ''}${qb.random})`;
             }
             showSuccess(res.message + detail);
+            closeModal();
             await loadGameState();
-            modal.style.display = 'none';
             renderRecipes();
         } catch (e) {
             showError(e.message);
