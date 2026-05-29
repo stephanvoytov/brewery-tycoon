@@ -11,21 +11,21 @@ from backend.config import (
     Rent, Taproom, Marketing, StaffSkill, Loan, Reputation,
     StartingBalance, Salaries, DAYS_PER_MONTH, EquipmentWear,
     BANKRUPTCY_THRESHOLD, BANKRUPTCY_DAYS, EVENT_CHANCE_PER_TICK,
-    Inflation, Tax, BulkSpoilage,
+    Inflation, Tax, BulkSpoilage, EquipmentBonuses, TankVolume, LevelFormula,
 )
 
 
 def get_available_equipment(level: int):
     return [
-        {"type": EquipmentType.kettle, "name": "Варочный котёл 50л", "price": 2000, "efficiency_bonus": 0.05},
-        {"type": EquipmentType.kettle, "name": "Варочный котёл 100л", "price": 5000, "efficiency_bonus": 0.1},
+        {"type": EquipmentType.kettle, "name": "Варочный котёл 50л", "price": 2000, "efficiency_bonus": EquipmentBonuses.KETTLE_50L_EXTRA_TANK},
+        {"type": EquipmentType.kettle, "name": "Варочный котёл 100л", "price": 5000, "efficiency_bonus": EquipmentBonuses.KETTLE_100L_VOLUME_BONUS},
         {"type": EquipmentType.fermenter, "name": "Ферментер 50л", "price": 1500, "efficiency_bonus": 0.03},
         {"type": EquipmentType.fermenter, "name": "Ферментер 100л", "price": 3000, "efficiency_bonus": 0.06},
-        {"type": EquipmentType.bottling_line, "name": "Линия розлива", "price": 4000, "efficiency_bonus": 0.08},
+        {"type": EquipmentType.bottling_line, "name": "Линия розлива", "price": 4000, "efficiency_bonus": EquipmentBonuses.BOTTLING_LINE_PRICE_BONUS},
         {"type": EquipmentType.kegging_line, "name": "Линия кегов", "price": 5000, "efficiency_bonus": 0.1},
         {"type": EquipmentType.mash_tun, "name": "Заторный чан", "price": 1800, "efficiency_bonus": 0.04},
-        {"type": EquipmentType.cooling_system, "name": "Система охлаждения", "price": 3000, "efficiency_bonus": 0.07},
-        {"type": EquipmentType.conditioning_tank, "name": "Лагерный танк", "price": 2500, "efficiency_bonus": 0.05},
+        {"type": EquipmentType.cooling_system, "name": "Система охлаждения", "price": 3000, "efficiency_bonus": EquipmentBonuses.COOLING_SYSTEM_FERMENT_DAYS},
+        {"type": EquipmentType.conditioning_tank, "name": "Лагерный танк", "price": 2500, "efficiency_bonus": EquipmentBonuses.CONDITIONING_TANK_CONDITION_DAYS},
     ]
 
 
@@ -142,6 +142,7 @@ def init_new_game(db: Session) -> GameState:
         name="Моя пивоварня",
         level=1,
         tank_count=2,
+        tank_volume=TankVolume.DEFAULT,
         fermenter_count=4,
         conditioning_tank_count=2,
         storage_capacity=1000,
@@ -553,9 +554,25 @@ def process_tick(game: GameState, db: Session) -> dict:
         elif batch.stage == BatchStage.boil:
             stage_duration = max(1, int(1 / total_efficiency))
         elif batch.stage == BatchStage.ferment:
-            stage_duration = max(1, int(recipe.ferment_time_days / total_efficiency))
+            ferment_days = recipe.ferment_time_days
+            has_cooling = db.query(Equipment).filter(
+                Equipment.game_state_id == game.id,
+                Equipment.is_owned == True,
+                Equipment.type == EquipmentType.cooling_system
+            ).first()
+            if has_cooling:
+                ferment_days = max(1, ferment_days + EquipmentBonuses.COOLING_SYSTEM_FERMENT_DAYS)
+            stage_duration = max(1, int(ferment_days / total_efficiency))
         elif batch.stage == BatchStage.condition:
-            stage_duration = max(1, int(recipe.condition_time_days / total_efficiency))
+            condition_days = recipe.condition_time_days
+            has_cond_tank = db.query(Equipment).filter(
+                Equipment.game_state_id == game.id,
+                Equipment.is_owned == True,
+                Equipment.type == EquipmentType.conditioning_tank
+            ).first()
+            if has_cond_tank:
+                condition_days = max(1, condition_days + EquipmentBonuses.CONDITIONING_TANK_CONDITION_DAYS)
+            stage_duration = max(1, int(condition_days / total_efficiency))
 
         if stage_duration > 0:
             batch.stage_progress = min(100, int((batch.days_in_stage / stage_duration) * 100))
@@ -808,8 +825,8 @@ def process_tick(game: GameState, db: Session) -> dict:
         game.last_tax_day = game.day
         events.append(f"💰 Налог: ${tax_amount:.0f} (10% от прибыли)")
 
-    # Brewery level progression: every $20k total revenue → +1 level
-    new_level = 1 + int((game.total_revenue or 0) / 20000)
+    # Brewery level progression: exponential
+    new_level = LevelFormula.level_from_revenue(game.total_revenue or 0)
     if new_level > brewery.level:
         brewery.level = new_level
         events.append(f"🏭 Пивоварня повысила уровень до {new_level}! +5% к цене продажи, +1 слот контрактов")

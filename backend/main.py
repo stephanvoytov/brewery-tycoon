@@ -84,6 +84,12 @@ for col_name, col_type in [("actual_abv", "FLOAT DEFAULT 0.0"), ("actual_ibu", "
             conn.execute(text(f"ALTER TABLE beer_batches ADD COLUMN {col_name} {col_type}"))
             conn.commit()
 
+brewery_cols = [c["name"] for c in insp.get_columns("breweries")]
+if "tank_volume" not in brewery_cols:
+    with engine.connect() as conn:
+        conn.execute(text("ALTER TABLE breweries ADD COLUMN tank_volume INTEGER DEFAULT 100"))
+        conn.commit()
+
 app = FastAPI(title="Пивоваренный Тайкун", description="Brewery Tycoon Game API")
 
 app.add_middleware(

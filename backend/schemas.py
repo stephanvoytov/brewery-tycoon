@@ -39,6 +39,7 @@ class BrewerySchema(BaseModel):
     name: str
     level: int
     tank_count: int
+    tank_volume: int
     fermenter_count: int
     conditioning_tank_count: int
     storage_capacity: int

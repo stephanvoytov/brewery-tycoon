@@ -180,7 +180,7 @@ function renderBrewery() {
 
                 <g transform="translate(40, 445)">
                     <rect x="0" y="0" width="1720" height="42" rx="6" fill="#1a1a2e" opacity="0.8"/>
-                    <text x="860" y="26" text-anchor="middle" fill="#8a8a7a" font-size="14">📦 Хранилище: ${b.storage_capacity} л • Аренда: ${formatMonthly(b.rent)} • Уровень пивоварни: ${b.level}</text>
+                    <text x="860" y="26" text-anchor="middle" fill="#8a8a7a" font-size="14">📦 Хранилище: ${b.storage_capacity} л • Аренда: ${formatMonthly(b.rent)} • Уровень: ${b.level} • Котлы: ${b.tank_count}×${b.tank_volume}л (макс. партия ${b.tank_count * b.tank_volume}л)</text>
                 </g>
             </svg>
         </div>
@@ -191,7 +191,7 @@ function renderBrewery() {
                 <table>
                     <tr>
                         <td>Варочные котлы</td>
-                        <td>${b.tank_count} шт.</td>
+                        <td>${b.tank_count} шт. × ${b.tank_volume}л</td>
                         <td><button class="btn btn-sm btn-primary" onclick="doUpgrade('tanks')" ${!getUpgradeCost('tanks', b.tank_count) ? 'disabled' : ''}>+1${getUpgradeCost('tanks', b.tank_count) ? ` (${formatMoney(getUpgradeCost('tanks', b.tank_count))})` : ' MAX'}</button></td>
                     </tr>
                     <tr>
@@ -221,7 +221,7 @@ function renderBrewery() {
                 </table>
                 <div class="mobile-card-list">
                     <div class="mobile-card">
-                        <div class="mobile-card-row"><span class="label">Варочные котлы:</span><span class="value">${b.tank_count} шт.</span></div>
+                        <div class="mobile-card-row"><span class="label">Варочные котлы:</span><span class="value">${b.tank_count}×${b.tank_volume}л</span></div>
                         <div class="mobile-card-actions"><button class="btn btn-sm btn-primary" onclick="doUpgrade('tanks')" ${!getUpgradeCost('tanks', b.tank_count) ? 'disabled' : ''}>+1${getUpgradeCost('tanks', b.tank_count) ? ` (${formatMoney(getUpgradeCost('tanks', b.tank_count))})` : ' MAX'}</button></div>
                     </div>
                     <div class="mobile-card">

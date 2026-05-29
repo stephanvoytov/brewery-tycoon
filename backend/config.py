@@ -6,7 +6,7 @@ class StartingBalance:
     LOAN = 0.0
     LOAN_INTEREST_RATE = 0.05
     REPUTATION = 50.0
-    INGREDIENT_QUANTITY = 20.0
+    INGREDIENT_QUANTITY = 10.0
 
 
 class Rent:
@@ -54,8 +54,8 @@ class Loan:
     BASE_LIMIT = 5000
     REP_PER_LIMIT = 200
     LEVEL_PER_LIMIT = 1000
-    MIN_RATE = 0.003
-    RATE_RANGE = 0.007
+    MIN_RATE = 0.001
+    RATE_RANGE = 0.004
 
 
 class Inflation:
@@ -66,7 +66,7 @@ class Inflation:
 
 class Tax:
     INTERVAL_DAYS = 7
-    FLAT_MIN = 200
+    FLAT_MIN = 0
     RATE = 0.10
 
 
@@ -78,15 +78,34 @@ class BulkDiscount:
 
 
 class BulkSpoilage:
-    NORMAL_RATE = 0.005
+    NORMAL_RATE = 0.003
     TIER1_KG = 100
-    TIER1_RATE = 0.008
+    TIER1_RATE = 0.005
     TIER2_KG = 300
-    TIER2_RATE = 0.012
+    TIER2_RATE = 0.008
 
 
 class Reputation:
     CHANGE_PER_DAY = 0.3
+
+
+class TankVolume:
+    DEFAULT = 100
+
+
+class LevelFormula:
+    @staticmethod
+    def revenue_for_level(level: int) -> int:
+        return 5000 * level * (level - 1)
+
+    @staticmethod
+    def level_from_revenue(revenue: float) -> int:
+        if revenue <= 0:
+            return 1
+        lv = 1
+        while LevelFormula.revenue_for_level(lv + 1) <= revenue:
+            lv += 1
+        return lv
 
 
 class UpgradeCosts:
@@ -107,6 +126,14 @@ class EquipmentPrices:
     MASH_TUN = 1800
     COOLING_SYSTEM = 3000
     CONDITIONING_TANK = 2500
+
+
+class EquipmentBonuses:
+    KETTLE_50L_EXTRA_TANK = 1
+    KETTLE_100L_VOLUME_BONUS = 50
+    BOTTLING_LINE_PRICE_BONUS = 0.15
+    COOLING_SYSTEM_FERMENT_DAYS = -1
+    CONDITIONING_TANK_CONDITION_DAYS = -2
 
 
 class EquipmentWear:

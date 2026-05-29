@@ -102,8 +102,9 @@ def start_brew(recipe_id: int, req: BrewRequest, game_id: int = None, current_us
     if not recipe or not brewery:
         raise HTTPException(404, "Рецепт или пивоварня не найдена")
 
-    if req.batch_size_liters > brewery.storage_capacity:
-        raise HTTPException(400, f"Объём партии превышает вместимость хранилища ({brewery.storage_capacity}л)")
+    max_batch = brewery.tank_count * brewery.tank_volume
+    if req.batch_size_liters > max_batch:
+        raise HTTPException(400, f"Объём партии превышает ёмкость котлов ({brewery.tank_count}×{brewery.tank_volume}л = {max_batch}л)")
 
     active_batches = db.query(BeerBatch).filter(
         BeerBatch.game_state_id == game_id,

@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.database import get_db
-from backend.models import GameState, BeerBatch, BatchStage, BeerRecipe, Brewery, User
+from backend.models import GameState, BeerBatch, BatchStage, BeerRecipe, Brewery, Equipment, EquipmentType, User
 from backend.schemas import BatchActionRequest
+from backend.config import EquipmentBonuses
 from backend.dependencies import get_current_user, resolve_game
 
 router = APIRouter(prefix="/api/batches", tags=["batches"])
@@ -72,7 +73,17 @@ def sell_batch(batch_id: int, game_id: int = None, current_user: User = Depends(
 
     brewery = db.query(Brewery).filter(Brewery.game_state_id == game.id).first()
     level_bonus = 1 + (brewery.level - 1) * 0.05 if brewery else 1.0
-    price = recipe.base_price_per_liter * (batch.quality / 50) * level_bonus
+    price_mult = level_bonus
+
+    has_bottling = db.query(Equipment).filter(
+        Equipment.game_state_id == game.id,
+        Equipment.is_owned == True,
+        Equipment.type == EquipmentType.bottling_line
+    ).first()
+    if has_bottling:
+        price_mult *= (1 + EquipmentBonuses.BOTTLING_LINE_PRICE_BONUS)
+
+    price = recipe.base_price_per_liter * (batch.quality / 50) * price_mult
     revenue = batch.batch_size_liters * price
     game.money += revenue
     game.total_revenue += revenue
