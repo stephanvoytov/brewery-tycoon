@@ -514,9 +514,18 @@ def process_tick(game: GameState, db: Session) -> dict:
     total_efficiency = 1.0 + sum(eq.efficiency_bonus for eq in equipment_owned if eq.wear_tear >= EquipmentWear.BROKEN_THRESHOLD)
 
     all_staff = db.query(Staff).filter(Staff.game_state_id == game.id).all()
-    brewer_skill = sum(s.skill_level for s in all_staff if s.role == StaffRole.brewer)
-    sales_skill = sum(s.skill_level for s in all_staff if s.role == StaffRole.sales)
-    admin_skill = sum(s.skill_level for s in all_staff if s.role == StaffRole.admin)
+    def _effective_skill(staff_list):
+        total = 0
+        for s in staff_list:
+            mult = 1.0
+            if s.morale < 30:
+                mult = 0.5
+            total += s.skill_level * mult
+        return total
+
+    brewer_skill = _effective_skill([s for s in all_staff if s.role == StaffRole.brewer])
+    sales_skill = _effective_skill([s for s in all_staff if s.role == StaffRole.sales])
+    admin_skill = _effective_skill([s for s in all_staff if s.role == StaffRole.admin])
 
     staff_efficiency = 1.0 + brewer_skill * StaffSkill.EFFICIENCY_PER_SKILL
     total_efficiency *= staff_efficiency
@@ -634,7 +643,8 @@ def process_tick(game: GameState, db: Session) -> dict:
             deliver_amount = min(batch.batch_size_liters, contract.quantity_liters - contract.delivered_liters)
             if deliver_amount > 0:
                 sales_bonus = 1.0 + sales_skill * 0.02
-                revenue = deliver_amount * contract.price_per_liter * sales_bonus
+                quality_factor = (batch.quality or 50) / 50
+                revenue = deliver_amount * contract.price_per_liter * sales_bonus * quality_factor
                 game.money += revenue
                 game.total_revenue += revenue
                 game.daily_revenue += revenue
@@ -686,9 +696,16 @@ def process_tick(game: GameState, db: Session) -> dict:
             total_market_liters += comp.total_sales_liters
 
     total_salary = 0
+    fired_staff = []
     for s in all_staff:
         total_salary += s.salary
         s.morale = max(0, min(100, s.morale + random.uniform(-0.5, 0.5)))
+        if s.morale < 10:
+            fired_staff.append(s)
+    for s in fired_staff:
+        role_ru = {"brewer": "Пивовар", "sales": "Продавец", "admin": "Администратор"}
+        events.append(f"🚫 {s.name} ({role_ru.get(s.role, s.role)}) уволился по собственному желанию — мораль упала ниже 10%!")
+        db.delete(s)
 
     if total_salary > 0:
         game.money -= total_salary

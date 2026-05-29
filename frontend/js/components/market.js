@@ -81,6 +81,7 @@ function renderMarket() {
 }
 
 async function doSignContract(id) {
+    if (!confirm('Подписать этот контракт? Штраф за срыв — до $1,000.')) return;
     try {
         const res = await API.signContract(id);
         showSuccess(res.message);

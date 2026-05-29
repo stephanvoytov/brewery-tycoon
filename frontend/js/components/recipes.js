@@ -202,6 +202,7 @@ function showBrewModal(recipeId) {
 
     document.getElementById('brewConfirmBtn').onclick = async () => {
         const size = parseFloat(document.getElementById('brewSize').value) || 50;
+        if (!confirm(`Начать варку ${size}л? Будут списаны ингредиенты и $${(recipe.cost_per_liter * size).toFixed(0)}.`)) return;
         try {
             const res = await API.startBrew(recipeId, size);
             const qb = res.quality_breakdown;

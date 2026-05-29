@@ -83,6 +83,7 @@ async function doHireStaff(role) {
 }
 
 async function doFireStaff(id) {
+    if (!confirm('Вы уверены, что хотите уволить этого сотрудника?')) return;
     try {
         const res = await API.fireStaff(id);
         showSuccess(res.message);
