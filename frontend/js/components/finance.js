@@ -20,6 +20,8 @@ async function renderFinance() {
 
     const inflationPct = ((s.inflation_multiplier || 1) - 1) * 100;
 
+    console.log('📊 renderFinance called', { day: s?.day, revLen: s?.revenue_history?.length, expLen: s?.expense_history?.length, data: s?.revenue_history });
+
     const el = document.getElementById('page-finance');
     el.innerHTML = `
         <h2>📈 Финансы</h2>
@@ -173,6 +175,8 @@ async function renderFinance() {
             },
             chartPadding: { top: 8, right: 8, bottom: 20, left: 52 }
         });
+
+            console.log('📊 chart created with', { labelsLen: labels.length, revDataLen: revenueHistory.length, expDataLen: expenses.length });
 
             financeChart.on('draw', function(data) {
                 if (data.type === 'point') {
