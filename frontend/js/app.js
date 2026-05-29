@@ -1,4 +1,3 @@
-let GAME_STATE = null;
 let APP_MODE = 'auth'; // auth | saves | game
 
 function showScreen(id) {
