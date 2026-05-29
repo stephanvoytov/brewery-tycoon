@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from backend.database import engine, Base
-from backend.routers import game, brewery, recipes, batches, inventory, staff, market, research, auth, leaderboard
+from backend.routers import game, brewery, recipes, batches, inventory, staff, market, research, auth, leaderboard, finance
 
 Base.metadata.create_all(bind=engine)
 
@@ -57,6 +57,13 @@ for col_name in ["brewing_level", "total_batches_completed", "quality_history"]:
                 conn.execute(text("ALTER TABLE game_states ADD COLUMN quality_history JSON DEFAULT '[]'"))
             conn.commit()
 
+game_cols = [c["name"] for c in insp.get_columns("game_states")]
+for col_name, col_type in [("inflation_multiplier", "FLOAT DEFAULT 1.0"), ("last_tax_day", "INTEGER DEFAULT 0"), ("last_revenue_check", "FLOAT DEFAULT 0.0")]:
+    if col_name not in game_cols:
+        with engine.connect() as conn:
+            conn.execute(text(f"ALTER TABLE game_states ADD COLUMN {col_name} {col_type}"))
+            conn.commit()
+
 eq_cols = [c["name"] for c in insp.get_columns("equipment")]
 if "wear_tear" not in eq_cols:
     with engine.connect() as conn:
@@ -97,6 +104,7 @@ app.include_router(staff.router)
 app.include_router(market.router)
 app.include_router(research.router)
 app.include_router(leaderboard.router)
+app.include_router(finance.router)
 
 
 class SPAStaticFiles(StaticFiles):

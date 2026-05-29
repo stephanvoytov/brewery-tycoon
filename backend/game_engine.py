@@ -10,7 +10,8 @@ from backend.models import (
 from backend.config import (
     Rent, Taproom, Marketing, StaffSkill, Loan, Reputation,
     StartingBalance, Salaries, DAYS_PER_MONTH, EquipmentWear,
-    BANKRUPTCY_THRESHOLD, BANKRUPTCY_DAYS, EVENT_CHANCE_PER_TICK
+    BANKRUPTCY_THRESHOLD, BANKRUPTCY_DAYS, EVENT_CHANCE_PER_TICK,
+    Inflation, Tax, BulkSpoilage,
 )
 
 
@@ -722,11 +723,13 @@ def process_tick(game: GameState, db: Session) -> dict:
     events.append(f"Аренда: ${effective_rent:.0f}")
 
     if game.bank_loan > 0:
-        interest = game.bank_loan * Loan.DAILY_INTEREST_RATE
+        interest_rate = Loan.MIN_RATE + (1 - game.reputation / 100) * Loan.RATE_RANGE
+        interest_rate = min(0.01, max(0.003, interest_rate))
+        interest = game.bank_loan * interest_rate
         game.money -= interest
         game.total_expenses += interest
         game.daily_expenses += interest
-        events.append(f"Проценты по кредиту: ${interest:.0f} (1%/день)")
+        events.append(f"Проценты по кредиту: ${interest:.0f} ({(interest_rate*100):.1f}%/день)")
 
     # Equipment wear & tear
     for eq in equipment_owned:
@@ -754,21 +757,49 @@ def process_tick(game: GameState, db: Session) -> dict:
     game.daily_revenue = 0
     game.daily_expenses = 0
 
-    if game.money < 0 and game.bank_loan <= 0:
-        game.bank_loan = abs(game.money) * 1.1
-        game.money = 0
-        events.append(f"Взят кредит: ${game.bank_loan:.0f}")
+    # Inflation: every 30 days, prices increase 1-3%
+    inflation_mult = game.inflation_multiplier or 1.0
+    if game.day % Inflation.INTERVAL_DAYS == 0:
+        inflation_mult *= (1 + random.uniform(Inflation.MIN_RATE, Inflation.MAX_RATE))
+        game.inflation_multiplier = round(inflation_mult, 4)
+        events.append(f"📈 Инфляция! Цены выросли на {(inflation_mult - 1)*100:.1f}%")
 
-    # Ingredient spoilage -0.5% per day
+    # Tax: every 7 days, 10% of profit since last check or $200 flat (whichever larger)
+    if game.day % Tax.INTERVAL_DAYS == 0:
+        profit_since_last = game.total_revenue - (game.last_revenue_check or 0)
+        tax_amount = max(Tax.FLAT_MIN, profit_since_last * Tax.RATE)
+        tax_amount = min(tax_amount, game.money) if game.money > 0 else 0
+        if tax_amount > 0:
+            game.money -= tax_amount
+            game.total_expenses += tax_amount
+            game.daily_expenses += tax_amount
+        game.last_revenue_check = game.total_revenue
+        game.last_tax_day = game.day
+        events.append(f"💰 Налог: ${tax_amount:.0f} (10% от прибыли)")
+
+    # Brewery level progression: every $20k total revenue → +1 level
+    new_level = 1 + int((game.total_revenue or 0) / 20000)
+    if new_level > brewery.level:
+        brewery.level = new_level
+        events.append(f"🏭 Пивоварня повысила уровень до {new_level}! +5% к цене продажи, +1 слот контрактов")
+
+    # Ingredient spoilage — scales with bulk
     ingredients = db.query(Ingredient).filter(Ingredient.game_state_id == game.id).all()
+    total_ing_kg = sum(ing.quantity for ing in ingredients)
+    if total_ing_kg > BulkSpoilage.TIER2_KG:
+        spoilage_rate = BulkSpoilage.TIER2_RATE
+    elif total_ing_kg > BulkSpoilage.TIER1_KG:
+        spoilage_rate = BulkSpoilage.TIER1_RATE
+    else:
+        spoilage_rate = BulkSpoilage.NORMAL_RATE
     spoiled_total = 0
     for ing in ingredients:
-        lost = ing.quantity * 0.005
+        lost = ing.quantity * spoilage_rate
         if lost > 0:
             ing.quantity -= lost
             spoiled_total += lost
     if spoiled_total > 0:
-        events.append(f"Списание ингредиентов: {spoiled_total:.1f}кг (0.5%/день)")
+        events.append(f"Списание ингредиентов: {spoiled_total:.1f}кг ({(spoilage_rate*100):.1f}%/день)")
 
     # Game over: money < BANKRUPTCY_THRESHOLD for BANKRUPTCY_DAYS consecutive days
     if game.money < BANKRUPTCY_THRESHOLD:
@@ -827,6 +858,8 @@ def get_market_conditions(db: Session, day: int) -> list:
 
 def generate_contracts(game: GameState, db: Session, count: int = 5) -> list:
     contracts = []
+    brewery = db.query(Brewery).filter(Brewery.game_state_id == game.id).first()
+    level_mult = 1 + (brewery.level - 1) * 0.05 if brewery else 1.0
     for _ in range(count):
         style = random.choice(list(BeerStyle))
         base_price = 1.5 + random.uniform(0, 2.0)
@@ -836,7 +869,7 @@ def generate_contracts(game: GameState, db: Session, count: int = 5) -> list:
             "buyer_name": random.choice(BUYER_NAMES),
             "beer_style": style.value,
             "quantity_liters": quantity,
-            "price_per_liter": round(base_price, 2),
+            "price_per_liter": round(base_price * level_mult, 2),
             "duration_days": duration,
             "days_left": duration,
             "penalty": round(quantity * base_price * 0.2, 0),

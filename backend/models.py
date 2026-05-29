@@ -110,6 +110,9 @@ class GameState(Base):
     brewing_level = Column(Integer, default=1)
     total_batches_completed = Column(Integer, default=0)
     quality_history = Column(JSON, default=list)
+    inflation_multiplier = Column(Float, default=1.0)
+    last_tax_day = Column(Integer, default=0)
+    last_revenue_check = Column(Float, default=0.0)
 
 
 class Brewery(Base):

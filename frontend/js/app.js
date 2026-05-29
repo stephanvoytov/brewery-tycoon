@@ -45,7 +45,7 @@ async function loadGameState() {
     }
 }
 
-function renderCurrentPage() {
+async function renderCurrentPage() {
     const activePage = document.querySelector('.page.active');
     if (!activePage) return;
 
@@ -57,7 +57,7 @@ function renderCurrentPage() {
         case 'page-market': renderMarket(); break;
         case 'page-staff': renderStaff(); break;
         case 'page-research': renderResearch(); break;
-        case 'page-finance': renderFinance(); break;
+        case 'page-finance': await renderFinance(); break;
         case 'page-leaderboard': renderLeaderboard('money'); break;
         case 'page-help': renderHelp(); break;
     }

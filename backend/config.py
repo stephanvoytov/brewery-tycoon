@@ -51,7 +51,38 @@ BANKRUPTCY_DAYS = 30
 
 
 class Loan:
-    DAILY_INTEREST_RATE = 0.01
+    BASE_LIMIT = 5000
+    REP_PER_LIMIT = 200
+    LEVEL_PER_LIMIT = 1000
+    MIN_RATE = 0.003
+    RATE_RANGE = 0.007
+
+
+class Inflation:
+    INTERVAL_DAYS = 30
+    MIN_RATE = 0.01
+    MAX_RATE = 0.03
+
+
+class Tax:
+    INTERVAL_DAYS = 7
+    FLAT_MIN = 200
+    RATE = 0.10
+
+
+class BulkDiscount:
+    TIER1_KG = 50
+    TIER1_DISCOUNT = 0.05
+    TIER2_KG = 200
+    TIER2_DISCOUNT = 0.10
+
+
+class BulkSpoilage:
+    NORMAL_RATE = 0.005
+    TIER1_KG = 100
+    TIER1_RATE = 0.008
+    TIER2_KG = 300
+    TIER2_RATE = 0.012
 
 
 class Reputation:

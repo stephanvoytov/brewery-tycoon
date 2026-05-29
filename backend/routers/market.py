@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.database import get_db
-from backend.models import GameState, Contract, User
+from backend.models import GameState, Contract, Brewery, User
 from backend.game_engine import get_market_conditions, generate_contracts
 from backend.dependencies import get_current_user, resolve_game
 
@@ -56,6 +56,16 @@ def sign_contract(contract_id: int, game_id: int = None, current_user: User = De
         raise HTTPException(404, "Контракт не найден")
     if contract.is_active:
         raise HTTPException(400, "Контракт уже активен")
+
+    brewery = db.query(Brewery).filter(Brewery.game_state_id == game.id).first()
+    max_slots = 1 + (brewery.level - 1) if brewery else 1
+    active_count = db.query(Contract).filter(
+        Contract.game_state_id == game.id,
+        Contract.is_active == True
+    ).count()
+    if active_count >= max_slots:
+        raise HTTPException(400, f"Достигнут лимит активных контрактов ({max_slots}). Повысьте уровень пивоварни.")
+
     contract.is_active = True
     db.commit()
     return {"message": f"Контракт с {contract.buyer_name} подписан!", "contract": contract}

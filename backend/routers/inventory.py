@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.database import get_db
 from backend.models import GameState, Ingredient, Equipment, User
-from backend.schemas import BuyIngredientRequest, BuyEquipmentRequest
+from backend.config import BulkDiscount
 from backend.dependencies import get_current_user, resolve_game
 
 router = APIRouter(prefix="/api/inventory", tags=["inventory"])
@@ -26,7 +26,16 @@ def buy_ingredient(req: BuyIngredientRequest, game_id: int = None, current_user:
     if not ingredient:
         raise HTTPException(404, "Ингредиент не найден")
 
-    cost = ingredient.unit_cost * req.quantity
+    inflation_mult = game.inflation_multiplier or 1.0
+    base_cost = ingredient.unit_cost * req.quantity * inflation_mult
+
+    discount = 1.0
+    if req.quantity >= BulkDiscount.TIER2_KG:
+        discount = 1 - BulkDiscount.TIER2_DISCOUNT
+    elif req.quantity >= BulkDiscount.TIER1_KG:
+        discount = 1 - BulkDiscount.TIER1_DISCOUNT
+
+    cost = round(base_cost * discount, 2)
     if game.money < cost:
         raise HTTPException(400, f"Недостаточно средств. Нужно ${cost:.0f}")
 

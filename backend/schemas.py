@@ -26,6 +26,9 @@ class GameStateSchema(BaseModel):
     brewing_level: int = 1
     total_batches_completed: int = 0
     quality_history: list = []
+    inflation_multiplier: float = 1.0
+    last_tax_day: int = 0
+    last_revenue_check: float = 0.0
 
     class Config:
         from_attributes = True
@@ -254,6 +257,18 @@ class TickResult(BaseModel):
 
 class RestartAfterGameOverRequest(BaseModel):
     pass
+
+
+class LoanActionRequest(BaseModel):
+    amount: float
+
+
+class LoanInfo(BaseModel):
+    max_loan: float
+    current_debt: float
+    interest_rate: float
+    reputation: float
+    brewery_level: int
 
 
 class BrewRequest(BaseModel):

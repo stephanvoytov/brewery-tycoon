@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.database import get_db
-from backend.models import GameState, BeerBatch, BatchStage, BeerRecipe, User
+from backend.models import GameState, BeerBatch, BatchStage, BeerRecipe, Brewery, User
 from backend.schemas import BatchActionRequest
 from backend.dependencies import get_current_user, resolve_game
 
@@ -70,7 +70,9 @@ def sell_batch(batch_id: int, game_id: int = None, current_user: User = Depends(
     if not recipe:
         raise HTTPException(404, "Рецепт не найден")
 
-    price = recipe.base_price_per_liter * (batch.quality / 50)
+    brewery = db.query(Brewery).filter(Brewery.game_state_id == game.id).first()
+    level_bonus = 1 + (brewery.level - 1) * 0.05 if brewery else 1.0
+    price = recipe.base_price_per_liter * (batch.quality / 50) * level_bonus
     revenue = batch.batch_size_liters * price
     game.money += revenue
     game.total_revenue += revenue

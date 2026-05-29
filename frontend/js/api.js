@@ -241,4 +241,16 @@ const API = {
     async resolveEvent(eventId, choice) {
         return this.request('POST', `/api/game/events/${eventId}/resolve`, { choice });
     },
+
+    async getLoanInfo() {
+        return this.request('GET', '/api/finance/loan/info');
+    },
+
+    async takeLoan(amount) {
+        return this.request('POST', '/api/finance/loan/take', { amount });
+    },
+
+    async repayLoan(amount) {
+        return this.request('POST', '/api/finance/loan/repay', { amount });
+    },
 };
