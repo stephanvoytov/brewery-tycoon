@@ -139,15 +139,26 @@ function renderDashboard() {
         </div>
 
         <div id="gameOverModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:10000;align-items:center;justify-content:center">
-            <div style="background:var(--bg-card);border:2px solid var(--red);border-radius:16px;padding:40px;max-width:450px;text-align:center">
+            <div style="background:var(--bg-card);border:2px solid var(--red);border-radius:16px;padding:40px;max-width:500px;text-align:center">
                 <div style="font-size:64px;margin-bottom:16px">💀</div>
                 <h2 style="color:var(--red);margin-bottom:12px">БАНКРОТСТВО!</h2>
-                <p style="margin-bottom:20px;color:var(--text-dim);line-height:1.6">
-                    Ваша пивоварня обанкротилась. Долг превысил ${formatMoney(5000)} и держался больше месяца.<br>
-                    Кредиторы забрали имущество.
+                <p style="margin-bottom:16px;color:var(--text-dim);line-height:1.6">
+                    Ваша пивоварня обанкротилась. Долг превысил ${formatMoney(5000)} и держался больше месяца.
                 </p>
-                <p style="margin-bottom:24px;color:var(--text)">Можете начать заново с половиной оставшегося капитала.</p>
-                <button class="btn btn-primary" onclick="restartAfterGameOver()" style="font-size:1rem;padding:12px 32px">🔄 Начать заново</button>
+                <div style="background:var(--bg);border-radius:12px;padding:16px;margin-bottom:16px;text-align:left">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.85rem">
+                        <div><span class="text-dim">📅 Дней прожито:</span> <strong>${s.day}</strong></div>
+                        <div><span class="text-dim">💰 Выручка:</span> <strong>${formatMoney(s.total_revenue)}</strong></div>
+                        <div><span class="text-dim">💸 Расходы:</span> <strong>${formatMoney(s.total_expenses)}</strong></div>
+                        <div><span class="text-dim">⭐ Репутация:</span> <strong>${Math.round(s.reputation)}%</strong></div>
+                        <div><span class="text-dim">🏭 Уровень:</span> <strong>${s.brewing_level || 1}</strong></div>
+                        <div><span class="text-dim">🍺 Партий сварено:</span> <strong>${s.total_batches_completed || 0}</strong></div>
+                        <div><span class="text-dim">📦 Продано всего:</span> <strong>${Math.round(s.player_total_liters || 0)}л</strong></div>
+                        <div><span class="text-dim">🏆 Достижений:</span> <strong>${achievements.length} / 9</strong></div>
+                    </div>
+                </div>
+                <p style="margin-bottom:20px;color:var(--text)">Можете начать заново с <strong>${formatMoney(Math.max(500, s.money / 2))}</strong> капитала.</p>
+                <button class="btn btn-primary" onclick="restartAfterGameOver()" style="font-size:1rem;padding:12px 32px">🔄 Начать заново (${formatMoney(Math.max(500, s.money / 2))})</button>
                 <button class="btn btn-secondary" onclick="startNewGame()" style="margin-top:12px">🆕 Совсем новая игра</button>
             </div>
         </div>

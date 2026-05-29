@@ -167,10 +167,10 @@ function showBrewModal(recipeId) {
     function closeModal() { overlay.remove(); }
 
     async function loadCanBrew() {
-        const size = parseFloat(document.getElementById('brewSize').value) || 50;
         const statusEl = document.getElementById('canBrewStatus');
         try {
-            const res = await API.request('GET', `/api/recipes/${recipeId}/can-brew`);
+            const size = parseFloat(document.getElementById('brewSize').value) || 50;
+            const res = await API.request('GET', `/api/recipes/${recipeId}/can-brew?batch_size=${size}`);
             let html = '';
             const r = res.resources || {};
             const b = r.kettle || {}; const f = r.fermenter || {}; const c = r.cond_tank || {};

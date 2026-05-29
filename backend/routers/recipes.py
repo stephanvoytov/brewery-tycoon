@@ -118,6 +118,8 @@ def start_brew(recipe_id: int, req: BrewRequest, game_id: int = None, current_us
         kettle_count = get_kettle_count(brewery)
         raise HTTPException(400, f"Объём партии превышает ёмкость котлов ({kettle_count} шт. = {max_batch}л)")
 
+    brew_plus_boil = 1 + 1
+
     active_tanks = db.query(BeerBatch).filter(
         BeerBatch.game_state_id == game_id,
         BeerBatch.stage.in_([BatchStage.mash, BatchStage.boil])
@@ -130,9 +132,15 @@ def start_brew(recipe_id: int, req: BrewRequest, game_id: int = None, current_us
         BeerBatch.game_state_id == game_id,
         BeerBatch.stage == BatchStage.ferment
     ).count()
-
-    if active_fermenters >= get_fermenter_count(brewery):
-        raise HTTPException(400, "Все ферментеры заняты")
+    fermenter_count = get_fermenter_count(brewery)
+    if active_fermenters >= fermenter_count:
+        earliest_ferm = db.query(BeerBatch).filter(
+            BeerBatch.game_state_id == game.id,
+            BeerBatch.stage == BatchStage.ferment
+        ).first()
+        ferm_wait = max(1, (recipe.ferment_time_days or 5) - (earliest_ferm.days_in_stage or 0)) if earliest_ferm else 1
+        if ferm_wait > brew_plus_boil:
+            raise HTTPException(400, f"Все ферментеры заняты. Ближайший освободится через {ferm_wait} дн., а нужен через {brew_plus_boil} дн.")
 
     active_cond = db.query(BeerBatch).filter(
         BeerBatch.game_state_id == game_id,
@@ -249,7 +257,7 @@ def start_brew(recipe_id: int, req: BrewRequest, game_id: int = None, current_us
 
 
 @router.get("/{recipe_id}/can-brew")
-def can_brew(recipe_id: int, game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def can_brew(recipe_id: int, game_id: int = None, batch_size: int = 50, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     game = resolve_game(game_id, current_user, db)
     recipe = db.query(BeerRecipe).filter(
         BeerRecipe.id == recipe_id,
@@ -336,11 +344,11 @@ def can_brew(recipe_id: int, game_id: int = None, current_user: User = Depends(g
     malt_cost = recipe.cost_per_liter or 1.0
     bld = Buildings.LIST.get(brewery.building_id, Buildings.LIST[Buildings.DEFAULT_ID])
     cost_red = bld.get("cost_reduction", 0)
-    est_cost_per_batch = malt_cost * 50 * (1 - cost_red)
+    est_cost_per_batch = malt_cost * batch_size * (1 - cost_red)
 
-    malt_needed = recipe.malt_amount * 50 / 10
-    hops_needed = recipe.hops_amount * 50 / 10
-    yeast_needed = 0.1 * 50 / 10
+    malt_needed = recipe.malt_amount * batch_size / 10
+    hops_needed = recipe.hops_amount * batch_size / 10
+    yeast_needed = 0.1 * batch_size / 10
 
     malt_ing = db.query(Ingredient).filter(
         Ingredient.game_state_id == game.id,
