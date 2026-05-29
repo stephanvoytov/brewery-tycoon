@@ -161,6 +161,28 @@ body {
     background: var(--border);
     flex-shrink: 0;
 }
+#statusBar .sb-tick-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 6px;
+    background: var(--accent);
+    color: #0d1117;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, transform 0.1s;
+    touch-action: manipulation;
+}
+#statusBar .sb-tick-btn:hover {
+    background: #e8b830;
+}
+#statusBar .sb-tick-btn:active {
+    transform: scale(0.95);
+}
 
 .page {
     display: none;

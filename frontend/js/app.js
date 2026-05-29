@@ -82,6 +82,9 @@ function renderStatusBar() {
     items.push(`<span class="sb-divider"></span>`);
     items.push(`<span class="sb-item sb-building">${curBld.icon} ${curBld.name}</span>`);
 
+    items.push(`<span class="sb-divider"></span>`);
+    items.push(`<button class="sb-tick-btn" onclick="doTick()" title="Следующий день">➡ День ${g.day + 1}</button>`);
+
     el.innerHTML = items.join('');
 }
 
