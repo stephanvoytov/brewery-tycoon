@@ -217,7 +217,7 @@ function renderMarketMarketing() {
 }
 
 async function doSignContract(id) {
-    const ok = await showConfirm('Подписать контракт?', 'Штраф за срыв — до $1,000.');
+    const ok = await showConfirm('Подписать контракт?', `Штраф за срыв — до ${formatMoney(1000)}.`);
     if (!ok) return;
     try {
         const res = await API.signContract(id);

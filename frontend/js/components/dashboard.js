@@ -143,7 +143,7 @@ function renderDashboard() {
                 <div style="font-size:64px;margin-bottom:16px">💀</div>
                 <h2 style="color:var(--red);margin-bottom:12px">БАНКРОТСТВО!</h2>
                 <p style="margin-bottom:20px;color:var(--text-dim);line-height:1.6">
-                    Ваша пивоварня обанкротилась. Долг превысил $5,000 и держался больше месяца.<br>
+                    Ваша пивоварня обанкротилась. Долг превысил ${formatMoney(5000)} и держался больше месяца.<br>
                     Кредиторы забрали имущество.
                 </p>
                 <p style="margin-bottom:24px;color:var(--text)">Можете начать заново с половиной оставшегося капитала.</p>

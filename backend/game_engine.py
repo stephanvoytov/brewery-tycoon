@@ -803,6 +803,7 @@ def process_tick(game: GameState, db: Session) -> dict:
     expense_history = game.expense_history or []
     revenue_history.append(game.daily_revenue)
     expense_history.append(game.daily_expenses)
+    print(f"HISTORY day={game.day}: rev={game.daily_revenue} exp={game.daily_expenses} hist_len={len(revenue_history)}")
     if len(revenue_history) > 30:
         revenue_history = revenue_history[-30:]
     if len(expense_history) > 30:

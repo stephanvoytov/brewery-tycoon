@@ -73,7 +73,7 @@ async function renderFinance() {
                     <p>Доступно: <strong>${formatMoney(li.max_loan - (s.bank_loan || 0))}</strong> из ${formatMoney(li.max_loan)}</p>
                     <p>Ставка: <strong>${interestPct}%/день</strong></p>
                     <p style="font-size:0.8rem;color:var(--text-dim)">
-                        Формула: $5,000 + репутация×$200 + уровень×$1,000
+                        Формула: ${formatMoney(5000)} + репутация×${formatMoney(200)} + уровень×${formatMoney(1000)}
                     </p>
                     <div class="loan-controls">
                         <label class="loan-label">Сумма кредита</label>
@@ -131,7 +131,7 @@ async function renderFinance() {
             <div class="card">
                 <h3>🛡 Страховка</h3>
                 <p>${s.has_insurance ? '✅ Страховка активна (покрывает поломку)' : '❌ Страховка не куплена'}</p>
-                ${!s.has_insurance ? `<div style="margin-top:10px"><button class="btn btn-primary" onclick="doBuyInsurance()">Купить $500</button></div>` : ''}
+                ${!s.has_insurance ? `<div style="margin-top:10px"><button class="btn btn-primary" onclick="doBuyInsurance()">Купить ${formatMoney(500)}</button></div>` : ''}
             </div>
         </div>
 
@@ -151,6 +151,7 @@ async function renderFinance() {
 
     if (hasData && typeof Chart !== 'undefined') {
         try {
+            console.log('📊 finance chart data:', { revenueHistory, expenseHistory });
             if (financeChart) financeChart.destroy();
             const canvas = document.getElementById('financeChart');
             if (!canvas) return;
@@ -247,7 +248,7 @@ async function renderFinance() {
 
 async function doTakeLoan() {
     const amount = parseInt(document.getElementById('loanAmount')?.value);
-    if (!amount || amount < 100) { showError('Минимум $100'); return; }
+    if (!amount || amount < 100) { showError(`Минимум ${formatMoney(100)}`); return; }
     try {
         const res = await API.takeLoan(amount);
         showSuccess(res.message);
@@ -259,7 +260,7 @@ async function doTakeLoan() {
 
 async function doRepayLoan() {
     const amount = parseInt(document.getElementById('loanAmount')?.value);
-    if (!amount || amount < 100) { showError('Минимум $100'); return; }
+    if (!amount || amount < 100) { showError(`Минимум ${formatMoney(100)}`); return; }
     try {
         const res = await API.repayLoan(amount);
         showSuccess(res.message);
