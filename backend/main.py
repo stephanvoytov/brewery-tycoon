@@ -93,6 +93,10 @@ if "building_id" not in brewery_cols:
     with engine.connect() as conn:
         conn.execute(text("ALTER TABLE breweries ADD COLUMN building_id INTEGER DEFAULT 1"))
         conn.commit()
+if "upgrade_count" not in brewery_cols:
+    with engine.connect() as conn:
+        conn.execute(text("ALTER TABLE breweries ADD COLUMN upgrade_count INTEGER DEFAULT 0"))
+        conn.commit()
 
 # Remove legacy equipment (дублировали улучшения или не имели эффекта)
 old_equipment_names = [
