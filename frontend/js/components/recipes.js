@@ -143,7 +143,6 @@ let brewRecipeId = null;
 function showBrewModal(recipeId) {
     brewRecipeId = recipeId;
     const recipe = GAME_STATE.recipes.find(r => r.id === recipeId);
-    const ingredients = GAME_STATE.ingredients || [];
     const brewery = GAME_STATE.brewery;
 
     const overlay = document.createElement('div');
@@ -175,9 +174,10 @@ function showBrewModal(recipeId) {
         const needMalt = (maltPerL * size).toFixed(1);
         const needHops = (hopsPerL * size).toFixed(1);
         const needYeast = (yeastPerL * size).toFixed(2);
-        const maltIng = ingredients.find(i => i.name === recipe.malt_ingredient_name);
-        const hopsIng = ingredients.find(i => i.name === recipe.hops_ingredient_name);
-        const yeastIng = ingredients.find(i => i.name === recipe.yeast_ingredient_name);
+        const ings = GAME_STATE.ingredients || [];
+        const maltIng = ings.find(i => i.name === recipe.malt_ingredient_name);
+        const hopsIng = ings.find(i => i.name === recipe.hops_ingredient_name);
+        const yeastIng = ings.find(i => i.name === recipe.yeast_ingredient_name);
         const hasMalt = maltIng && maltIng.quantity >= needMalt;
         const hasHops = hopsIng && hopsIng.quantity >= needHops;
         const hasYeast = yeastIng && yeastIng.quantity >= needYeast;
@@ -241,7 +241,8 @@ function showBrewModal(recipeId) {
                         totalCost += res.cost;
                     }
                     showSuccess(`Куплено: ${bought.join(', ')} за ${formatMoney(totalCost)}`);
-                    await loadGameState();
+                    GAME_STATE = await API.getState();
+                    renderStatusBar();
                     updateBrewInfo();
                 } catch (e) {
                     showError(e.message);
