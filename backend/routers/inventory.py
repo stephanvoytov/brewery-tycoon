@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.database import get_db
 from backend.models import GameState, Ingredient, Equipment, User
-from backend.schemas import BuyIngredientRequest
+from backend.schemas import BuyIngredientRequest, BuyEquipmentRequest
 from backend.config import BulkDiscount
 from backend.dependencies import get_current_user, resolve_game
 
