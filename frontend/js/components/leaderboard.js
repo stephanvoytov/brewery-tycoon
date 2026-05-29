@@ -63,9 +63,3 @@ async function renderLeaderboard(metric) {
         if (lbContent) lbContent.innerHTML = '<p class="text-muted">Не удалось загрузить лидерборд</p>';
     }
 }
-
-function esc(s) {
-    const d = document.createElement('div');
-    d.textContent = s;
-    return d.innerHTML;
-}

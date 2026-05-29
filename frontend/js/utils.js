@@ -11,6 +11,7 @@ const STYLE_RU = {
     pale_ale: 'Пэйл Эль',
     amber_ale: 'Янтарный Эль',
     belgian_tripel: 'Бельгийский Трипель',
+    experimental: 'Эксперимент',
 };
 
 const STYLE_RECS = {
@@ -41,12 +42,14 @@ const STYLE_INFO = {
     pale_ale: 'Светлый эль — золотистый, с выраженным хмелем и карамельной основой. Баланс горечи и сладости.',
     amber_ale: 'Янтарный эль — карамельный вкус, средняя горечь, красивый медный цвет.',
     belgian_tripel: 'Бельгийский трипель — крепкое, светлое, с пряными и фруктовыми нотами, высокая карбонизация.',
+    experimental: 'Экспериментальное пиво. Создано из нестандартной комбинации ингредиентов.',
 };
 
 const SRM_COLORS = {
     lager: '#f0d78c', ale: '#e0a030', stout: '#1a0a00', ipa: '#d4a030',
     porter: '#2a1005', wheat: '#f2dba0', pilsner: '#f5e0a0', sour: '#e8c090',
     bock: '#3a1500', pale_ale: '#d4a040', amber_ale: '#b87020', belgian_tripel: '#e8c860',
+    experimental: '#c8b090',
 };
 
 const STAGE_RU = {
@@ -157,4 +160,10 @@ function showNotification(msg, type = 'info') {
         div.style.transform = 'translateX(100px)';
         setTimeout(() => div.remove(), 300);
     }, 5000);
+}
+
+function esc(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
 }

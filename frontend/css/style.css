@@ -469,8 +469,15 @@ input:focus, select:focus {
 .user-info-row {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
     margin-bottom: 4px;
+    flex-wrap: wrap;
+}
+
+.user-info-row .btn-small {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+    white-space: nowrap;
 }
 .user-info-row .username {
     font-size: 0.9rem;
