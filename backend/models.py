@@ -18,6 +18,7 @@ class BeerStyle(str, enum.Enum):
     pale_ale = "pale_ale"
     amber_ale = "amber_ale"
     belgian_tripel = "belgian_tripel"
+    experimental = "experimental"
 
 
 class BatchStage(str, enum.Enum):
