@@ -61,6 +61,8 @@ async function renderCurrentPage() {
         case 'page-leaderboard': renderLeaderboard('money'); break;
         case 'page-help': renderHelp(); break;
     }
+
+    wrapTables();
 }
 
 function updateSidebarUser() {

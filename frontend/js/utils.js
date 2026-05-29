@@ -201,6 +201,16 @@ const TUTORIAL_STEPS = [
     },
 ];
 
+function wrapTables() {
+    document.querySelectorAll('.card table').forEach(t => {
+        if (t.closest('.table-wrap')) return;
+        const wrap = document.createElement('div');
+        wrap.className = 'table-wrap';
+        t.parentNode.insertBefore(wrap, t);
+        wrap.appendChild(t);
+    });
+}
+
 function showTutorial() {
     const overlay = document.getElementById('tutorialOverlay');
     if (!overlay) return;

@@ -256,6 +256,16 @@ table {
     font-size: 0.85rem;
 }
 
+.table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 8px;
+}
+
+.table-wrap table {
+    min-width: 500px;
+}
+
 th, td {
     padding: 10px 12px;
     text-align: left;
@@ -838,7 +848,48 @@ input:focus, select:focus {
 @media (max-width: 768px) {
     .sidebar { width: 60px; }
     .sidebar-header h1, .sidebar-header span, .nav-btn span, .game-id-bar { display: none; }
-    .nav-btn { justify-content: center; padding: 12px; }
-    .main-content { padding: 15px; }
-    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .nav-btn { justify-content: center; padding: 14px 8px; font-size: 1.1rem; }
+    .main-content { padding: 12px; }
+
+    .sidebar-header { padding: 12px 8px; }
+
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; gap: 10px; }
+
+    .card { padding: 12px; }
+    .card h3 { font-size: 0.9rem; }
+
+    h2 { font-size: 1.2rem; margin-bottom: 14px; }
+
+    th, td { padding: 8px 8px; font-size: 0.78rem; }
+
+    .btn, .btn-small { padding: 10px 16px; font-size: 0.85rem; min-height: 44px; }
+    .btn-sm { padding: 8px 14px; min-height: 44px; }
+
+    input, select, textarea { padding: 10px 10px; font-size: 16px; min-height: 44px; }
+
+    .form-row { flex-direction: column; align-items: stretch; gap: 8px; }
+
+    .stat-value { font-size: 1.3rem; }
+    .stat { padding: 10px; }
+
+    #brewModal { margin: 0; border-radius: 0; padding: 12px; }
+
+    .event-item { font-size: 0.8rem; }
+
+    .saves-container { padding: 12px; margin: 20px auto; }
+    .save-card { flex-direction: column; gap: 8px; align-items: stretch; text-align: center; }
+
+    .toast-error, .toast-success { top: 10px; right: 10px; left: 10px; max-width: none; font-size: 0.85rem; }
+    .toast-notification { top: 60px; right: 10px; left: 10px; max-width: none; font-size: 0.8rem; }
+
+    #tutorialBox { padding: 24px 16px; max-width: 95%; }
+    #tutorialStep .tutorial-title { font-size: 1.1rem; }
+    #tutorialStep .tutorial-desc { font-size: 0.85rem; }
+    #tutorialNav { flex-wrap: wrap; justify-content: center; }
+    #tutorialDots { order: -1; width: 100%; justify-content: center; margin-bottom: 8px; }
+
+    .brewery-svg-container svg { max-height: 300px; }
+
+    .user-info-row { gap: 2px; }
+    .user-info-row .btn-small { font-size: 0.65rem; padding: 6px 6px; min-height: 36px; }
 }
