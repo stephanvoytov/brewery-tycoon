@@ -45,7 +45,7 @@ function renderDashboard() {
             </div>
             <div class="card stat">
                 <div class="stat-value">${b.level}</div>
-                <div class="stat-label">Уровень пивоварни <a class="help-link" onclick="scrollToHelp('help-guide-level'); return false;" title="Подробнее">❓</a></div>
+                <div class="stat-label">Уровень пивоварни <span class="help-link" onclick="scrollToHelp('help-guide-level'); return false;" title="Подробнее">❓</span></div>
             </div>
         </div>
 
@@ -56,7 +56,7 @@ function renderDashboard() {
         </div>
 
         <div class="card">
-            <h3>⭐ Достижения <a class="help-link" onclick="scrollToHelp('help-guide-achievements'); return false;" title="Список всех достижений">❓</a></h3>
+            <h3>⭐ Достижения <span class="help-link" onclick="scrollToHelp('help-guide-achievements'); return false;" title="Список всех достижений">❓</span></h3>
             <div style="display:flex;flex-wrap:wrap;gap:6px">${achList}</div>
         </div>
 

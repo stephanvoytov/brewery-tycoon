@@ -3,7 +3,7 @@ function renderInventory() {
 
     const el = document.getElementById('page-inventory');
     el.innerHTML = `
-        <h2>📦 Запасы ингредиентов <a class="help-link" onclick="scrollToHelp('help-guide-ingredients'); return false;" title="Подробнее о закупке и порче">❓</a></h2>
+        <h2>📦 Запасы ингредиентов <span class="help-link" onclick="scrollToHelp('help-guide-ingredients'); return false;" title="Подробнее о закупке и порче">❓</span></h2>
         <div class="card">
             <h3>📦 Запасы</h3>
             <table>

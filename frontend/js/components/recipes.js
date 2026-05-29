@@ -11,7 +11,7 @@ function renderRecipes() {
 
         <div class="grid-2">
             <div class="card">
-                <h3>🍺 Рецепты (${unlockedRecipes.length} открыто) <a class="help-link" onclick="scrollToHelp('help-guide-discovery'); return false;" title="Подробнее об открытии стилей">❓</a></h3>
+                <h3>🍺 Рецепты (${unlockedRecipes.length} открыто) <span class="help-link" onclick="scrollToHelp('help-guide-discovery'); return false;" title="Подробнее об открытии стилей">❓</span></h3>
                     <table>
                         <tr>
                             <th></th>
@@ -80,7 +80,7 @@ function renderRecipes() {
         </div>
 
         <div class="card">
-            <h3>➕ Создать новый рецепт <a class="help-link" onclick="scrollToHelp('help-guide-hidden-params'); return false;" title="Подробнее о скрытых параметрах">❓</a></h3>
+            <h3>➕ Создать новый рецепт <span class="help-link" onclick="scrollToHelp('help-guide-hidden-params'); return false;" title="Подробнее о скрытых параметрах">❓</span></h3>
             <div class="grid-3">
                 <div class="form-group">
                     <label>Название</label>
@@ -129,7 +129,7 @@ function renderRecipes() {
             </div>
             <div class="form-row">
                 <div class="form-group">
-                    <label>🌡 Температура затирания <a class="help-link" onclick="scrollToHelp('help-guide-hidden-params'); return false;" title="Подробнее">❓</a></label>
+                    <label>🌡 Температура затирания <span class="help-link" onclick="scrollToHelp('help-guide-hidden-params'); return false;" title="Подробнее">❓</span></label>
                     <select id="newRecipeMashTemp">
                         <option value="low">Низкая (62°C) — суше</option>
                         <option value="medium" selected>Средняя (67°C)</option>

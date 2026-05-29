@@ -218,7 +218,7 @@ function renderBrewery() {
 
         <div class="grid-2" style="margin-top:16px">
             <div class="card">
-                <h3>🏗 Улучшения <a class="help-link" onclick="scrollToHelp('help-guide-taproom'); return false;" title="Подробнее о тапруме и маркетинге">❓</a></h3>
+                <h3>🏗 Улучшения <span class="help-link" onclick="scrollToHelp('help-guide-taproom'); return false;" title="Подробнее о тапруме и маркетинге">❓</span></h3>
                 <table>
                     <tr>
                         <td>Варочные котлы</td>
@@ -269,7 +269,7 @@ function renderBrewery() {
             </div>
 
             <div class="card">
-                <h3>🔧 Оборудование <a class="help-link" onclick="scrollToHelp('help-guide-equipment'); return false;" title="Подробнее об оборудовании">❓</a> <span style="font-size:0.75rem;color:var(--text-dim);font-weight:400">(уникальные бонусы)</span></h3>
+                <h3>🔧 Оборудование <span class="help-link" onclick="scrollToHelp('help-guide-equipment'); return false;" title="Подробнее об оборудовании">❓</span> <span style="font-size:0.75rem;color:var(--text-dim);font-weight:400">(уникальные бонусы)</span></h3>
                 <h4 style="color:var(--green);font-size:0.85rem;margin-bottom:8px">Приобретено:</h4>
                 ${ownedEquip.length === 0 ? '<div class="empty-state">Нет оборудования</div>' : ownedEquip.map(e => {
                     const wearColor = e.wear_tear > 80 ? 'var(--green)' : e.wear_tear > 40 ? 'var(--accent)' : 'var(--red)';
@@ -296,7 +296,7 @@ function renderBrewery() {
         </div>
 
         <div class="card">
-            <h3>🏭 Прогрессия пивоварни <a class="help-link" onclick="scrollToHelp('help-guide-level'); return false;" title="Подробнее об уровне пивоварни">❓</a></h3>
+            <h3>🏭 Прогрессия пивоварни <span class="help-link" onclick="scrollToHelp('help-guide-level'); return false;" title="Подробнее об уровне пивоварни">❓</span></h3>
             ${(() => {
                 const totalRevenue = GAME_STATE.game.total_revenue || 0;
                 const nextLevelRevenue = (Math.floor(totalRevenue / 20000) + 1) * 20000;
@@ -357,7 +357,7 @@ function showBuildingModal() {
     overlay.style.zIndex = '20001';
     overlay.innerHTML = `
         <div class="dialog-box" style="max-width:600px;max-height:80vh;overflow-y:auto">
-            <h3>🏢 Сменить здание <a class="help-link" onclick="scrollToHelp('help-guide-buildings'); return false;" title="Подробнее о зданиях">❓</a></h3>
+            <h3>🏢 Сменить здание <span class="help-link" onclick="scrollToHelp('help-guide-buildings'); return false;" title="Подробнее о зданиях">❓</span></h3>
             <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:12px">Текущее: ${BUILDINGS[b.building_id]?.name || 'Неизвестно'}</p>
             <div class="building-list">
                 ${Object.values(BUILDINGS).map(bld => {

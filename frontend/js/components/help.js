@@ -32,17 +32,19 @@ function switchHelpTab(tab) {
 }
 
 function scrollToHelp(sectionId) {
-    if (document.querySelector('.help-tabs')) {
-        switchHelpTab('guide');
-        const el = document.getElementById(sectionId);
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else {
-        navigate('help');
-        renderCurrentPage().then(() => {
+    try {
+        if (document.querySelector('.help-tabs')) {
+            switchHelpTab('guide');
             const el = document.getElementById(sectionId);
             if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
-    }
+        } else {
+            navigate('help');
+            renderCurrentPage().then(() => {
+                const el = document.getElementById(sectionId);
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }).catch(function(){});
+        }
+    } catch(e) {}
 }
 
 function renderGuideTab() {

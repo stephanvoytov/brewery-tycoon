@@ -3,7 +3,7 @@ function renderStaff() {
 
     const el = document.getElementById('page-staff');
     el.innerHTML = `
-        <h2>👥 Персонал <a class="help-link" onclick="scrollToHelp('help-guide-staff'); return false;" title="Подробнее о персонале">❓</a></h2>
+        <h2>👥 Персонал <span class="help-link" onclick="scrollToHelp('help-guide-staff'); return false;" title="Подробнее о персонале">❓</span></h2>
 
         <div class="card">
             <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;font-size:0.85rem">
