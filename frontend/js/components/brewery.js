@@ -380,7 +380,7 @@ function renderBrewery() {
 
                 <hr style="margin:12px 0;border-color:var(--border)">
                 <h3 style="font-size:0.95rem">🔧 Бонусное оборудование</h3>
-                <h4 style="color:var(--green);font-size:0.8rem;margin-bottom:6px">Приобретено:</h4>
+                <h4 style="color:var(--green);font-size:0.8rem;margin-bottom:6px">✅ Приобретено:</h4>
                 ${ownedEquip.length === 0 ? '<div class="empty-state">Нет оборудования</div>' : ownedEquip.map(e => {
                     const wearColor = e.wear_tear > 80 ? 'var(--green)' : e.wear_tear > 40 ? 'var(--accent)' : 'var(--red)';
                     const broken = e.wear_tear < 20;
@@ -391,17 +391,46 @@ function renderBrewery() {
                     </div>`;
                 }).join('')}
 
-                <h4 style="color:var(--accent);font-size:0.8rem;margin:8px 0 4px">Доступно к покупке:</h4>
-                ${availableEquip.length === 0 ? '<div class="empty-state">Всё куплено</div>' : availableEquip.map(e => {
-                    const equipLocked = e.locked !== undefined ? e.locked : (b.level < (e.min_level || 1));
-                    return `<div class="equip-row" style="display:flex;flex-direction:column;padding:3px 0;border-bottom:1px solid var(--border)">
-                        <div style="display:flex;justify-content:space-between;align-items:center;width:100%">
-                            <span>${equipLocked ? '🔒' : '📦'} <strong>${e.name}</strong>${equipLocked ? ` <span style="color:var(--red);font-size:0.75rem">ур. ${e.min_level}</span>` : ''}</span>
-                            <span>${formatMoney(e.price)} ${equipLocked ? '' : `<button class="btn btn-sm btn-success" onclick="doBuyEquipment(${e.id})">Купить</button>`}</span>
-                        </div>
-                        <div style="font-size:0.75rem;color:var(--text-dim);margin-top:2px">${EQUIP_DESC[e.name] || ''}</div>
-                    </div>`;
-                }).join('')}
+                ${(() => {
+                    const unlocked = availableEquip.filter(e => {
+                        const locked = e.locked !== undefined ? e.locked : (b.level < (e.min_level || 1));
+                        return !locked;
+                    });
+                    const locked = availableEquip.filter(e => {
+                        const isLocked = e.locked !== undefined ? e.locked : (b.level < (e.min_level || 1));
+                        return isLocked;
+                    });
+                    let html = '';
+                    if (unlocked.length > 0) {
+                        html += `<h4 style="color:var(--accent);font-size:0.8rem;margin:8px 0 4px">📦 Доступно к покупке:</h4>`;
+                        html += unlocked.map(e => {
+                            return `<div class="equip-row" style="display:flex;flex-direction:column;padding:3px 0;border-bottom:1px solid var(--border)">
+                                <div style="display:flex;justify-content:space-between;align-items:center;width:100%">
+                                    <span>📦 <strong>${e.name}</strong></span>
+                                    <span>${formatMoney(e.price)} <button class="btn btn-sm btn-success" onclick="doBuyEquipment(${e.id})">Купить</button></span>
+                                </div>
+                                <div style="font-size:0.75rem;color:var(--text-dim);margin-top:2px">${EQUIP_DESC[e.name] || ''}</div>
+                            </div>`;
+                        }).join('');
+                    }
+                    if (locked.length > 0) {
+                        html += `<h4 style="color:var(--red);font-size:0.8rem;margin:8px 0 4px">🔒 Заблокировано:</h4>`;
+                        html += locked.map(e => {
+                            const reason = e.locked && b.level < (e.min_level || 1) ? `ур. ${e.min_level}` : 'текущее здание';
+                            return `<div class="equip-row" style="display:flex;flex-direction:column;padding:3px 0;border-bottom:1px solid var(--border)">
+                                <div style="display:flex;justify-content:space-between;align-items:center;width:100%">
+                                    <span>🔒 <strong>${e.name}</strong> <span style="color:var(--red);font-size:0.75rem">(${reason})</span></span>
+                                    <span>${formatMoney(e.price)}</span>
+                                </div>
+                                <div style="font-size:0.75rem;color:var(--text-dim);margin-top:2px">${EQUIP_DESC[e.name] || ''}</div>
+                            </div>`;
+                        }).join('');
+                    }
+                    if (unlocked.length === 0 && locked.length === 0) {
+                        html += '<div class="empty-state">Всё куплено</div>';
+                    }
+                    return html;
+                })()}
 
             </div>
         </div>
