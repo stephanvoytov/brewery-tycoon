@@ -197,9 +197,10 @@ function showBrewModal(recipeId) {
             await loadGameState();
             modal.style.display = 'none';
             renderRecipes();
-    } catch (e) {
-        showError(e.message);
-    }
+        } catch (e) {
+            showError(e.message);
+        }
+    };
 }
 
 function showRecipeDetail(recipeId) {
@@ -216,8 +217,6 @@ function showRecipeDetail(recipeId) {
         💧 Вода: ${waterLabel[hp.water_type] || 'Мягкая'}<br>
         ⭐ Мастерство: ${recipe.mastery_count || 0} варок (+${Math.min(5, (recipe.mastery_count || 0) * 0.5).toFixed(1)} к качеству)
     `, 'info', 5000);
-}
-    };
 }
 
 async function doBuyIngredient(id) {
