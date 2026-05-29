@@ -58,6 +58,32 @@ function renderStaff() {
                     </tr>`;
                 }).join('')}
             </table>
+            <div class="mobile-card-list">
+                ${staff.length === 0 ? '<div class="mobile-card-empty">Нет сотрудников. Наймите!</div>' :
+                staff.map(s => {
+                    const bonusDesc = s.role === 'brewer' ? `+${s.skill_level * 3}% скорость варки` : s.role === 'sales' ? `+${s.skill_level * 2}% цена контрактов` : s.role === 'admin' ? `-${s.skill_level * 2}% расходы` : '';
+                    return `
+                    <div class="mobile-card">
+                        <div class="mobile-card-row">
+                            <span class="label">${s.name}</span>
+                            <span class="value">${ROLE_RU[s.role] || s.role} ⓘ</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="label">Навык:</span><span class="value">${s.skill_level}/10</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="label">Зарплата:</span><span class="value">${formatMonthly(s.salary)}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="label">Мораль:</span><span class="value" style="color:${s.morale > 60 ? 'var(--green)' : s.morale > 30 ? 'var(--accent)' : 'var(--red)'}">${Math.round(s.morale)}%</span>
+                        </div>
+                        <div class="mobile-card-actions">
+                            <button class="btn btn-sm btn-primary" onclick="doTrainStaff(${s.id})">🎓 Тренировка</button>
+                            <button class="btn btn-sm btn-danger" onclick="doFireStaff(${s.id})">🔴 Уволить</button>
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
         </div>
 
         <div class="card">
@@ -83,7 +109,8 @@ async function doHireStaff(role) {
 }
 
 async function doFireStaff(id) {
-    if (!confirm('Вы уверены, что хотите уволить этого сотрудника?')) return;
+    const ok = await showConfirm('Уволить сотрудника?', 'Это действие нельзя отменить.');
+    if (!ok) return;
     try {
         const res = await API.fireStaff(id);
         showSuccess(res.message);

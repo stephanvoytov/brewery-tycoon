@@ -113,6 +113,14 @@ async function renderFinance() {
                     ${(s.bank_loan || 0) > 0 ? `<tr><td>Проценты по кредиту</td><td>${formatMoney((s.bank_loan || 0) * li.interest_rate)}/день</td></tr>` : ''}
                     <tr><td><strong>Итого в день</strong></td><td><strong>${formatMoney(b.rent + staff.reduce((sum, s) => sum + s.salary, 0) + ((s.bank_loan || 0) * li.interest_rate))}/день</strong></td></tr>
                 </table>
+                <div class="mobile-card-list">
+                    <div class="mobile-card">
+                        <div class="mobile-card-row"><span class="label">Аренда</span><span class="value">${formatMonthly(b.rent)}</span></div>
+                        <div class="mobile-card-row"><span class="label">Зарплаты (${staff.length} чел.)</span><span class="value">${formatMonthly(staff.reduce((sum, s) => sum + s.salary, 0))}</span></div>
+                        ${(s.bank_loan || 0) > 0 ? `<div class="mobile-card-row"><span class="label">Проценты</span><span class="value">${formatMoney((s.bank_loan || 0) * li.interest_rate)}/день</span></div>` : ''}
+                        <div class="mobile-card-row"><span class="label"><strong>Итого в день</strong></span><span class="value"><strong>${formatMoney(b.rent + staff.reduce((sum, s) => sum + s.salary, 0) + ((s.bank_loan || 0) * li.interest_rate))}/день</strong></span></div>
+                    </div>
+                </div>
             </div>
             <div class="card">
                 <h3>💰 Контракты</h3>
@@ -123,6 +131,14 @@ async function renderFinance() {
                         <tr><td>${c.buyer_name}</td><td>${formatMoney(c.total_revenue)}</td></tr>
                     `).join('')}
                 </table>
+                <div class="mobile-card-list">
+                    ${contracts.filter(c => c.is_active).length === 0 ? '<div class="mobile-card-empty">Нет активных контрактов</div>' :
+                    contracts.filter(c => c.is_active).map(c => `
+                        <div class="mobile-card">
+                            <div class="mobile-card-row"><span class="label">${c.buyer_name}</span><span class="value">${formatMoney(c.total_revenue)}</span></div>
+                        </div>
+                    `).join('')}
+                </div>
             </div>
             <div class="card">
                 <h3>📦 Активы</h3>

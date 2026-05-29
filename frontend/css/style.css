@@ -266,6 +266,10 @@ table {
     min-width: 500px;
 }
 
+.mobile-card-list {
+    display: none;
+}
+
 th, td {
     padding: 10px 12px;
     text-align: left;
@@ -845,51 +849,325 @@ input:focus, select:focus {
     background: var(--accent);
 }
 
+/* ===== MOBILE OPTIMIZATION (max-width: 768px) ===== */
 @media (max-width: 768px) {
-    .sidebar { width: 60px; }
-    .sidebar-header h1, .sidebar-header span, .nav-btn span, .game-id-bar { display: none; }
-    .nav-btn { justify-content: center; padding: 14px 8px; font-size: 1.1rem; }
-    .main-content { padding: 12px; }
+    /* === Layout === */
+    .app { flex-direction: column; }
+    .sidebar { display: none; }
+    .main-content { padding: 12px 12px 75px; max-height: none; overflow-y: visible; }
 
-    .sidebar-header { padding: 12px 8px; }
+    .bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 15000;
+        background: var(--bg-sidebar);
+        border-top: 1px solid var(--border);
+        justify-content: space-around;
+        padding: 4px 0 env(safe-area-inset-bottom, 4px);
+    }
+    .bottom-nav-btn {
+        background: none;
+        border: none;
+        color: var(--text-dim);
+        font-size: 0.6rem;
+        padding: 6px 4px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        cursor: pointer;
+        transition: color 0.2s;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .bottom-nav-btn .bn-icon { font-size: 1.3rem; line-height: 1; }
+    .bottom-nav-btn.active { color: var(--accent-light); }
+    .bottom-nav-btn:active { opacity: 0.7; }
 
+    .hamburger-btn {
+        display: block;
+        position: fixed;
+        top: 8px;
+        left: 8px;
+        z-index: 16000;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px 10px;
+        color: var(--text);
+        font-size: 1.3rem;
+        cursor: pointer;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .hamburger-btn:active { opacity: 0.7; }
+
+    .mobile-menu {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 15500;
+        background: var(--bg-sidebar);
+        padding: 60px 20px 20px;
+        overflow-y: auto;
+    }
+    .mobile-menu.open { display: block; }
+    .mobile-menu .nav-btn {
+        font-size: 1rem;
+        padding: 14px 16px;
+        gap: 12px;
+    }
+    .mobile-menu .nav-btn span { display: inline; }
+    .mobile-menu .currency-bar { margin-top: 16px; }
+
+    /* === Grids === */
     .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; gap: 10px; }
 
+    /* === Cards === */
     .card { padding: 12px; }
     .card h3 { font-size: 0.9rem; }
 
-    h2 { font-size: 1.2rem; margin-bottom: 14px; }
+    h2 { font-size: 1.15rem; margin-bottom: 12px; }
 
-    th, td { padding: 8px 8px; font-size: 0.78rem; }
+    /* === Mobile Cards (replacing table rows) === */
+    .table-wrap { display: none; }
 
+    .mobile-card-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .mobile-card {
+        background: var(--bg-main);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .mobile-card-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        font-size: 0.8rem;
+    }
+    .mobile-card-row .label {
+        color: var(--text-dim);
+        flex-shrink: 0;
+    }
+    .mobile-card-row .value {
+        text-align: right;
+    }
+    .mobile-card-actions {
+        display: flex;
+        gap: 6px;
+        margin-top: 4px;
+        flex-wrap: wrap;
+    }
+    .mobile-card-actions .btn,
+    .mobile-card-actions .btn-sm,
+    .mobile-card-actions .btn-small {
+        flex: 1;
+        text-align: center;
+        min-height: 40px;
+        font-size: 0.8rem;
+        padding: 8px 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .mobile-card-empty {
+        text-align: center;
+        padding: 24px;
+        color: var(--text-dim);
+        font-size: 0.85rem;
+    }
+
+    /* === Touch targets === */
     .btn, .btn-small { padding: 10px 16px; font-size: 0.85rem; min-height: 44px; }
-    .btn-sm { padding: 8px 14px; min-height: 44px; }
+    .btn-sm { padding: 8px 14px; min-height: 44px; font-size: 0.82rem; }
 
     input, select, textarea { padding: 10px 10px; font-size: 16px; min-height: 44px; }
 
     .form-row { flex-direction: column; align-items: stretch; gap: 8px; }
 
-    .stat-value { font-size: 1.3rem; }
-    .stat { padding: 10px; }
+    .stat-value { font-size: 1.2rem; }
+    .stat { padding: 8px; }
 
-    #brewModal { margin: 0; border-radius: 0; padding: 12px; }
+    th, td { padding: 6px 6px; font-size: 0.75rem; }
 
-    .event-item { font-size: 0.8rem; }
+    /* === Modals fullscreen === */
+    #brewModal[style*="display: block"],
+    #brewModal[style*="display:block"],
+    #brewModal[style*="display: flex"],
+    #brewModal[style*="display:flex"] {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        z-index: 14000;
+        border-radius: 0;
+        padding: 16px;
+        margin: 0;
+        overflow-y: auto;
+        flex-direction: column;
+        border: none;
+    }
+    #brewModal .grid-2 { grid-template-columns: 1fr; }
+    #brewModal .btn { min-height: 48px; font-size: 0.95rem; }
 
-    .saves-container { padding: 12px; margin: 20px auto; }
-    .save-card { flex-direction: column; gap: 8px; align-items: stretch; text-align: center; }
+    .event-choice-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        z-index: 14000;
+        background: rgba(0,0,0,0.9);
+        padding: 16px;
+        overflow-y: auto;
+    }
+    .event-choice-overlay .card {
+        max-width: 100%;
+        margin: 0;
+    }
 
-    .toast-error, .toast-success { top: 10px; right: 10px; left: 10px; max-width: none; font-size: 0.85rem; }
-    .toast-notification { top: 60px; right: 10px; left: 10px; max-width: none; font-size: 0.8rem; }
+    #gameOverModal {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        z-index: 14000;
+        padding: 16px;
+        overflow-y: auto;
+    }
 
+    /* === Toast === */
+    .toast-error, .toast-success {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        font-size: 0.85rem;
+    }
+    .toast-notification {
+        top: 60px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        font-size: 0.8rem;
+    }
+
+    /* === Tutorial === */
     #tutorialBox { padding: 24px 16px; max-width: 95%; }
     #tutorialStep .tutorial-title { font-size: 1.1rem; }
     #tutorialStep .tutorial-desc { font-size: 0.85rem; }
     #tutorialNav { flex-wrap: wrap; justify-content: center; }
     #tutorialDots { order: -1; width: 100%; justify-content: center; margin-bottom: 8px; }
 
-    .brewery-svg-container svg { max-height: 300px; }
+    /* === Brewery SVG === */
+    .brewery-svg-container svg { max-height: 250px; }
 
+    /* === User info row === */
     .user-info-row { gap: 2px; }
     .user-info-row .btn-small { font-size: 0.65rem; padding: 6px 6px; min-height: 36px; }
+
+    /* === Saves === */
+    .saves-container { padding: 12px; margin: 20px auto; }
+    .save-card { flex-direction: column; gap: 8px; align-items: stretch; text-align: center; }
+
+    /* === Auth fullscreen === */
+    .auth-container { padding: 0; align-items: stretch; }
+    .auth-box {
+        max-width: 100%;
+        border-radius: 0;
+        min-height: 100vh;
+        padding: 32px 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        border: none;
+    }
+    .auth-box h1 { font-size: 1.6rem; }
+    .auth-form input { padding: 14px 12px; }
+    .auth-form .btn { min-height: 48px; font-size: 1rem; }
+    .auth-divider { margin: 12px 0; }
+    .btn-secondary { min-height: 48px; font-size: 1rem; }
+
+    /* === Event item === */
+    .event-item { font-size: 0.8rem; }
+
+    /* === Touch feedback === */
+    .nav-btn, .btn, .btn-small, .btn-sm, .lb-tab, .auth-tab, .save-card {
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .bottom-nav-btn:active,
+    .btn:active, .btn-small:active, .btn-sm:active,
+    .lb-tab:active, .auth-tab:active, .save-card:active {
+        transform: scale(0.96);
+        opacity: 0.85;
+    }
+
+    /* === Leaderboard on mobile === */
+    .lb-tabs { gap: 4px; }
+    .lb-tab { flex: 1; text-align: center; font-size: 0.75rem; padding: 8px 4px; }
+    .lb-content .table-wrap { display: block; }
+    .lb-content .table-wrap table { min-width: 0; }
+    .lb-content .mobile-card-list { display: none; }
+
+    /* === Custom confirm/prompt modal === */
+    .dialog-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        z-index: 30000;
+        background: rgba(0,0,0,0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .dialog-box {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 24px 20px;
+        max-width: 360px;
+        width: 100%;
+        text-align: center;
+    }
+    .dialog-box h3 {
+        color: var(--accent-light);
+        margin-bottom: 8px;
+        font-size: 1.1rem;
+    }
+    .dialog-box p {
+        font-size: 0.9rem;
+        color: var(--text);
+        margin-bottom: 16px;
+        line-height: 1.5;
+    }
+    .dialog-box input {
+        width: 100%;
+        margin-bottom: 16px;
+        padding: 12px;
+        font-size: 16px;
+        border-radius: 8px;
+    }
+    .dialog-actions {
+        display: flex;
+        gap: 10px;
+    }
+    .dialog-actions .btn {
+        flex: 1;
+        min-height: 44px;
+        font-size: 0.9rem;
+    }
+
+    /* === Flex-wrap fixes === */
+    .dash-header { flex-wrap: wrap; gap: 8px; }
+    .brewery-header { flex-wrap: wrap; gap: 8px; }
+    .equip-row { flex-wrap: wrap; gap: 4px; }
 }

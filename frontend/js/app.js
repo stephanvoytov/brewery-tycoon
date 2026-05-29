@@ -10,12 +10,18 @@ function showScreen(id) {
 function navigate(page) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.bottom-nav-btn').forEach(b => b.classList.remove('active'));
 
     const pageEl = document.getElementById(`page-${page}`);
     if (pageEl) pageEl.classList.add('active');
 
     const btn = document.querySelector(`[data-page="${page}"]`);
     if (btn) btn.classList.add('active');
+
+    const bnBtn = document.querySelector(`.bottom-nav-btn[data-page="${page}"]`);
+    if (bnBtn) bnBtn.classList.add('active');
+
+    document.getElementById('mobileMenu').classList.remove('open');
 
     localStorage.setItem(STORAGE_KEYS.ACTIVE_PAGE, page);
 }
@@ -35,10 +41,11 @@ async function loadGameState() {
     if (!API.gameId) return;
     try {
         GAME_STATE = await API.getState();
-        const sel = document.getElementById('currencySelect');
-        if (sel && GAME_STATE.game && GAME_STATE.game.currency) {
-            sel.value = GAME_STATE.game.currency;
-        }
+        const currency = GAME_STATE.game && GAME_STATE.game.currency;
+        ['currencySelect', 'currencySelectMobile'].forEach(id => {
+            const sel = document.getElementById(id);
+            if (sel && currency) sel.value = currency;
+        });
         renderCurrentPage();
     } catch (e) {
         console.error('Failed to load game state:', e);
@@ -69,16 +76,23 @@ function updateSidebarUser() {
     const guestEl = document.getElementById('guestInfo');
     const userEl = document.getElementById('userInfo');
     const savesBtn = document.getElementById('savesBtn');
+    const mobileUserInfo = document.getElementById('mobileUserInfo');
 
     if (API.user) {
         guestEl.style.display = 'none';
         userEl.style.display = 'block';
         document.getElementById('usernameDisplay').textContent = API.user.username;
         if (savesBtn) savesBtn.style.display = 'block';
+        if (mobileUserInfo) {
+            mobileUserInfo.innerHTML = `<div style="margin-top:12px;font-size:0.85rem;color:var(--text-dim)">👤 ${esc(API.user.username)}</div>`;
+        }
     } else {
         guestEl.style.display = 'block';
         userEl.style.display = 'none';
         if (savesBtn) savesBtn.style.display = 'none';
+        if (mobileUserInfo) {
+            mobileUserInfo.innerHTML = `<div style="margin-top:12px;font-size:0.85rem;color:var(--text-dim)">👤 Гость</div>`;
+        }
     }
 }
 
@@ -237,13 +251,37 @@ document.addEventListener('DOMContentLoaded', async () => {
         await startNewGame();
     });
 
-    // Leaderboard tab switching
-    document.querySelectorAll('.lb-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            document.querySelectorAll('.lb-tab').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            renderLeaderboard(tab.dataset.metric);
+    // Bottom navigation (mobile)
+    document.querySelectorAll('.bottom-nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (APP_MODE !== 'game') return;
+            if (btn.dataset.page === 'more') {
+                document.getElementById('mobileMenu').classList.toggle('open');
+                return;
+            }
+            navigate(btn.dataset.page);
+            if (API.gameId) renderCurrentPage();
         });
+    });
+
+    // Hamburger button (mobile)
+    document.getElementById('hamburgerBtn').addEventListener('click', () => {
+        document.getElementById('mobileMenu').classList.toggle('open');
+    });
+
+    // Mobile menu nav buttons
+    document.querySelectorAll('.mobile-menu .nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (APP_MODE !== 'game') return;
+            navigate(btn.dataset.page);
+            if (API.gameId) renderCurrentPage();
+        });
+    });
+
+    // Sync currency selects
+    document.getElementById('currencySelectMobile').addEventListener('change', function() {
+        document.getElementById('currencySelect').value = this.value;
+        doChangeCurrency(this.value);
     });
 
     await initGameFlow();

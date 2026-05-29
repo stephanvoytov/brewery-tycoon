@@ -1,8 +1,8 @@
 async function doRenameBrewery() {
     const b = GAME_STATE.brewery;
     if (!b) return;
-    const newName = prompt('Введите новое название пивоварни:', b.name);
-    if (!newName || newName.trim() === '' || newName === b.name) return;
+    const newName = await showPrompt('Переименовать пивоварню', 'Введите новое название:', b.name);
+    if (!newName || newName.trim() === '' || newName.trim() === b.name) return;
     try {
         const res = await API.renameBrewery(newName.trim());
         showSuccess(res.message);
@@ -42,7 +42,7 @@ function renderBrewery() {
 
     const el = document.getElementById('page-brewery');
     el.innerHTML = `
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+        <div class="brewery-header" style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
             <h2 style="margin-bottom:0">🏭 Пивоварня «${b.name}»</h2>
             <button class="btn btn-small" onclick="doRenameBrewery()" title="Переименовать">✏️</button>
         </div>
@@ -219,6 +219,31 @@ function renderBrewery() {
                         <td colspan="2"><strong>${formatMonthly(b.rent)}</strong></td>
                     </tr>
                 </table>
+                <div class="mobile-card-list">
+                    <div class="mobile-card">
+                        <div class="mobile-card-row"><span class="label">Варочные котлы:</span><span class="value">${b.tank_count} шт.</span></div>
+                        <div class="mobile-card-actions"><button class="btn btn-sm btn-primary" onclick="doUpgrade('tanks')" ${!getUpgradeCost('tanks', b.tank_count) ? 'disabled' : ''}>+1${getUpgradeCost('tanks', b.tank_count) ? ` (${formatMoney(getUpgradeCost('tanks', b.tank_count))})` : ' MAX'}</button></div>
+                    </div>
+                    <div class="mobile-card">
+                        <div class="mobile-card-row"><span class="label">Ферментеры:</span><span class="value">${b.fermenter_count} шт.</span></div>
+                        <div class="mobile-card-actions"><button class="btn btn-sm btn-primary" onclick="doUpgrade('fermenters')" ${!getUpgradeCost('fermenters', b.fermenter_count) ? 'disabled' : ''}>+2${getUpgradeCost('fermenters', b.fermenter_count) ? ` (${formatMoney(getUpgradeCost('fermenters', b.fermenter_count))})` : ' MAX'}</button></div>
+                    </div>
+                    <div class="mobile-card">
+                        <div class="mobile-card-row"><span class="label">Хранилище:</span><span class="value">${b.storage_capacity} л</span></div>
+                        <div class="mobile-card-actions"><button class="btn btn-sm btn-primary" onclick="doUpgrade('storage')" ${!getUpgradeCost('storage', b.storage_capacity) ? 'disabled' : ''}>+1000л${getUpgradeCost('storage', b.storage_capacity) ? ` (${formatMoney(getUpgradeCost('storage', b.storage_capacity))})` : ' MAX'}</button></div>
+                    </div>
+                    <div class="mobile-card">
+                        <div class="mobile-card-row"><span class="label">Тапрум:</span><span class="value">${b.has_taproom ? `${formatMoney(b.taproom_level * 30)}/день` : 'Нет'}</span></div>
+                        <div class="mobile-card-actions"><button class="btn btn-sm btn-primary" onclick="doUpgrade('taproom')" ${!getUpgradeCost('taproom', b.taproom_level) ? 'disabled' : ''}>${b.has_taproom ? 'Улучшить' : 'Построить'}${getUpgradeCost('taproom', b.taproom_level) ? ` (${formatMoney(getUpgradeCost('taproom', b.taproom_level))})` : ' MAX'}</button></div>
+                    </div>
+                    <div class="mobile-card">
+                        <div class="mobile-card-row"><span class="label">Маркетинг:</span><span class="value">Ур. ${b.marketing_level}</span></div>
+                        <div class="mobile-card-actions"><button class="btn btn-sm btn-primary" onclick="doUpgrade('marketing')" ${!getUpgradeCost('marketing', b.marketing_level) ? 'disabled' : ''}>Улучшить${getUpgradeCost('marketing', b.marketing_level) ? ` (${formatMoney(getUpgradeCost('marketing', b.marketing_level))})` : ' MAX'}</button></div>
+                    </div>
+                    <div class="mobile-card">
+                        <div class="mobile-card-row"><span class="label"><strong>Аренда</strong></span><span class="value"><strong>${formatMonthly(b.rent)}</strong></span></div>
+                    </div>
+                </div>
             </div>
 
             <div class="card">
@@ -228,7 +253,7 @@ function renderBrewery() {
                     const wearColor = e.wear_tear > 80 ? 'var(--green)' : e.wear_tear > 40 ? 'var(--accent)' : 'var(--red)';
                     const broken = e.wear_tear < 20;
                     const repairCost = Math.round(e.price * 0.3);
-                    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)">
+                    return `<div class="equip-row" style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)">
                         <span>${broken ? '❌' : '✅'} ${e.name} <span style="color:${wearColor};font-size:0.75rem">(износ: ${Math.round(e.wear_tear)}%)</span></span>
                         <span>${broken ? `<button class="btn btn-sm btn-danger" onclick="doRepairEquipment(${e.id})">Ремонт $${repairCost}</button>` : `<span style="color:var(--text-dim);font-size:0.75rem">+${Math.round(e.efficiency_bonus * 100)}%</span>`}</span>
                     </div>`;
@@ -236,7 +261,7 @@ function renderBrewery() {
 
                 <h4 style="color:var(--accent);font-size:0.85rem;margin:10px 0 8px">Доступно к покупке:</h4>
                 ${availableEquip.length === 0 ? '<div class="empty-state">Всё куплено</div>' : availableEquip.map(e =>
-                    `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">
+                    `<div class="equip-row" style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">
                         <span>${e.name}</span>
                         <span>${formatMoney(e.price)} <button class="btn btn-sm btn-success" onclick="doBuyEquipment(${e.id})">Купить</button></span>
                     </div>`

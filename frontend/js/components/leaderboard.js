@@ -34,13 +34,14 @@ async function renderLeaderboard(metric) {
             return;
         }
 
+        const valueLabel = metric === 'money' ? 'Деньги' : metric === 'total_revenue' ? 'Выручка' : metric === 'reputation' ? 'Репутация' : 'День';
         lbContent.innerHTML = `
             <table class="lb-table">
                 <thead>
                     <tr>
                         <th>#</th>
                         <th>Игрок</th>
-                        <th>${metric === 'money' ? 'Деньги' : metric === 'total_revenue' ? 'Выручка' : metric === 'reputation' ? 'Репутация' : 'День'}</th>
+                        <th>${valueLabel}</th>
                         <th>День</th>
                         <th>Репутация</th>
                     </tr>
@@ -57,6 +58,22 @@ async function renderLeaderboard(metric) {
                     `).join('')}
                 </tbody>
             </table>
+            <div class="mobile-card-list">
+                ${data.entries.map(e => `
+                    <div class="mobile-card">
+                        <div class="mobile-card-row">
+                            <span class="label">${e.rank <= 3 ? ['🥇','🥈','🥉'][e.rank-1] : '#' + e.rank} ${esc(e.username)}</span>
+                            <span class="value">${formatMoney(e.money)}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="label">День:</span><span class="value">${e.day}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="label">Репутация:</span><span class="value">${Math.round(e.reputation)}%</span>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
         `;
     } catch (e) {
         const lbContent = document.getElementById('lbContent');

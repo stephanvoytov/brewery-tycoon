@@ -38,6 +38,29 @@ function renderRecipes() {
                             </tr>
                         `).join('')}
                 </table>
+                <div class="mobile-card-list">
+                    ${unlockedRecipes.length === 0 ? '<div class="mobile-card-empty">Нет рецептов</div>' :
+                    unlockedRecipes.map(r => `
+                        <div class="mobile-card">
+                            <div class="mobile-card-row">
+                                <span><span class="srm-dot" style="background:${SRM_COLORS[r.style] || '#ccc'}"></span><span class="recipe-name" onclick="showRecipeDetail(${r.id})" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted">${r.name}</span>${r.mastery_count > 0 ? `<span class="badge badge-mastery">⭐${r.mastery_count}</span>` : ''}</span>
+                            </div>
+                            <div class="mobile-card-row">
+                                <span class="label">Стиль:</span><span class="value">${STYLE_RU[r.style] || r.style}</span>
+                            </div>
+                            <div class="mobile-card-row">
+                                <span class="label">ABV / IBU:</span><span class="value">${r.abv}% / ${r.ibu}</span>
+                            </div>
+                            <div class="mobile-card-row">
+                                <span class="label">Себест.:</span><span class="value">${formatMoney(r.cost_per_liter * 100)}/100л</span>
+                            </div>
+                            <div class="mobile-card-actions">
+                                <button class="btn btn-sm btn-primary" onclick="showBrewModal(${r.id})">🍺 Варить</button>
+                                <button class="btn btn-sm btn-secondary" onclick="showRecipeDetail(${r.id})">📋 Детали</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
             </div>
 
             <div class="card">
@@ -61,6 +84,24 @@ function renderRecipes() {
                         </tr>
                     `).join('')}
                 </table>
+                <div class="mobile-card-list">
+                    ${ingredients.length === 0 ? '<div class="mobile-card-empty">Нет ингредиентов</div>' :
+                    ingredients.map(ing => `
+                        <div class="mobile-card">
+                            <div class="mobile-card-row">
+                                <span class="label">${ing.name}</span>
+                                <span class="value">${ing.quantity.toFixed(1)} кг</span>
+                            </div>
+                            <div class="mobile-card-row">
+                                <span class="label">Цена:</span><span class="value">${formatMoney(ing.unit_cost)}/кг</span>
+                            </div>
+                            <div class="mobile-card-actions">
+                                <input type="number" id="buyQtyMobile_${ing.id}" value="10" min="1" style="flex:1;min-width:60px;font-size:16px;padding:8px">
+                                <button class="btn btn-sm btn-success" onclick="doBuyIngredient(${ing.id})" style="flex:0">Купить</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
             </div>
         </div>
 
@@ -202,7 +243,8 @@ function showBrewModal(recipeId) {
 
     document.getElementById('brewConfirmBtn').onclick = async () => {
         const size = parseFloat(document.getElementById('brewSize').value) || 50;
-        if (!confirm(`Начать варку ${size}л? Будут списаны ингредиенты и $${(recipe.cost_per_liter * size).toFixed(0)}.`)) return;
+        const ok = await showConfirm('Начать варку?', `Объём: ${size}л. Будут списаны ингредиенты и ${formatMoney(recipe.cost_per_liter * size)}.`);
+        if (!ok) return;
         try {
             const res = await API.startBrew(recipeId, size);
             const qb = res.quality_breakdown;

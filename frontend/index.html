@@ -104,6 +104,45 @@
             </main>
         </div>
 
+        <!-- Bottom Navigation (mobile only) -->
+        <nav class="bottom-nav" id="bottomNav">
+            <button class="bottom-nav-btn active" data-page="dashboard"><span class="bn-icon">📊</span>Дашборд</button>
+            <button class="bottom-nav-btn" data-page="recipes"><span class="bn-icon">📝</span>Рецепты</button>
+            <button class="bottom-nav-btn" data-page="batches"><span class="bn-icon">🛢</span>Партии</button>
+            <button class="bottom-nav-btn" data-page="market"><span class="bn-icon">💰</span>Рынок</button>
+            <button class="bottom-nav-btn" data-page="staff"><span class="bn-icon">👥</span>Персонал</button>
+            <button class="bottom-nav-btn" data-page="more"><span class="bn-icon">⋯</span>Ещё</button>
+        </nav>
+
+        <!-- Hamburger / Mobile menu overlay -->
+        <button class="hamburger-btn" id="hamburgerBtn" style="display:none">☰</button>
+        <div class="mobile-menu" id="mobileMenu">
+            <button class="nav-btn" data-page="dashboard">📊 Дашборд</button>
+            <button class="nav-btn" data-page="brewery">🏭 Пивоварня</button>
+            <button class="nav-btn" data-page="recipes">📝 Рецепты</button>
+            <button class="nav-btn" data-page="batches">🛢 Партии</button>
+            <button class="nav-btn" data-page="market">💰 Рынок</button>
+            <button class="nav-btn" data-page="staff">👥 Персонал</button>
+            <button class="nav-btn" data-page="research">🔬 Исследования</button>
+            <button class="nav-btn" data-page="finance">📈 Финансы</button>
+            <button class="nav-btn" data-page="leaderboard">🏆 Лидерборд</button>
+            <button class="nav-btn" data-page="help">❓ Помощь</button>
+            <hr style="border-color:var(--border);margin:12px 0">
+            <div class="currency-bar">
+                <label>Валюта:</label>
+                <select id="currencySelectMobile" onchange="doChangeCurrency(this.value)">
+                    <option value="$">$ USD</option>
+                    <option value="€">€ EUR</option>
+                    <option value="₽">₽ RUB</option>
+                    <option value="£">£ GBP</option>
+                    <option value="¥">¥ JPY</option>
+                </select>
+            </div>
+            <button class="btn btn-newgame" onclick="startNewGame()" style="margin-top:8px">🔄 Новая игра</button>
+            <button class="btn btn-secondary" onclick="showSaves()" style="margin-top:8px">💾 Сохранения</button>
+            <div id="mobileUserInfo"></div>
+        </div>
+
         <div id="tutorialOverlay" style="display:none">
             <div id="tutorialBackdrop"></div>
             <div id="tutorialBox">

@@ -41,6 +41,36 @@ function renderBatches() {
                     </tr>
                 `).join('')}
             </table>
+            <div class="mobile-card-list">
+                ${batches.length === 0 ? '<div class="mobile-card-empty">Нет партий</div>' :
+                batches.sort((a, b) => b.id - a.id).map(b => `
+                    <div class="mobile-card">
+                        <div class="mobile-card-row">
+                            <span class="label">#${b.id} ${b.recipe_name || '—'}</span>
+                            <span class="value">${b.batch_size_liters} л</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="label">Стадия:</span><span class="value"><span class="badge badge-${b.stage}">${STAGE_RU[b.stage] || b.stage}</span></span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="label">Прогресс:</span><span class="value">${b.stage_progress}%</span>
+                        </div>
+                        ${(b.stage === 'ferment' || b.stage === 'condition' || b.stage === 'packaged') ? `
+                        <div class="mobile-card-row">
+                            <span class="label">Качество:</span><span class="value">${Math.round(b.quality)}%</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="label">ABV/IBU/SRM:</span><span class="value">${b.actual_abv || '—'}% / ${b.actual_ibu || '—'} / ${b.actual_srm || '—'}</span>
+                        </div>` : ''}
+                        <div class="mobile-card-row">
+                            <span class="label">День старта:</span><span class="value">${b.started_day}</span>
+                        </div>
+                        <div class="mobile-card-actions">
+                            ${b.stage === 'packaged' ? `<button class="btn btn-sm btn-success" onclick="doSellBatch(${b.id})">💰 Продать</button>` : `<span style="color:var(--text-dim);font-size:0.75rem;padding:8px">${b.stage_progress}%</span>`}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
         </div>
 
         <div class="card">
@@ -68,6 +98,8 @@ function renderBatches() {
 }
 
 async function doSellBatch(id) {
+    const ok = await showConfirm('Продать партию?', 'Партия будет продана по рыночной цене.');
+    if (!ok) return;
     try {
         const res = await API.sellBatch(id);
         showSuccess(res.message);

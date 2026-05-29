@@ -19,7 +19,7 @@ function renderDashboard() {
 
     const el = document.getElementById('page-dashboard');
     el.innerHTML = `
-        <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <div class="page-header dash-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
             <h2>📊 Дашборд</h2>
             <button class="btn btn-primary" onclick="doTick()">⏩ День ${s.day + 1}</button>
         </div>
