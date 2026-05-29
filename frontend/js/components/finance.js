@@ -151,10 +151,11 @@ async function renderFinance() {
 
     if (hasData && typeof Chart !== 'undefined') {
         try {
-            console.log('📊 finance chart data:', { revenueHistory, expenseHistory });
-            if (financeChart) financeChart.destroy();
+            console.log('📊 finance chart data:', { hasData, revenueHistory, expenseHistory, ChartExists: typeof Chart !== 'undefined', prevChart: !!financeChart });
+            if (financeChart) { console.log('🧹 destroying prev chart'); financeChart.destroy(); financeChart = null; }
             const canvas = document.getElementById('financeChart');
-            if (!canvas) return;
+            console.log('📊 canvas found:', !!canvas, 'canvas parent:', canvas?.parentElement?.className);
+            if (!canvas) { console.warn('📊 canvas not found'); return; }
             const ctx = canvas.getContext('2d');
             const maxLen = Math.max(revenueHistory.length, expenseHistory.length);
             const labels = buildChartLabels(maxLen);
