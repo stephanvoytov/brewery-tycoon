@@ -50,9 +50,9 @@ function renderDashboard() {
         </div>
 
         <div class="card">
-            <h3>🏆 Цель: заработать $100,000</h3>
+            <h3>🏆 Цель: заработать ${formatMoney(100000)}</h3>
             <div class="chart-bar"><div class="chart-bar-fill" style="width:${goalProgress}%"></div></div>
-            <div style="font-size:0.8rem;color:var(--text-dim);margin-top:4px">Выручено: ${formatMoney(s.total_revenue)} из $100,000</div>
+            <div style="font-size:0.8rem;color:var(--text-dim);margin-top:4px">Выручено: ${formatMoney(s.total_revenue)} из ${formatMoney(100000)}</div>
         </div>
 
         <div class="card">
