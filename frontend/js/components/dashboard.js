@@ -26,7 +26,7 @@ function renderDashboard() {
 
         ${bankruptcyWarning}
 
-        <div class="grid-4">
+        <div class="dash-stats">
             <div class="card stat">
                 <div class="stat-value ${s.money < 0 ? 'red' : ''}">${formatMoney(s.money)}</div>
                 <div class="stat-label">Баланс</div>
@@ -36,7 +36,7 @@ function renderDashboard() {
                 <div class="stat-label">День / ${formatDate(s.day)}</div>
             </div>
             <div class="card stat">
-                <div class="stat-value ${s.reputation > 60 ? 'green' : s.reputation > 30 ? '' : 'red'}">${Math.round(s.reputation)}%</div>
+                <div class="stat-value ${s.reputation > 60 ? 'green' : s.reputation > 30 ? '' : 'red'}">⭐${Math.round(s.reputation)}%</div>
                 <div class="stat-label" title="Высокая репутация = выше цены продажи и больше контрактов">Репутация</div>
             </div>
             <div class="card stat">

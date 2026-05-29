@@ -259,6 +259,21 @@ h2 {
     gap: 14px;
 }
 
+.dash-stats {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+}
+.dash-stats .stat {
+    padding: 10px 8px;
+}
+.dash-stats .stat-value {
+    font-size: 1.2rem;
+}
+.dash-stats .stat-label {
+    font-size: 0.7rem;
+}
+
 .stat {
     text-align: center;
     padding: 12px;
@@ -1212,6 +1227,10 @@ input:focus, select:focus {
     .app { flex-direction: column; }
     .sidebar { display: none; }
     .main-content { padding: 12px 12px 75px; max-height: none; overflow-y: visible; }
+
+        .dash-stats {
+        grid-template-columns: repeat(3, 1fr);
+    }
 
     #statusBar {
         gap: 8px;
