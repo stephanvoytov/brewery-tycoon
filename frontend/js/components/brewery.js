@@ -13,90 +13,6 @@ async function doRenameBrewery() {
     }
 }
 
-const BUILDING_VISUALS = {
-    1: { // 🕳 Подвал
-        wall: ['#1a1a2a','#0e0e1e'], floor: ['#2a1a0a','#1a0a00'], wallStroke: '#2a2a3a',
-        title: '🕳 ПОДВАЛ', titleColor: '#8a8a7a', sectionBg: '#0e0e1a',
-        boilLabel: '#8a6a0f', fermLabel: '#2a5a7a', condLabel: '#2a5a3a',
-        kettle: ['#6a5a3a','#4a3a2a'], kettleTitle: '#ddd',
-        ferm: ['#2a4a6a','#1a3a5a'], fermTitle: '#ddd',
-        cond: ['#2a5a3a','#1a4a2a'], condTitle: '#ddd',
-        occupiedColor: '#e74c3c', freeColor: '#8a7a5a', floorLine: '#2a1a0a',
-        glowColor: '#8a7a5a', fermBubble: '#5a8aaa', condBubble: '#5aaa7a',
-        bottomBar: '#0e0e1a', bottomText: '#6a6a5a',
-    },
-    2: { // 🏗 Небольшой цех
-        wall: ['#2a3a5a','#1a2a4a'], floor: ['#3a2a1a','#2a1a0a'], wallStroke: '#3a4a6a',
-        title: '🏗 ЦЕХ ПИВОВАРНИ', titleColor: '#e0dcd0', sectionBg: '#1a1a2e',
-        boilLabel: '#d4a017', fermLabel: '#3498db', condLabel: '#2ecc71',
-        kettle: ['#d4a017','#8a6a0f'], kettleTitle: '#fff',
-        ferm: ['#3498db','#1a5276'], fermTitle: '#fff',
-        cond: ['#2ecc71','#1a6e3a'], condTitle: '#fff',
-        occupiedColor: '#e74c3c', freeColor: '#d4a017', floorLine: '#4a3a2a',
-        glowColor: '#f0c040', fermBubble: '#85c1e9', condBubble: '#82e0aa',
-        bottomBar: '#1a1a2e', bottomText: '#8a8a7a',
-    },
-    3: { // 🏭 Промышленное здание
-        wall: ['#3a4a5a','#2a3a4a'], floor: ['#4a4a4a','#3a3a3a'], wallStroke: '#5a6a7a',
-        title: '🏭 ПРОМЫШЛЕННОЕ ЗДАНИЕ', titleColor: '#c0d0e0', sectionBg: '#2a3a4a',
-        boilLabel: '#7a9aaa', fermLabel: '#5a8aaa', condLabel: '#5aaa7a',
-        kettle: ['#7a8a9a','#5a6a7a'], kettleTitle: '#fff',
-        ferm: ['#5a7a9a','#3a5a7a'], fermTitle: '#fff',
-        cond: ['#5a8a6a','#3a6a4a'], condTitle: '#fff',
-        occupiedColor: '#e74c3c', freeColor: '#8a9aaa', floorLine: '#5a5a5a',
-        glowColor: '#9aabba', fermBubble: '#7a9aba', condBubble: '#7aba8a',
-        bottomBar: '#2a3a4a', bottomText: '#8a9aaa',
-    },
-    4: { // 🎨 Крафт-лофт
-        wall: ['#5a3a2a','#4a2a1a'], floor: ['#4a3020','#3a2010'], wallStroke: '#7a5a3a',
-        title: '🎨 КРАФТ-ЛОФТ', titleColor: '#f0d0a0', sectionBg: '#3a2a1a',
-        boilLabel: '#d4a017', fermLabel: '#c07a3a', condLabel: '#5aaa5a',
-        kettle: ['#c08a30','#9a6a10'], kettleTitle: '#fff',
-        ferm: ['#b07a4a','#8a5a2a'], fermTitle: '#fff',
-        cond: ['#5a8a5a','#3a6a3a'], condTitle: '#fff',
-        occupiedColor: '#e74c3c', freeColor: '#c0a070', floorLine: '#5a3a2a',
-        glowColor: '#f0d0a0', fermBubble: '#c09a6a', condBubble: '#6aaa6a',
-        bottomBar: '#3a2a1a', bottomText: '#a09070',
-        isLoft: true,
-    },
-    5: { // 🏭 Пивоваренный завод
-        wall: ['#4a5a6a','#3a4a5a'], floor: ['#5a6a7a','#4a5a6a'], wallStroke: '#6a7a8a',
-        title: '🏭 ПИВОВАРЕННЫЙ ЗАВОД', titleColor: '#d0dce0', sectionBg: '#3a4a5a',
-        boilLabel: '#8abbc0', fermLabel: '#6a9abb', condLabel: '#6abb8a',
-        kettle: ['#8a9aaa','#6a7a8a'], kettleTitle: '#fff',
-        ferm: ['#6a8aaa','#4a6a8a'], fermTitle: '#fff',
-        cond: ['#6a9a7a','#4a7a5a'], condTitle: '#fff',
-        occupiedColor: '#e74c3c', freeColor: '#9abac0', floorLine: '#6a7a8a',
-        glowColor: '#aaccd0', fermBubble: '#8abada', condBubble: '#8ada9a',
-        bottomBar: '#3a4a5a', bottomText: '#9abac0',
-        isFactory: true,
-    },
-    6: { // 🔬 Лаборатория
-        wall: ['#d0d8e0','#b0b8c0'], floor: ['#c0c8d0','#a0a8b0'], wallStroke: '#8a9aaa',
-        title: '🔬 ЛАБОРАТОРИЯ', titleColor: '#2a3a4a', sectionBg: '#b0b8c0',
-        boilLabel: '#3a6a8a', fermLabel: '#5a8aaa', condLabel: '#4a9a6a',
-        kettle: ['#b0c0d0','#90a0b0'], kettleTitle: '#2a3a4a',
-        ferm: ['#a0b8d0','#8098b0'], fermTitle: '#2a3a4a',
-        cond: ['#a0c8b0','#80a890'], condTitle: '#2a3a4a',
-        occupiedColor: '#e74c3c', freeColor: '#6a8aaa', floorLine: '#8a9aaa',
-        glowColor: '#80c0e0', fermBubble: '#80a8d0', condBubble: '#80c8a0',
-        bottomBar: '#b0b8c0', bottomText: '#4a5a6a',
-        isLab: true,
-    },
-    7: { // 🌐 Холдинг
-        wall: ['#1a1a2e','#0a0a1e'], floor: ['#2a1a2a','#1a0a1a'], wallStroke: '#3a3a5a',
-        title: '🌐 ХОЛДИНГ', titleColor: '#d4a017', sectionBg: '#1a1a2e',
-        boilLabel: '#d4a017', fermLabel: '#9a5aaa', condLabel: '#5aaa8a',
-        kettle: ['#2a2a3a','#1a1a2a'], kettleTitle: '#d4a017',
-        ferm: ['#3a2a4a','#2a1a3a'], fermTitle: '#c08ae0',
-        cond: ['#2a3a2a','#1a2a1a'], condTitle: '#5aaa8a',
-        occupiedColor: '#e74c3c', freeColor: '#5a5a7a', floorLine: '#3a3a4a',
-        glowColor: '#d4a017', fermBubble: '#b08ad0', condBubble: '#6aba8a',
-        bottomBar: '#1a1a2e', bottomText: '#5a5a7a',
-        isHolding: true,
-    },
-};
-
 function renderBrewery() {
     const b = GAME_STATE.brewery;
     const v = BUILDING_VISUALS[b.building_id] || BUILDING_VISUALS[2];
@@ -325,11 +241,6 @@ function renderBrewery() {
                         <td><button class="btn btn-sm btn-primary" onclick="doUpgrade('taproom')" ${!getUpgradeCost('taproom', b.taproom_level) ? 'disabled' : ''}>${b.has_taproom ? 'Улучшить' : 'Построить'}${getUpgradeCost('taproom', b.taproom_level) ? ` (${formatMoney(getUpgradeCost('taproom', b.taproom_level))})` : ' MAX'}</button></td>
                     </tr>
                     <tr>
-                        <td>Маркетинг</td>
-                        <td>Ур. ${b.marketing_level}</td>
-                        <td><button class="btn btn-sm btn-primary" onclick="doUpgrade('marketing')" ${!getUpgradeCost('marketing', b.marketing_level) ? 'disabled' : ''}>Улучшить${getUpgradeCost('marketing', b.marketing_level) ? ` (${formatMoney(getUpgradeCost('marketing', b.marketing_level))})` : ' MAX'}</button></td>
-                    </tr>
-                    <tr>
                         <td><strong>Аренда</strong></td>
                         <td colspan="2"><strong>${formatMonthly(b.rent)}</strong></td>
                     </tr>
@@ -350,10 +261,6 @@ function renderBrewery() {
                     <div class="mobile-card">
                         <div class="mobile-card-row"><span class="label">Тапрум:</span><span class="value">${b.has_taproom ? `${formatMoney(b.taproom_level * 30)}/день` : 'Нет'}</span></div>
                         <div class="mobile-card-actions"><button class="btn btn-sm btn-primary" onclick="doUpgrade('taproom')" ${!getUpgradeCost('taproom', b.taproom_level) ? 'disabled' : ''}>${b.has_taproom ? 'Улучшить' : 'Построить'}${getUpgradeCost('taproom', b.taproom_level) ? ` (${formatMoney(getUpgradeCost('taproom', b.taproom_level))})` : ' MAX'}</button></div>
-                    </div>
-                    <div class="mobile-card">
-                        <div class="mobile-card-row"><span class="label">Маркетинг:</span><span class="value">Ур. ${b.marketing_level}</span></div>
-                        <div class="mobile-card-actions"><button class="btn btn-sm btn-primary" onclick="doUpgrade('marketing')" ${!getUpgradeCost('marketing', b.marketing_level) ? 'disabled' : ''}>Улучшить${getUpgradeCost('marketing', b.marketing_level) ? ` (${formatMoney(getUpgradeCost('marketing', b.marketing_level))})` : ' MAX'}</button></div>
                     </div>
                     <div class="mobile-card">
                         <div class="mobile-card-row"><span class="label"><strong>Аренда</strong></span><span class="value"><strong>${formatMonthly(b.rent)}</strong></span></div>
@@ -385,28 +292,28 @@ function renderBrewery() {
                     </div>`
                 ).join('')}
 
-                <h4 style="color:var(--accent);font-size:0.85rem;margin:10px 0 8px">Страховка</h4>
-                <div style="display:flex;justify-content:space-between;align-items:center">
-                    <span>${GAME_STATE.game.has_insurance ? '✅ Страховка активна (покрывает поломку)' : '❌ Страховка не куплена'}</span>
-                    ${!GAME_STATE.game.has_insurance ? `<button class="btn btn-sm btn-primary" onclick="doBuyInsurance()">Купить $500</button>` : ''}
-                </div>
             </div>
         </div>
-    `;
-}
 
-function getUpgradeCost(type, current) {
-    const costs = {
-        tanks: { 2: 3000, 3: 6000, 4: 10000 },
-        fermenters: { 4: 2000, 6: 5000, 8: 9000 },
-        storage: { 1000: 2000, 2000: 4000, 4000: 8000 },
-        taproom: { 1: 5000, 2: 10000 },
-        marketing: { 2: 2000, 3: 4000, 4: 7000 },
-    };
-    const m = costs[type];
-    if (!m) return null;
-    const key = type === 'tanks' ? current + 1 : type === 'taproom' || type === 'marketing' ? current + 1 : current;
-    return m[key] || m[Object.keys(m).find(k => Number(k) > current)] || null;
+        <div class="card">
+            <h3>🏭 Прогрессия пивоварни</h3>
+            ${(() => {
+                const totalRevenue = GAME_STATE.game.total_revenue || 0;
+                const nextLevelRevenue = (Math.floor(totalRevenue / 20000) + 1) * 20000;
+                const levelProgress = Math.min(100, (totalRevenue % 20000) / 20000 * 100);
+                return `
+                    <p>Уровень: <strong>${b.level}</strong></p>
+                    <div class="chart-bar" style="margin:4px 0">
+                        <div class="chart-bar-fill" style="width:${levelProgress}%"></div>
+                    </div>
+                    <p style="font-size:0.85rem;color:var(--text-dim)">Следующий уровень: ${formatMoney(nextLevelRevenue)} выручки</p>
+                    <p style="font-size:0.8rem;color:var(--text-dim)">
+                        🏅 +5% к цене продажи · +1 слот контракта
+                    </p>
+                `;
+            })()}
+        </div>
+    `;
 }
 
 async function doUpgrade(type) {
@@ -423,17 +330,6 @@ async function doUpgrade(type) {
 async function doBuyEquipment(id) {
     try {
         const res = await API.buyEquipment(id);
-        showSuccess(res.message);
-        await loadGameState();
-        renderBrewery();
-    } catch (e) {
-        showError(e.message);
-    }
-}
-
-async function doBuyInsurance() {
-    try {
-        const res = await API.buyInsurance();
         showSuccess(res.message);
         await loadGameState();
         renderBrewery();

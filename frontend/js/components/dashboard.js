@@ -64,13 +64,7 @@ function renderDashboard() {
             <h3>🏭 Доля рынка</h3>
             <div class="stat-value" style="font-size:1.4rem;margin-bottom:6px">${GAME_STATE.market_share || 0}%</div>
             <div class="chart-bar"><div class="chart-bar-fill" style="width:${Math.min(100, GAME_STATE.market_share || 0)}%"></div></div>
-            <table style="margin-top:10px">
-                <tr><th>Пивоварня</th><th>Продажи/день</th><th>Репутация</th></tr>
-                <tr><td>🏠 Вы</td><td>${Math.round((s.player_total_liters || 0) / Math.max(1, s.day))}л</td><td>${Math.round(s.reputation)}%</td></tr>
-                ${(GAME_STATE.competitors || []).map(c => `
-                    <tr><td>${c.name}</td><td>${Math.round(c.daily_sales_liters)}л</td><td>${Math.round(c.reputation)}%</td></tr>
-                `).join('')}
-            </table>
+            <div style="font-size:0.85rem;color:var(--text-dim);margin-top:4px">Ваши продажи: ~${Math.round((s.player_total_liters || 0) / Math.max(1, s.day))}л/день</div>
         </div>
 
         <div class="grid-2">

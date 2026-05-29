@@ -84,21 +84,22 @@ function renderStatusBar() {
     el.innerHTML = items.join('');
 }
 
+const RENDERERS = {
+    'page-dashboard': renderDashboard,
+    'page-brewing': renderBrewing,
+    'page-market': renderMarketPage,
+    'page-management': renderManagement,
+    'page-leaderboard': () => renderLeaderboard('money'),
+    'page-help': renderHelp,
+};
+
 async function renderCurrentPage() {
     const activePage = document.querySelector('.page.active');
     if (!activePage) return;
 
-    switch (activePage.id) {
-        case 'page-dashboard': renderDashboard(); break;
-        case 'page-brewery': renderBrewery(); break;
-        case 'page-recipes': renderRecipes(); break;
-        case 'page-batches': renderBatches(); break;
-        case 'page-market': renderMarket(); break;
-        case 'page-staff': renderStaff(); break;
-        case 'page-research': renderResearch(); break;
-        case 'page-finance': await renderFinance(); break;
-        case 'page-leaderboard': renderLeaderboard('money'); break;
-        case 'page-help': renderHelp(); break;
+    const renderer = RENDERERS[activePage.id];
+    if (renderer) {
+        await renderer();
     }
 
     wrapTables();
@@ -162,7 +163,7 @@ async function enterGame() {
     APP_MODE = 'game';
 
     const savedPage = localStorage.getItem(STORAGE_KEYS.ACTIVE_PAGE);
-    const validPages = ['dashboard', 'brewery', 'recipes', 'batches', 'market', 'staff', 'research', 'finance', 'leaderboard', 'help'];
+    const validPages = ['dashboard', 'brewing', 'market', 'management', 'leaderboard', 'help'];
     if (savedPage && validPages.includes(savedPage)) {
         navigate(savedPage);
     }
@@ -220,7 +221,7 @@ async function initGameFlow() {
 document.addEventListener('DOMContentLoaded', async () => {
     // Init main game pages
     const main = document.getElementById('pageContent');
-    const pages = ['dashboard', 'brewery', 'recipes', 'batches', 'market', 'staff', 'research', 'finance', 'leaderboard', 'help'];
+    const pages = ['dashboard', 'brewing', 'market', 'management', 'leaderboard', 'help'];
     pages.forEach(p => {
         const div = document.createElement('div');
         div.id = `page-${p}`;

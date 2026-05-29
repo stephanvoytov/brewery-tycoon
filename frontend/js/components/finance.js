@@ -19,10 +19,6 @@ async function renderFinance() {
     const interestPct = (li.interest_rate * 100).toFixed(1);
 
     const inflationPct = ((s.inflation_multiplier || 1) - 1) * 100;
-    const nextLevelRevenue = (Math.floor((s.total_revenue || 0) / 20000) + 1) * 20000;
-    const levelProgress = Math.min(100, ((s.total_revenue || 0) % 20000) / 20000 * 100);
-    const contractSlots = 1 + (b.level - 1);
-    const activeContracts = contracts.filter(c => c.is_active).length;
 
     const el = document.getElementById('page-finance');
     el.innerHTML = `
@@ -124,7 +120,6 @@ async function renderFinance() {
             </div>
             <div class="card">
                 <h3>💰 Контракты</h3>
-                <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:8px">Слотов: ${activeContracts}/${contractSlots}</p>
                 <table>
                     ${contracts.filter(c => c.is_active).length === 0 ? '<tr><td class="empty-state">Нет активных контрактов</td></tr>' :
                     contracts.filter(c => c.is_active).map(c => `
@@ -141,48 +136,22 @@ async function renderFinance() {
                 </div>
             </div>
             <div class="card">
-                <h3>📦 Активы</h3>
-                <div>Баланс: ${formatMoney(s.money)}</div>
-                <div>Валюта: ${getCurrency()}</div>
-                <div>Репутация: ${Math.round(s.reputation)}%</div>
-                <div>День: ${s.day}</div>
+                <h3>🛡 Страховка</h3>
+                <p>${s.has_insurance ? '✅ Страховка активна (покрывает поломку)' : '❌ Страховка не куплена'}</p>
+                ${!s.has_insurance ? `<button class="btn btn-sm btn-primary" onclick="doBuyInsurance()">Купить $500</button>` : ''}
             </div>
         </div>
 
         <div class="grid-2">
             <div class="card">
                 <h3>📈 Инфляция</h3>
-                <p>Текущий уровень: <strong>${inflationPct > 0 ? '+' : ''}${inflationPct.toFixed(1)}%</strong></p>
-                <p style="font-size:0.8rem;color:var(--text-dim)">Каждые 30 дней цены на ингредиенты растут на 1–3%</p>
-                <p style="font-size:0.8rem;color:var(--text-dim)">Следующее повышение: через ${Inflation.INTERVAL_DAYS - (s.day % Inflation.INTERVAL_DAYS)} дней</p>
+                <p>Уровень: <strong>${inflationPct > 0 ? '+' : ''}${inflationPct.toFixed(1)}%</strong></p>
+                <p style="font-size:0.8rem;color:var(--text-dim)">Следующее повышение: через ${30 - (s.day % 30)} дней</p>
             </div>
             <div class="card">
-                <h3>🏭 Прогрессия пивоварни</h3>
-                <p>Уровень: <strong>${b.level}</strong></p>
-                <div class="chart-bar" style="margin:4px 0">
-                    <div class="chart-bar-fill" style="width:${levelProgress}%"></div>
-                </div>
-                <p style="font-size:0.85rem;color:var(--text-dim)">Следующий уровень: ${formatMoney(nextLevelRevenue)} выручки</p>
-                <p style="font-size:0.8rem;color:var(--text-dim)">
-                    🏅 +5% к цене продажи · +1 слот контракта
-                </p>
-            </div>
-        </div>
-
-        <div class="card">
-            <h3>💰 Налоговый календарь</h3>
-            <div class="grid-2">
-                <div class="help-card">
-                    <p>Налог платится <strong>каждые 7 дней</strong>:</p>
-                    <ul>
-                        <li>10% от прибыли за период</li>
-                        <li>Минимум $200</li>
-                    </ul>
-                </div>
-                <div class="help-card">
-                    <p>Дней до налога: <strong>${Tax.INTERVAL_DAYS - (s.day % Tax.INTERVAL_DAYS)}</strong></p>
-                    <p>Последняя проверка: <strong>день ${s.last_tax_day || '—'}</strong></p>
-                </div>
+                <h3>💰 Налоговый календарь</h3>
+                <p>Дней до налога: <strong>${7 - (s.day % 7)}</strong></p>
+                <p style="font-size:0.8rem;color:var(--text-dim)">Последняя проверка: день ${s.last_tax_day || '—'}</p>
             </div>
         </div>
     `;
@@ -212,6 +181,13 @@ async function doRepayLoan() {
     } catch (e) { showError(e.message); }
 }
 
-// Constants for display (mirrors backend config)
-const Inflation = { INTERVAL_DAYS: 30 };
-const Tax = { INTERVAL_DAYS: 7 };
+async function doBuyInsurance() {
+    try {
+        const res = await API.buyInsurance();
+        showSuccess(res.message);
+        await loadGameState();
+        renderFinance();
+    } catch (e) {
+        showError(e.message);
+    }
+}
