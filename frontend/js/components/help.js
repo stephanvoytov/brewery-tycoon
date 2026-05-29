@@ -33,7 +33,7 @@ function switchHelpTab(tab) {
 
 function scrollToHelp(sectionId) {
     try {
-        if (document.querySelector('.help-tabs')) {
+        if (document.getElementById('page-help')?.classList.contains('active') && document.querySelector('.help-tabs')) {
             switchHelpTab('guide');
             const el = document.getElementById(sectionId);
             if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
