@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from backend.database import get_db
 from backend.models import GameState, Brewery, BeerRecipe, BeerBatch, Ingredient, Equipment, Staff, Contract, Research, Competitor, ActiveEvent, User
 from backend.schemas import FullGameState, GameStateSchema, TickResult, CurrencyRequest, SelectGameRequest, ResolveEventRequest
-from backend.game_engine import init_new_game, process_tick, get_market_conditions, get_active_events, resolve_choice_event
+from backend.game_engine import init_new_game, process_tick, get_market_conditions, get_active_events, resolve_choice_event, generate_contracts
 from backend.dependencies import get_current_user, resolve_game
 
 router = APIRouter(prefix="/api/game", tags=["game"])
@@ -30,6 +30,14 @@ def get_state(game_id: int = None, current_user: User = Depends(get_current_user
     equipment = db.query(Equipment).filter(Equipment.game_state_id == game.id).all()
     staff = db.query(Staff).filter(Staff.game_state_id == game.id).all()
     contracts = db.query(Contract).filter(Contract.game_state_id == game.id).all()
+    unsigned_count = sum(1 for c in contracts if not c.is_active)
+    if unsigned_count < 3:
+        new_contracts = generate_contracts(game, db, 5)
+        for c in new_contracts:
+            db.add(Contract(game_state_id=game.id, **c))
+        db.commit()
+        contracts = db.query(Contract).filter(Contract.game_state_id == game.id).all()
+
     research = db.query(Research).filter(Research.game_state_id == game.id).all()
     market = get_market_conditions(db, game.day)
     competitors = db.query(Competitor).filter(Competitor.game_state_id == game.id).all()

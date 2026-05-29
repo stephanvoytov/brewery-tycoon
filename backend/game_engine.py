@@ -203,6 +203,10 @@ def init_new_game(db: Session) -> GameState:
 
     init_competitors(game, db)
 
+    for c in generate_contracts(game, db, 5):
+        db.add(Contract(game_state_id=game.id, **c))
+    db.commit()
+
     db.refresh(game)
     return game
 
@@ -659,6 +663,16 @@ def process_tick(game: GameState, db: Session) -> dict:
             contract.is_active = False
             game.reputation = min(100, max(0, game.reputation + 1))
             events.append(f"Контракт с {contract.buyer_name} выполнен! Репутация +1")
+
+    # Generate new contracts if few available
+    unsigned_count = db.query(Contract).filter(
+        Contract.game_state_id == game.id,
+        Contract.is_active == False
+    ).count()
+    if unsigned_count < 3:
+        new_contracts = generate_contracts(game, db, 5)
+        for c in new_contracts:
+            db.add(Contract(game_state_id=game.id, **c))
 
     # Competitors processing
     competitors = db.query(Competitor).filter(Competitor.game_state_id == game.id).all()
