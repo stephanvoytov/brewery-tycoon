@@ -101,6 +101,43 @@ body {
     max-height: 100vh;
 }
 
+#statusBar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 16px;
+    margin-bottom: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+#statusBar .sb-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+#statusBar .sb-money { color: var(--accent-light); font-weight: 700; }
+#statusBar .sb-day { color: var(--text); }
+#statusBar .sb-rep { font-weight: 600; }
+#statusBar .sb-rep.high { color: var(--green); }
+#statusBar .sb-rep.mid { color: var(--accent); }
+#statusBar .sb-rep.low { color: var(--red); }
+#statusBar .sb-batches { color: var(--blue); }
+#statusBar .sb-loan { color: var(--red); font-weight: 600; }
+#statusBar .sb-building { color: var(--text-dim); font-size: 0.8rem; }
+#statusBar .sb-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--border);
+    flex-shrink: 0;
+}
+
 .page {
     display: none;
 }
@@ -905,6 +942,18 @@ input:focus, select:focus {
     .app { flex-direction: column; }
     .sidebar { display: none; }
     .main-content { padding: 12px 12px 75px; max-height: none; overflow-y: visible; }
+
+    #statusBar {
+        gap: 8px;
+        padding: 8px 10px;
+        margin-bottom: 10px;
+        font-size: 0.75rem;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        flex-wrap: wrap;
+    }
+    #statusBar .sb-divider { height: 14px; }
 
     .bottom-nav {
         display: flex;

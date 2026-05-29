@@ -46,10 +46,42 @@ async function loadGameState() {
             const sel = document.getElementById(id);
             if (sel && currency) sel.value = currency;
         });
+        renderStatusBar();
         renderCurrentPage();
     } catch (e) {
         console.error('Failed to load game state:', e);
     }
+}
+
+function renderStatusBar() {
+    const g = GAME_STATE?.game;
+    const b = GAME_STATE?.brewery;
+    const batches = GAME_STATE?.batches || [];
+    const el = document.getElementById('statusBar');
+    if (!el || !g || !b) { if (el) el.innerHTML = ''; return; }
+
+    const activeCount = batches.filter(b => !['sold', 'spoiled'].includes(b.stage)).length;
+    const repClass = g.reputation >= 70 ? 'high' : g.reputation >= 40 ? 'mid' : 'low';
+    const curBld = BUILDINGS[b.building_id] || BUILDINGS[2];
+    const items = [];
+
+    items.push(`<span class="sb-item sb-money">💰 ${formatMoney(g.money)}</span>`);
+    items.push(`<span class="sb-divider"></span>`);
+    items.push(`<span class="sb-item sb-day">📅 День ${g.day}</span>`);
+    items.push(`<span class="sb-divider"></span>`);
+    items.push(`<span class="sb-item sb-rep ${repClass}">⭐ ${Math.round(g.reputation)}%</span>`);
+    items.push(`<span class="sb-divider"></span>`);
+    items.push(`<span class="sb-item sb-batches">🛢 ${activeCount}</span>`);
+
+    if (g.bank_loan > 0) {
+        items.push(`<span class="sb-divider"></span>`);
+        items.push(`<span class="sb-item sb-loan">🏦 ${formatMoney(g.bank_loan)}</span>`);
+    }
+
+    items.push(`<span class="sb-divider"></span>`);
+    items.push(`<span class="sb-item sb-building">${curBld.icon} ${curBld.name}</span>`);
+
+    el.innerHTML = items.join('');
 }
 
 async function renderCurrentPage() {
