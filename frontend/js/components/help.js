@@ -31,9 +31,21 @@ function switchHelpTab(tab) {
     document.querySelectorAll('.help-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
 }
 
+function scrollToHelp(sectionId) {
+    const tabs = document.querySelector('.help-tabs');
+    if (!tabs) {
+        renderCurrentPage('help');
+    }
+    switchHelpTab('guide');
+    setTimeout(() => {
+        const el = document.getElementById(sectionId);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+}
+
 function renderGuideTab() {
     return `
-        <div class="help-section">
+        <div class="help-section" id="help-guide-basics">
             <h2>🎯 Как играть</h2>
             <div class="grid-2">
                 <div class="help-card">
@@ -64,12 +76,12 @@ function renderGuideTab() {
             </div>
         </div>
 
-        <div class="help-section">
+        <div class="help-section" id="help-guide-brewing">
             <h2>🍺 Как варить пиво — пошагово</h2>
             ${BREW_SVG}
         </div>
 
-        <div class="help-section">
+        <div class="help-section" id="help-guide-quality">
             <h2>⭐ Качество пива</h2>
             <div class="grid-2">
                 <div class="help-card">
@@ -97,7 +109,7 @@ function renderGuideTab() {
             </div>
         </div>
 
-        <div class="help-section">
+        <div class="help-section" id="help-guide-discovery">
             <h2>🔬 Открытие рецептов и стилей</h2>
             <div class="grid-2">
                 <div class="help-card">
@@ -116,7 +128,7 @@ function renderGuideTab() {
             </div>
         </div>
 
-        <div class="help-section">
+        <div class="help-section" id="help-guide-hidden-params">
             <h2>🌡 Скрытые параметры</h2>
             <p>При создании рецепта можно настроить <strong>температуру затирания</strong> и <strong>тип воды</strong>. Эти параметры влияют на характеристики пива:</p>
             <div class="grid-2">
@@ -138,7 +150,7 @@ function renderGuideTab() {
             </div>
         </div>
 
-        <div class="help-section">
+        <div class="help-section" id="help-guide-mastery">
             <h2>⭐ Мастерство рецепта</h2>
             <p>Каждый раз, когда партия пива по рецепту доходит до готовности, <strong>мастерство</strong> рецепта увеличивается на 1. Чем выше мастерство, тем больше бонус к качеству при следующей варке.</p>
             <ul>
@@ -149,7 +161,7 @@ function renderGuideTab() {
             </ul>
         </div>
 
-        <div class="help-section">
+        <div class="help-section" id="help-guide-wear">
             <h2>⚙️ Износ, ремонт и страховка</h2>
             <div class="grid-2">
                 <div class="help-card">
@@ -166,13 +178,13 @@ function renderGuideTab() {
             </div>
         </div>
 
-        <div class="help-section">
+        <div class="help-section" id="help-guide-competitors">
             <h2>🏭 Конкуренты и доля рынка</h2>
             <p>В вашем регионе работают 3–5 AI-пивоварен. Каждый день они продают 50–300 литров (зависит от репутации).</p>
             <p>Ваша <strong>доля рынка</strong> отображается на дашборде — она показывает, какую часть рынка вы контролируете. Чем больше варите и продаёте, тем выше доля.</p>
         </div>
 
-        <div class="help-section">
+        <div class="help-section" id="help-guide-events">
             <h2>⚡ Случайные события</h2>
             <p>Каждый день с <strong>10% шансом</strong> происходит одно из событий:</p>
             <div class="grid-2">
@@ -196,12 +208,12 @@ function renderGuideTab() {
             <p>События первых 3 дней игры: только позитивные. События с выбором открывают модальное окно — внимательно читайте последствия!</p>
         </div>
 
-        <div class="help-section">
+        <div class="help-section" id="help-guide-inflation">
             <h2>📈 Инфляция</h2>
             <p>Каждые <strong>30 дней</strong> цены на ингредиенты растут на <strong>1–3%</strong>. Следите за уровнем инфляции в разделе Финансы — чем дольше играете, тем дороже сырьё.</p>
         </div>
 
-        <div class="help-section">
+        <div class="help-section" id="help-guide-tax">
             <h2>💰 Налоги</h2>
             <p>Налог платится <strong>каждые 7 дней</strong>:</p>
             <ul>
@@ -211,7 +223,7 @@ function renderGuideTab() {
             <p>Дата следующего налога отображается в разделе Финансы.</p>
         </div>
 
-        <div class="help-section">
+        <div class="help-section" id="help-guide-taproom">
             <h2>🏪 Тапрум</h2>
             <div class="grid-2">
                 <div class="help-card">
@@ -235,7 +247,7 @@ function renderGuideTab() {
             </div>
         </div>
 
-        <div class="help-section">
+        <div class="help-section" id="help-guide-buildings">
             <h2>🏢 Здания и переезд</h2>
             <div class="grid-2">
                 <div class="help-card">
@@ -266,7 +278,7 @@ function renderGuideTab() {
             </div>
         </div>
 
-        <div class="help-section">
+        <div class="help-section" id="help-guide-staff">
             <h2>🧑‍💼 Персонал</h2>
             <div class="grid-2">
                 <div class="help-card">
@@ -296,7 +308,7 @@ function renderGuideTab() {
             </div>
         </div>
 
-        <div class="help-section">
+        <div class="help-section" id="help-guide-ingredients">
             <h2>🛒 Закупка ингредиентов</h2>
             <div class="grid-2">
                 <div class="help-card">
@@ -322,7 +334,7 @@ function renderGuideTab() {
             </div>
         </div>
 
-        <div class="help-section">
+        <div class="help-section" id="help-guide-marketing">
             <h2>📈 Маркетинг</h2>
             <div class="grid-2">
                 <div class="help-card">
@@ -342,7 +354,7 @@ function renderGuideTab() {
             </div>
         </div>
 
-        <div class="help-section">
+        <div class="help-section" id="help-guide-research">
             <h2>🔬 Исследования</h2>
             <p>В разделе <strong>📊 Менеджмент → Исследования</strong> можно открывать технологии. Каждое исследование требует времени и денег, после завершения даёт постоянный бонус.</p>
             <div class="grid-2">
@@ -368,7 +380,7 @@ function renderGuideTab() {
             </div>
         </div>
 
-        <div class="help-section">
+        <div class="help-section" id="help-guide-equipment">
             <h2>⚙️ Оборудование</h2>
             <p>Оборудование покупается в разделе <strong>🏭 Пивоварня → Оборудование</strong>. Каждый предмет даёт постоянный бонус к производству. Всего 6 видов:</p>
             <div class="grid-2">
@@ -395,7 +407,7 @@ function renderGuideTab() {
             </div>
         </div>
 
-        <div class="help-section">
+        <div class="help-section" id="help-guide-contracts">
             <h2>📋 Контракты</h2>
             <div class="grid-2">
                 <div class="help-card">
@@ -421,7 +433,7 @@ function renderGuideTab() {
             </div>
         </div>
 
-        <div class="help-section">
+        <div class="help-section" id="help-guide-achievements">
             <h2>🏆 Достижения</h2>
             <div class="grid-2">
                 <div class="help-card">
@@ -446,7 +458,7 @@ function renderGuideTab() {
             </div>
         </div>
 
-        <div class="help-section">
+        <div class="help-section" id="help-guide-level">
             <h2>🏭 Уровень пивоварни</h2>
             <div class="grid-2">
                 <div class="help-card">
@@ -471,7 +483,7 @@ function renderGuideTab() {
             </div>
         </div>
 
-        <div class="help-section">
+        <div class="help-section" id="help-guide-loans">
             <h2>💰 Кредиты и банкротство</h2>
             <div class="grid-2">
                 <div class="help-card">

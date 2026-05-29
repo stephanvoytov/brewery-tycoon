@@ -3,7 +3,7 @@ function renderResearch() {
 
     const el = document.getElementById('page-research');
     el.innerHTML = `
-        <h2>🔬 Исследования</h2>
+        <h2>🔬 Исследования <a class="help-link" onclick="scrollToHelp('help-guide-research'); return false;" title="Подробнее об исследованиях">❓</a></h2>
 
         <div class="grid-2">
             ${research.length === 0 ? '<div class="card"><div class="empty-state">Нет доступных исследований</div></div>' :

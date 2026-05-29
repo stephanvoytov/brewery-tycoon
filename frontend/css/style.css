@@ -175,6 +175,21 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
+.help-link {
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 0.8rem;
+    margin-left: 6px;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+    vertical-align: middle;
+    user-select: none;
+}
+.help-link:hover {
+    opacity: 1;
+    text-decoration: none;
+}
+
 .page-loading {
     text-align: center;
     padding: 60px 20px;
@@ -847,6 +862,18 @@ input:focus, select:focus {
 }
 .help-section h2 {
     margin-bottom: 12px;
+}
+.help-section p {
+    margin-bottom: 10px;
+}
+.help-section ul {
+    padding-left: 22px;
+    margin-top: 8px;
+    margin-bottom: 12px;
+}
+.help-section li {
+    margin-bottom: 6px;
+    line-height: 1.6;
 }
 .help-card {
     background: var(--bg-card);

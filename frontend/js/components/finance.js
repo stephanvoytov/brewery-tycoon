@@ -74,8 +74,8 @@ async function renderFinance() {
             </div>
         </div>
 
-        <div class="card">
-            <h3>🏦 Банк</h3>
+            <div class="card">
+                <h3>🏦 Банк <a class="help-link" onclick="scrollToHelp('help-guide-loans'); return false;" title="Подробнее о кредитах">❓</a></h3>
             <div class="grid-2">
                 <div class="help-card">
                     <h4>💳 Кредитный лимит</h4>
@@ -144,12 +144,12 @@ async function renderFinance() {
 
         <div class="grid-2">
             <div class="card">
-                <h3>📈 Инфляция</h3>
+                <h3>📈 Инфляция <a class="help-link" onclick="scrollToHelp('help-guide-inflation'); return false;" title="Подробнее об инфляции">❓</a></h3>
                 <p>Уровень: <strong>${inflationPct > 0 ? '+' : ''}${inflationPct.toFixed(1)}%</strong></p>
                 <p style="font-size:0.8rem;color:var(--text-dim)">Следующее повышение: через ${30 - (s.day % 30)} дней</p>
             </div>
             <div class="card">
-                <h3>💰 Налоговый календарь</h3>
+                <h3>💰 Налоговый календарь <a class="help-link" onclick="scrollToHelp('help-guide-tax'); return false;" title="Подробнее о налогах">❓</a></h3>
                 <p>Дней до налога: <strong>${7 - (s.day % 7)}</strong></p>
                 <p style="font-size:0.8rem;color:var(--text-dim)">Последняя проверка: день ${s.last_tax_day || '—'}</p>
             </div>

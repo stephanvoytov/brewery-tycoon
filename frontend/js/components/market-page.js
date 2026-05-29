@@ -91,7 +91,7 @@ function renderMarketContracts() {
     el.innerHTML = `
         <div class="grid-2">
             <div class="card">
-                <h3>📋 Контракты</h3>
+                <h3>📋 Контракты <a class="help-link" onclick="scrollToHelp('help-guide-contracts'); return false;" title="Подробнее о контрактах">❓</a></h3>
                 <table>
                     <tr>
                         <th>Покупатель</th>
@@ -189,7 +189,7 @@ function renderMarketCompetitors() {
     const el = document.getElementById('page-market-competitors');
     el.innerHTML = `
         <div class="card">
-            <h3>🏢 Конкуренты</h3>
+            <h3>🏢 Конкуренты <a class="help-link" onclick="scrollToHelp('help-guide-competitors'); return false;" title="Подробнее о конкурентах">❓</a></h3>
             <table>
                 <tr><th>Пивоварня</th><th>Продажи/день</th><th>Репутация</th></tr>
                 <tr><td>🏠 Вы</td><td>${Math.round((GAME_STATE.game.player_total_liters || 0) / Math.max(1, GAME_STATE.game.day))}л</td><td>${Math.round(GAME_STATE.game.reputation)}%</td></tr>
@@ -208,7 +208,7 @@ function renderMarketMarketing() {
     const cost = getUpgradeCost('marketing', b.marketing_level);
     el.innerHTML = `
         <div class="card">
-            <h3>📣 Маркетинг</h3>
+            <h3>📣 Маркетинг <a class="help-link" onclick="scrollToHelp('help-guide-marketing'); return false;" title="Подробнее о маркетинге">❓</a></h3>
             <p>Уровень маркетинга: <strong>${b.marketing_level}</strong></p>
             <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:12px">Повышает спрос на ваше пиво и цену контрактов</p>
             ${cost ? `<button class="btn btn-primary" onclick="doMarketingUpgrade()">Улучшить до ${b.marketing_level + 1} (${formatMoney(cost)})</button>` : '<span class="badge">MAX</span>'}
