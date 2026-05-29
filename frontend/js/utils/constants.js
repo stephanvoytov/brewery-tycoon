@@ -98,7 +98,7 @@ const EQUIP_DESC = {
 };
 
 const BUILDINGS = {
-    0: { id: 0, name: "Комната", icon: "🚪", desc: "Тесная комната. Дёшево, без танка.", min_level: 1, rent: 3, storage: 100, tanks: 1, fermenters: 1, cond_tanks: 0, quality_bonus: -15, taproom: false, kettle_vol: 50 },
+    0: { id: 0, name: "Комната", icon: "🚪", desc: "Тесная комната. Дёшево, без танка.", min_level: 1, rent: 3, storage: 100, tanks: 1, fermenters: 1, cond_tanks: 0, quality_bonus: -15, taproom: false, kettle_vol: 50, max_tanks: 1, max_fermenters: 2 },
     1: { id: 1, name: "Подвал", icon: "🕳", desc: "Сырой подвал. Порча −50%, 2 котла.", min_level: 1, rent: 7, storage: 500, tanks: 2, fermenters: 2, cond_tanks: 1, quality_bonus: -5, taproom: false, kettle_vol: 50 },
     2: { id: 2, name: "Небольшой цех", icon: "🏗", desc: "Стандартное помещение.", min_level: 1, rent: 25, storage: 1000, tanks: 2, fermenters: 4, cond_tanks: 2, quality_bonus: 0, taproom: false, kettle_vol: 300 },
     3: { id: 3, name: "Промышленное здание", icon: "🏭", desc: "Большой цех. Спрос +5%.", min_level: 4, rent: 200, storage: 2000, tanks: 3, fermenters: 6, cond_tanks: 3, quality_bonus: -5, taproom: false, kettle_vol: 100, demand_bonus: 5 },
@@ -204,7 +204,14 @@ const BUILDING_VISUALS = {
     },
 };
 
-function getUpgradeCost(type, current) {
+function getUpgradeCost(type, current, buildingId) {
+    if (buildingId !== undefined) {
+        const bld = BUILDINGS[buildingId];
+        if (bld) {
+            if (type === 'tanks' && bld.max_tanks !== undefined && current >= bld.max_tanks) return null;
+            if (type === 'fermenters' && bld.max_fermenters !== undefined && current >= bld.max_fermenters) return null;
+        }
+    }
     const costs = {
         tanks: { 2: 3000, 3: 6000, 4: 10000 },
         fermenters: { 2: 500, 3: 1000, 4: 1500, 5: 2500, 6: 3500, 7: 4500, 8: 5500, 9: 6500, 10: 8000 },

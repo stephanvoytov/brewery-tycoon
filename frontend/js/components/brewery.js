@@ -259,12 +259,12 @@ function renderBrewery() {
                     <tr>
                         <td>Варочные котлы</td>
                         <td>${b.tank_count} шт. × ${b.tank_volume}л</td>
-                        <td><button class="btn btn-sm btn-primary" onclick="doUpgrade('tanks')" ${!getUpgradeCost('tanks', b.tank_count) ? 'disabled' : ''}>${getUpgradeCost('tanks', b.tank_count) ? `+1 (${formatMoney(getUpgradeCost('tanks', b.tank_count))})` : '🔒 MAX'}</button></td>
+                        <td><button class="btn btn-sm btn-primary" onclick="doUpgrade('tanks')" ${!getUpgradeCost('tanks', b.tank_count, b.building_id) ? 'disabled' : ''}>${getUpgradeCost('tanks', b.tank_count, b.building_id) ? `+1 (${formatMoney(getUpgradeCost('tanks', b.tank_count, b.building_id))})` : '🔒 MAX'}</button></td>
                     </tr>
                     <tr>
                         <td>Ферментеры</td>
                         <td>${b.fermenter_count} шт.</td>
-                        <td><button class="btn btn-sm btn-primary" onclick="doUpgrade('fermenters')" ${!getUpgradeCost('fermenters', b.fermenter_count) ? 'disabled' : ''}>${getUpgradeCost('fermenters', b.fermenter_count) ? `+1 (${formatMoney(getUpgradeCost('fermenters', b.fermenter_count))})` : '🔒 MAX'}</button></td>
+                        <td><button class="btn btn-sm btn-primary" onclick="doUpgrade('fermenters')" ${!getUpgradeCost('fermenters', b.fermenter_count, b.building_id) ? 'disabled' : ''}>${getUpgradeCost('fermenters', b.fermenter_count, b.building_id) ? `+1 (${formatMoney(getUpgradeCost('fermenters', b.fermenter_count, b.building_id))})` : '🔒 MAX'}</button></td>
                     </tr>
                     <tr>
                         <td>Хранилище</td>
@@ -284,11 +284,11 @@ function renderBrewery() {
                 <div class="mobile-card-list">
                     <div class="mobile-card">
                         <div class="mobile-card-row"><span class="label">Варочные котлы:</span><span class="value">${b.tank_count}×${b.tank_volume}л</span></div>
-                        <div class="mobile-card-actions"><button class="btn btn-sm btn-primary" onclick="doUpgrade('tanks')" ${!getUpgradeCost('tanks', b.tank_count) ? 'disabled' : ''}>${getUpgradeCost('tanks', b.tank_count) ? `+1 (${formatMoney(getUpgradeCost('tanks', b.tank_count))})` : '🔒 MAX'}</button></div>
+                        <div class="mobile-card-actions"><button class="btn btn-sm btn-primary" onclick="doUpgrade('tanks')" ${!getUpgradeCost('tanks', b.tank_count, b.building_id) ? 'disabled' : ''}>${getUpgradeCost('tanks', b.tank_count, b.building_id) ? `+1 (${formatMoney(getUpgradeCost('tanks', b.tank_count, b.building_id))})` : '🔒 MAX'}</button></div>
                     </div>
                     <div class="mobile-card">
                         <div class="mobile-card-row"><span class="label">Ферментеры:</span><span class="value">${b.fermenter_count} шт.</span></div>
-                        <div class="mobile-card-actions"><button class="btn btn-sm btn-primary" onclick="doUpgrade('fermenters')" ${!getUpgradeCost('fermenters', b.fermenter_count) ? 'disabled' : ''}>${getUpgradeCost('fermenters', b.fermenter_count) ? `+1 (${formatMoney(getUpgradeCost('fermenters', b.fermenter_count))})` : '🔒 MAX'}</button></div>
+                        <div class="mobile-card-actions"><button class="btn btn-sm btn-primary" onclick="doUpgrade('fermenters')" ${!getUpgradeCost('fermenters', b.fermenter_count, b.building_id) ? 'disabled' : ''}>${getUpgradeCost('fermenters', b.fermenter_count, b.building_id) ? `+1 (${formatMoney(getUpgradeCost('fermenters', b.fermenter_count, b.building_id))})` : '🔒 MAX'}</button></div>
                     </div>
                     <div class="mobile-card">
                         <div class="mobile-card-row"><span class="label">Хранилище:</span><span class="value">${b.storage_capacity} л</span></div>

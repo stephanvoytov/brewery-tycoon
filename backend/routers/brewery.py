@@ -53,6 +53,10 @@ def upgrade_brewery(req: UpgradeBreweryRequest, game_id: int = None, current_use
 
     upgrade_type = req.upgrade_type
     if upgrade_type == "tanks":
+        bld = Buildings.LIST[brewery.building_id]
+        max_tanks = bld.get("max_tanks")
+        if max_tanks is not None and brewery.tank_count >= max_tanks:
+            raise HTTPException(400, f"В этом здании макс. {max_tanks} котёл(ов)")
         current = brewery.tank_count
         next_level = current + 1
         base_cost = UPGRADE_COSTS["tanks"].get(next_level, 999999)
@@ -62,6 +66,10 @@ def upgrade_brewery(req: UpgradeBreweryRequest, game_id: int = None, current_use
         return {"message": f"Варочных котлов теперь {next_level}", "cost": cost, "base_cost": base_cost}
 
     elif upgrade_type == "fermenters":
+        bld = Buildings.LIST[brewery.building_id]
+        max_ferm = bld.get("max_fermenters")
+        if max_ferm is not None and brewery.fermenter_count >= max_ferm:
+            raise HTTPException(400, f"В этом здании макс. {max_ferm} ферментер(ов)")
         current = brewery.fermenter_count
         next_val = current + 1
         if next_val > 10:

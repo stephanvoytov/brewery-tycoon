@@ -142,7 +142,7 @@ class Buildings:
         0: {"name": "Комната", "desc": "Тесная комната. Дешево, но без танка дозревания.",
             "min_level": 1, "rent": 3, "storage": 100, "tanks": 1, "fermenters": 1,
             "cond_tanks": 0, "quality_bonus": -0.15, "taproom": False, "kettle_vol": 50,
-            "spoilage_reduction": 0, "spoil_mod": 1.0},
+            "spoilage_reduction": 0, "spoil_mod": 1.0, "max_tanks": 1, "max_fermenters": 2},
         1: {"name": "Подвал", "desc": "Сырой подвал, дёшево и сердито. Порча ингредиентов −50%.",
             "min_level": 1, "rent": 7, "storage": 500, "tanks": 2, "fermenters": 2,
             "cond_tanks": 1, "quality_bonus": -0.05, "taproom": False, "kettle_vol": 50,
