@@ -799,8 +799,8 @@ def process_tick(game: GameState, db: Session) -> dict:
                 repair_cost = int(eq.price * EquipmentWear.REPAIR_COST_RATIO)
                 events.append(f"⚙️ {eq.name} износился до {eq.wear_tear:.0f}%! Ремонт ${repair_cost}")
 
-    revenue_history = game.revenue_history or []
-    expense_history = game.expense_history or []
+    revenue_history = list(game.revenue_history or [])
+    expense_history = list(game.expense_history or [])
     revenue_history.append(game.daily_revenue)
     expense_history.append(game.daily_expenses)
     print(f"HISTORY day={game.day}: rev={game.daily_revenue} exp={game.daily_expenses} hist_len={len(revenue_history)}")
