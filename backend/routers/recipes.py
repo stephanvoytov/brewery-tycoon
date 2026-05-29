@@ -119,13 +119,21 @@ def start_brew(recipe_id: int, req: BrewRequest, game_id: int = None, current_us
     if batch_size > max_batch:
         raise HTTPException(400, f"Объём партии превышает ёмкость котлов ({brewery.tank_count}×{brewery.tank_volume}л = {max_batch}л)")
 
-    active_batches = db.query(BeerBatch).filter(
+    active_tanks = db.query(BeerBatch).filter(
         BeerBatch.game_state_id == game_id,
-        BeerBatch.stage.in_([BatchStage.mash, BatchStage.boil, BatchStage.ferment])
+        BeerBatch.stage.in_([BatchStage.mash, BatchStage.boil])
     ).count()
 
-    if active_batches >= brewery.tank_count:
+    if active_tanks >= brewery.tank_count:
         raise HTTPException(400, "Все варочные котлы заняты")
+
+    active_fermenters = db.query(BeerBatch).filter(
+        BeerBatch.game_state_id == game_id,
+        BeerBatch.stage == BatchStage.ferment
+    ).count()
+
+    if active_fermenters >= brewery.fermenter_count:
+        raise HTTPException(400, "Все ферментеры заняты")
 
     total_ingredient_cost = recipe.cost_per_liter * batch_size
     bld = Buildings.LIST.get(brewery.building_id, Buildings.LIST[Buildings.DEFAULT_ID])
