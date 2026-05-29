@@ -65,9 +65,9 @@ function renderBrewery() {
         </div>
         <div style="margin-bottom:16px;font-size:0.85rem;color:var(--accent-light)">
             ${curBld.icon} ${curBld.name} &nbsp;·&nbsp; Аренда: ${formatMonthly(b.rent)}
-            ${curBld.quality_bonus ? `&nbsp;·&nbsp; ⭐${curBld.quality_bonus > 0 ? '+' : ''}${curBld.quality_bonus}%` : ''}
-            ${curBld.cost_reduction ? `&nbsp;·&nbsp; 🏷−${curBld.cost_reduction}%` : ''}
-            ${curBld.extra_slots ? `&nbsp;·&nbsp; 📋+${curBld.extra_slots} слот` : ''}
+            ${curBld.quality_bonus ? `&nbsp;·&nbsp; ⭐${curBld.quality_bonus > 0 ? '+' : ''}${curBld.quality_bonus * 100}%` : ''}
+            ${curBld.cost_reduction ? `&nbsp;·&nbsp; 🏷−${curBld.cost_reduction * 100}%` : ''}
+            ${curBld.extra_contract_slot ? `&nbsp;·&nbsp; 📋+${curBld.extra_contract_slot} слот` : ''}
             <button class="btn btn-small" onclick="showBuildingModal()" style="margin-left:12px;">🏢 Сменить здание</button>
         </div>
 
@@ -176,7 +176,7 @@ function renderBrewery() {
                     });
 
                     // Baseline under kettles
-                    html += `<line x1="${tankX}" y1="85" x2="${tankX + tankW}" y2="85" stroke="${v.floorLine}" stroke-width="2.5"/>`;
+                    html += `<line x1="${tankX}" y1="255" x2="${tankX + tankW}" y2="255" stroke="${v.floorLine}" stroke-width="2.5"/>`;
 
                     // Fermenters
                     let fAccX = fermX;
@@ -528,10 +528,10 @@ function showBuildingModal() {
                                 <span>📦 ${bld.storage}л</span>
                                 <span>⚡ ${bld.tanks}×${bld.kettle_vol}л</span>
                                 <span>🧪 ${bld.fermenters} ферм.</span>
-                                <span>⭐ ${bld.quality_bonus > 0 ? '+' : ''}${bld.quality_bonus}%</span>
-                                ${bld.cost_reduction ? `<span>🏷 −${bld.cost_reduction}%</span>` : ''}
-                                ${bld.extra_slots ? `<span>📋 +${bld.extra_slots} слот</span>` : ''}
-                                ${bld.demand_bonus ? `<span>📈 +${bld.demand_bonus}%</span>` : ''}
+                                <span>⭐ ${bld.quality_bonus > 0 ? '+' : ''}${bld.quality_bonus * 100}%</span>
+                                ${bld.cost_reduction ? `<span>🏷 −${bld.cost_reduction * 100}%</span>` : ''}
+                                ${bld.extra_contract_slot ? `<span>📋 +${bld.extra_contract_slot} слот</span>` : ''}
+                                ${bld.demand_bonus ? `<span>📈 +${bld.demand_bonus * 100}%</span>` : ''}
                                 ${bld.taproom ? `<span>🍺 Тапрум</span>` : ''}
                             </div>
                             ${!isCurrent && !isLocked ? `
@@ -569,7 +569,7 @@ async function doChangeBuilding(buildingId) {
 }
 
 async function doSellKettle(kettleId) {
-    if (!confirm('Продать этот котёл за 60% от цены?')) return;
+    if (!await showConfirm('Продажа котла', 'Продать этот котёл за 60% от цены?')) return;
     try {
         const res = await API.sellKettle(kettleId);
         showSuccess(res.message);
@@ -581,7 +581,7 @@ async function doSellKettle(kettleId) {
 }
 
 async function doSellFermenter(fermenterId) {
-    if (!confirm('Продать этот ферментер за 60% от цены?')) return;
+    if (!await showConfirm('Продажа ферментера', 'Продать этот ферментер за 60% от цены?')) return;
     try {
         const res = await API.sellFermenter(fermenterId);
         showSuccess(res.message);
@@ -593,7 +593,7 @@ async function doSellFermenter(fermenterId) {
 }
 
 async function doSellCondTank(tankId) {
-    if (!confirm('Продать этот танк за 60% от цены?')) return;
+    if (!await showConfirm('Продажа танка', 'Продать этот танк дозревания за 60% от цены?')) return;
     try {
         const res = await API.sellCondTank(tankId);
         showSuccess(res.message);
@@ -626,20 +626,16 @@ function showEquipmentShop(category) {
 
     let items = [];
     let title = '';
-    const typeMap = {};
 
     if (category === 'kettle') {
         items = shop.kettles || [];
         title = '⚡ Купить котёл';
-        Object.values(KETTLE_TYPES).forEach(t => { typeMap[t.name] = t; });
     } else if (category === 'fermenter') {
         items = shop.fermenters || [];
         title = '🧪 Купить ферментер';
-        Object.values(FERMENTER_TYPES).forEach(t => { typeMap[t.name] = t; });
     } else if (category === 'cond_tank') {
         items = shop.cond_tanks || [];
         title = '🧊 Купить танк дозревания';
-        Object.values(COND_TANK_TYPES).forEach(t => { typeMap[t.name] = t; });
     }
 
     const overlay = document.createElement('div');

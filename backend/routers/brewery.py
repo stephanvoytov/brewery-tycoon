@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.database import get_db
-from backend.models import GameState, Brewery, BreweryKettle, BreweryFermenter, BreweryCondTank, Equipment, User
+from backend.models import GameState, Brewery, BreweryKettle, BreweryFermenter, BreweryCondTank, Equipment, User, BeerBatch, BatchStage
 from backend.schemas import BrewerySchema, UpgradeBreweryRequest, RenameBreweryRequest, ChangeBuildingRequest
 from backend.config import UpgradeCosts, EquipmentWear, Buildings, KettleTypes, FermenterTypes, CondTankTypes, SELL_REFUND_RATIO
 from backend.dependencies import get_current_user, resolve_game
@@ -66,6 +66,7 @@ def upgrade_brewery(req: UpgradeBreweryRequest, game_id: int = None, current_use
         base_cost = UPGRADE_COSTS["storage"].get(current, 999999)
         cost = apply_cost(base_cost)
         brewery.storage_capacity = next_val
+        brewery.upgrade_count += 1
         db.commit()
         return {"message": f"Вместимость хранилища: {next_val}л", "cost": cost, "base_cost": base_cost}
 
@@ -76,6 +77,7 @@ def upgrade_brewery(req: UpgradeBreweryRequest, game_id: int = None, current_use
         cost = apply_cost(base_cost)
         brewery.taproom_level = next_level
         brewery.has_taproom = True
+        brewery.upgrade_count += 1
         db.commit()
         return {"message": f"Тапрум улучшен до уровня {next_level}", "cost": cost, "base_cost": base_cost}
 
@@ -85,6 +87,7 @@ def upgrade_brewery(req: UpgradeBreweryRequest, game_id: int = None, current_use
         base_cost = UPGRADE_COSTS["marketing"].get(next_level, 999999)
         cost = apply_cost(base_cost)
         brewery.marketing_level = next_level
+        brewery.upgrade_count += 1
         db.commit()
         return {"message": f"Маркетинг улучшен до уровня {next_level}", "cost": cost, "base_cost": base_cost}
 
@@ -270,6 +273,13 @@ def sell_kettle(kettle_id: int, game_id: int = None, current_user: User = Depend
     if not kettle:
         raise HTTPException(404, "Котёл не найден")
 
+    active = db.query(BeerBatch).filter(
+        BeerBatch.game_state_id == game.id,
+        BeerBatch.stage.in_([BatchStage.mash, BatchStage.boil])
+    ).count()
+    if active >= get_kettle_count(brewery):
+        raise HTTPException(400, "Нельзя продать котёл — все котлы заняты активными партиями")
+
     refund = int(kettle.purchase_price * SELL_REFUND_RATIO)
     type_info = KettleTypes.LIST.get(kettle.type_id, {})
     game.money += refund
@@ -289,6 +299,13 @@ def sell_fermenter(fermenter_id: int, game_id: int = None, current_user: User = 
     if not fermenter:
         raise HTTPException(404, "Ферментер не найден")
 
+    active = db.query(BeerBatch).filter(
+        BeerBatch.game_state_id == game.id,
+        BeerBatch.stage == BatchStage.ferment
+    ).count()
+    if active >= get_fermenter_count(brewery):
+        raise HTTPException(400, "Нельзя продать ферментер — все ферментеры заняты")
+
     refund = int(fermenter.purchase_price * SELL_REFUND_RATIO)
     type_info = FermenterTypes.LIST.get(fermenter.type_id, {})
     game.money += refund
@@ -307,6 +324,13 @@ def sell_cond_tank(tank_id: int, game_id: int = None, current_user: User = Depen
     tank = db.query(BreweryCondTank).filter(BreweryCondTank.id == tank_id, BreweryCondTank.brewery_id == brewery.id).first()
     if not tank:
         raise HTTPException(404, "Танк не найден")
+
+    active = db.query(BeerBatch).filter(
+        BeerBatch.game_state_id == game.id,
+        BeerBatch.stage == BatchStage.condition
+    ).count()
+    if active >= get_cond_tank_count(brewery):
+        raise HTTPException(400, "Нельзя продать танк дозревания — все танки заняты")
 
     refund = int(tank.purchase_price * SELL_REFUND_RATIO)
     type_info = CondTankTypes.LIST.get(tank.type_id, {})
@@ -374,12 +398,16 @@ def _check_excess_and_refund(brewery, bld, game, db: Session):
         refund = int(kettle.purchase_price * SELL_REFUND_RATIO)
         total_refund += refund
         db.delete(kettle)
+        brewery.kettles.remove(kettle)
+        db.flush()
     for kettle in list(brewery.kettles):
         vol = KettleTypes.LIST[kettle.type_id]["volume"]
         if vol > max_kettle_vol:
             refund = int(kettle.purchase_price * SELL_REFUND_RATIO)
             total_refund += refund
             db.delete(kettle)
+            brewery.kettles.remove(kettle)
+            db.flush()
 
     max_ferm = bld.get("max_fermenters", 999)
     max_ferm_vol = bld.get("max_fermenter_vol", 9999)
@@ -388,12 +416,16 @@ def _check_excess_and_refund(brewery, bld, game, db: Session):
         refund = int(ferm.purchase_price * SELL_REFUND_RATIO)
         total_refund += refund
         db.delete(ferm)
+        brewery.fermenters_list.remove(ferm)
+        db.flush()
     for ferm in list(brewery.fermenters_list):
         vol = FermenterTypes.LIST[ferm.type_id]["volume"]
         if vol > max_ferm_vol:
             refund = int(ferm.purchase_price * SELL_REFUND_RATIO)
             total_refund += refund
             db.delete(ferm)
+            brewery.fermenters_list.remove(ferm)
+            db.flush()
 
     max_cond = bld.get("max_cond_tanks", 0)
     max_cond_vol = bld.get("max_cond_vol", 0)
@@ -402,12 +434,16 @@ def _check_excess_and_refund(brewery, bld, game, db: Session):
         refund = int(tank.purchase_price * SELL_REFUND_RATIO)
         total_refund += refund
         db.delete(tank)
+        brewery.cond_tanks_list.remove(tank)
+        db.flush()
     for tank in list(brewery.cond_tanks_list):
         vol = CondTankTypes.LIST[tank.type_id]["volume"]
         if vol > max_cond_vol:
             refund = int(tank.purchase_price * SELL_REFUND_RATIO)
             total_refund += refund
             db.delete(tank)
+            brewery.cond_tanks_list.remove(tank)
+            db.flush()
 
     game.money += total_refund
     return total_refund

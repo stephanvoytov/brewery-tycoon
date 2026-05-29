@@ -156,7 +156,7 @@ function showBrewModal(recipeId) {
                     <label>Объём партии (л) <span style="font-size:0.75rem;color:var(--text-dim)">(макс. ${brewery.kettle_vol_actual || brewery.tank_count * brewery.tank_volume}л)</span></label>
                     <input type="number" id="brewSize" value="50" min="10" max="${brewery.kettle_vol_actual || brewery.tank_count * brewery.tank_volume}">
                 </div>
-                <button class="btn btn-success" id="brewConfirmBtn" disabled>Начать варку</button>
+                <button class="btn btn-secondary" id="brewConfirmBtn" disabled>Начать варку</button>
                 <button class="btn btn-danger" id="brewCancelBtn">Отмена</button>
             </div>
             <div id="brewInfo" class="brew-info"></div>
@@ -199,12 +199,16 @@ function showBrewModal(recipeId) {
             }
 
             const confirmBtn = document.getElementById('brewConfirmBtn');
-            confirmBtn.disabled = !res.can_brew || !res.ingredients_ok || !res.money_ok;
-            if (res.can_brew) {
+            const canStart = res.can_brew && res.ingredients_ok && res.money_ok;
+            confirmBtn.disabled = !canStart;
+            if (canStart) {
+                confirmBtn.className = 'btn btn-success';
                 confirmBtn.textContent = '✅ Начать варку';
             } else if (res.earliest_start_day > 0) {
+                confirmBtn.className = 'btn btn-warning';
                 confirmBtn.textContent = `⏳ Подождать ${res.earliest_start_day} дн.`;
             } else {
+                confirmBtn.className = 'btn btn-danger';
                 confirmBtn.textContent = '❌ Варка недоступна';
             }
 

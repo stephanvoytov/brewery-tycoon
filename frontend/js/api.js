@@ -90,10 +90,6 @@ const API = {
         return this.request('POST', `/api/brewery/sell-cond-tank/${tankId}`);
     },
 
-    async getEquipmentList() {
-        return this.request('GET', '/api/brewery/equipment-list');
-    },
-
     async renameBrewery(name) {
         return this.request('POST', '/api/brewery/rename', { name });
     },

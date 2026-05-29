@@ -39,8 +39,6 @@ class IngredientType(str, enum.Enum):
 
 
 class EquipmentType(str, enum.Enum):
-    kettle = "kettle"
-    fermenter = "fermenter"
     bottling_line = "bottling_line"
     kegging_line = "kegging_line"
     mash_tun = "mash_tun"
@@ -110,6 +108,8 @@ class GameState(Base):
     player_total_liters = Column(Float, default=0.0)
     brewing_level = Column(Integer, default=1)
     total_batches_completed = Column(Integer, default=0)
+    active_events = relationship("ActiveEvent", back_populates="game_state")
+    competitors = relationship("Competitor", back_populates="game_state")
     quality_history = Column(JSON, default=list)
     inflation_multiplier = Column(Float, default=1.0)
     last_tax_day = Column(Integer, default=0)
@@ -134,6 +134,7 @@ class Brewery(Base):
     rent = Column(Float, default=500.0)
     quality_bonus = Column(Float, default=0.0)
     marketing_level = Column(Integer, default=1)
+    upgrade_count = Column(Integer, default=0)
 
     game_state = relationship("GameState", back_populates="brewery")
     kettles = relationship("BreweryKettle", back_populates="brewery", cascade="all, delete-orphan")
@@ -145,7 +146,7 @@ class BreweryKettle(Base):
     __tablename__ = "brewery_kettles"
 
     id = Column(Integer, primary_key=True, index=True)
-    brewery_id = Column(Integer, ForeignKey("breweries.id"))
+    brewery_id = Column(Integer, ForeignKey("breweries.id", ondelete="CASCADE"), index=True)
     type_id = Column(Integer)
     purchase_price = Column(Float, default=0)
 
@@ -156,7 +157,7 @@ class BreweryFermenter(Base):
     __tablename__ = "brewery_fermenters"
 
     id = Column(Integer, primary_key=True, index=True)
-    brewery_id = Column(Integer, ForeignKey("breweries.id"))
+    brewery_id = Column(Integer, ForeignKey("breweries.id", ondelete="CASCADE"), index=True)
     type_id = Column(Integer)
     purchase_price = Column(Float, default=0)
 
@@ -167,7 +168,7 @@ class BreweryCondTank(Base):
     __tablename__ = "brewery_cond_tanks"
 
     id = Column(Integer, primary_key=True, index=True)
-    brewery_id = Column(Integer, ForeignKey("breweries.id"))
+    brewery_id = Column(Integer, ForeignKey("breweries.id", ondelete="CASCADE"), index=True)
     type_id = Column(Integer)
     purchase_price = Column(Float, default=0)
 
@@ -304,7 +305,7 @@ class ActiveEvent(Base):
     effect_data = Column(JSON, default=dict)
     resolved = Column(Boolean, default=False)
 
-    game_state = relationship("GameState", backref="active_events")
+    game_state = relationship("GameState", back_populates="active_events")
 
 
 class Competitor(Base):
@@ -317,7 +318,7 @@ class Competitor(Base):
     total_sales_liters = Column(Float, default=0.0)
     reputation = Column(Float, default=60.0)
 
-    game_state = relationship("GameState", backref="competitors")
+    game_state = relationship("GameState", back_populates="competitors")
 
 
 COMPETITOR_NAMES = [

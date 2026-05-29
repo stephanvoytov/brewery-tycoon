@@ -40,7 +40,7 @@ async function loadGameState() {
     if (!API.gameId) return;
     try {
         GAME_STATE = await API.getState();
-        try { GAME_STATE.shop = await API.getShop(); } catch(e) {}
+        try { GAME_STATE.shop = await API.getShop(); } catch(e) { console.warn('Shop load failed:', e); }
         const currency = GAME_STATE.game && GAME_STATE.game.currency;
         ['currencySelect', 'currencySelectMobile'].forEach(id => {
             const sel = document.getElementById(id);

@@ -1,16 +1,24 @@
 import os
+from datetime import datetime, timedelta, timezone
 from fastapi import Header, HTTPException, Depends
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 from backend.database import get_db
 from backend.models import GameState, User
 
-JWT_SECRET = os.getenv("JWT_SECRET", "brewery-tycoon-dev-secret-key")
+JWT_SECRET = os.getenv("JWT_SECRET")
+if not JWT_SECRET:
+    raise RuntimeError("JWT_SECRET не задан в переменных окружения")
 JWT_ALGORITHM = "HS256"
+JWT_EXPIRY_HOURS = 24
 
 
 def create_token(user_id: int) -> str:
-    return jwt.encode({"sub": str(user_id)}, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    payload = {
+        "sub": str(user_id),
+        "exp": datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRY_HOURS),
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 
 def get_current_user(authorization: str = Header(default=None), db: Session = Depends(get_db)):
@@ -20,7 +28,7 @@ def get_current_user(authorization: str = Header(default=None), db: Session = De
         scheme, _, token = authorization.partition(" ")
         if scheme.lower() != "bearer" or not token:
             return None
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM], options={"require": ["exp"]})
         user_id = int(payload.get("sub"))
         return db.query(User).filter(User.id == user_id).first()
     except (JWTError, ValueError, TypeError):

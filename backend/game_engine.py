@@ -18,7 +18,7 @@ from backend.models import BreweryKettle, BreweryFermenter, BreweryCondTank
 
 
 def get_available_equipment(level: int):
-    return [
+    all_items = [
         {"type": EquipmentType.mash_tun, "name": "🏺 Заторный чан", "price": 1800, "efficiency_bonus": EquipmentBonuses.MASH_TUN_QUALITY_BONUS, "desc": "+5% к качеству при варке", "min_level": 1},
         {"type": EquipmentType.cooling_system, "name": "🧊 Система охлаждения", "price": 3000, "efficiency_bonus": EquipmentBonuses.COOLING_SYSTEM_FERMENT_DAYS, "desc": "−1 день ферментации", "min_level": 1},
         {"type": EquipmentType.mash_tun, "name": "🔬 Фильтрация", "price": 3500, "efficiency_bonus": EquipmentBonuses.FILTRATION_BREW_DAYS, "desc": "−1 день варки (затирание+кипячение)", "min_level": 2},
@@ -26,6 +26,7 @@ def get_available_equipment(level: int):
         {"type": EquipmentType.bottling_line, "name": "🍾 Линия розлива", "price": 4000, "efficiency_bonus": EquipmentBonuses.BOTTLING_LINE_PRICE_BONUS, "desc": "+15% к цене продажи", "min_level": 3},
         {"type": EquipmentType.kegging_line, "name": "🛞 Линия кегов", "price": 5000, "efficiency_bonus": EquipmentBonuses.KEGGING_LINE_BATCH_BONUS, "desc": "+10% к объёму партии при варке", "min_level": 4},
     ]
+    return [item for item in all_items if item["min_level"] <= level]
 
 
 STAFF_NAMES = [
@@ -159,18 +160,26 @@ def _best_cond_type_for_vol(volume: int):
             best_id = tid
     return best_id
 
+def _best_type_for_bld(type_list: dict, max_vol: int, min_lv: int) -> int:
+    best_id = 1
+    for tid, t in type_list.items():
+        if t["volume"] <= max_vol and t["min_level"] <= min_lv:
+            best_id = tid
+    return best_id
+
 def _create_initial_equipment(brewery, db: Session):
     if brewery.kettles:
         return
     bld = get_bld(brewery.building_id)
+    min_lv = bld.get("min_level", 1)
     for _ in range(bld["tanks"]):
         tid = _best_kettle_type_for_vol(bld["kettle_vol"])
         db.add(BreweryKettle(brewery_id=brewery.id, type_id=tid, purchase_price=KettleTypes.LIST[tid]["price"]))
     for _ in range(bld["fermenters"]):
-        tid = _best_fermenter_type_for_vol(50)
+        tid = _best_type_for_bld(FermenterTypes.LIST, bld.get("max_fermenter_vol", 50), min_lv)
         db.add(BreweryFermenter(brewery_id=brewery.id, type_id=tid, purchase_price=FermenterTypes.LIST[tid]["price"]))
     for _ in range(bld.get("cond_tanks", 0)):
-        tid = _best_cond_type_for_vol(50)
+        tid = _best_type_for_bld(CondTankTypes.LIST, bld.get("max_cond_vol", 50), min_lv)
         db.add(BreweryCondTank(brewery_id=brewery.id, type_id=tid, purchase_price=CondTankTypes.LIST[tid]["price"]))
     db.flush()
 
@@ -326,7 +335,7 @@ def check_achievements(game: GameState, db: Session) -> list:
         "first_batch": batch_count >= 1,
         "first_staff": staff_count >= 1,
         "first_contract": game.total_revenue > 0,
-        "first_upgrade": brewery and (brewery.taproom_level > 0 or brewery.marketing_level > 1 or brewery.storage_capacity > 1000),
+        "first_upgrade": brewery and (brewery.upgrade_count or 0) > 0,
         "revenue_10k": game.total_revenue >= 10000,
         "revenue_50k": game.total_revenue >= 50000,
         "revenue_100k": game.total_revenue >= 100000,
@@ -662,6 +671,14 @@ def process_tick(game: GameState, db: Session) -> dict:
                 batch.days_in_stage = 0
                 events.append(f"Партия #{batch.id} перешла к кипячению")
             elif batch.stage == BatchStage.boil:
+                active_ferm_now = db.query(BeerBatch).filter(
+                    BeerBatch.game_state_id == game.id,
+                    BeerBatch.stage == BatchStage.ferment
+                ).count()
+                if active_ferm_now >= get_fermenter_count(brewery):
+                    events.append(f"Партия #{batch.id} ожидает свободный ферментер")
+                    continue
+
                 batch.stage = BatchStage.ferment
                 batch.stage_progress = 0
                 batch.days_in_stage = 0

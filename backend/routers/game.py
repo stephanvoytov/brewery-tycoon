@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.database import get_db
-from backend.models import GameState, Brewery, BeerRecipe, BeerBatch, BatchStage, Ingredient, Equipment, Staff, Contract, Research, Competitor, ActiveEvent, User
+from backend.models import GameState, Brewery, BeerRecipe, BeerBatch, BatchStage, Ingredient, Equipment, Staff, Contract, Research, Competitor, ActiveEvent, User, BreweryKettle, BreweryFermenter, BreweryCondTank
 from backend.schemas import FullGameState, GameStateSchema, BrewerySchema, EquipmentSchema, TickResult, CurrencyRequest, SelectGameRequest, ResolveEventRequest, BeerBatchSchema
 from backend.game_engine import init_new_game, process_tick, get_market_conditions, get_active_events, resolve_choice_event, generate_contracts, get_kettle_count, get_total_kettle_volume, get_fermenter_count, get_cond_tank_count, get_available_equipment, get_bld
 from backend.dependencies import get_current_user, resolve_game
@@ -127,9 +127,15 @@ def get_state(game_id: int = None, current_user: User = Depends(get_current_user
     )
 
 
+MAX_TICK_DAYS = 30
+
+
 @router.post("/tick")
 def tick(game_id: int = None, days: int = 1, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     game = resolve_game(game_id, current_user, db)
+
+    if days > MAX_TICK_DAYS:
+        raise HTTPException(400, f"Нельзя тикать больше {MAX_TICK_DAYS} дней за раз")
 
     all_events = []
     game_over = False
@@ -162,6 +168,19 @@ def restart_after_game_over(game_id: int = None, current_user: User = Depends(ge
     game.days_bankrupt = 0
     game.bank_loan = 0
     game.day = 1
+
+    for table in [BeerBatch, Ingredient, Equipment, Staff, Contract, Research, ActiveEvent, Competitor]:
+        db.query(table).filter(table.game_state_id == game.id).delete()
+    db.query(BreweryKettle).filter(BreweryKettle.brewery_id == Brewery.id).filter(
+        Brewery.game_state_id == game.id
+    ).delete(synchronize_session=False)
+    db.query(BreweryFermenter).filter(BreweryFermenter.brewery_id == Brewery.id).filter(
+        Brewery.game_state_id == game.id
+    ).delete(synchronize_session=False)
+    db.query(BreweryCondTank).filter(BreweryCondTank.brewery_id == Brewery.id).filter(
+        Brewery.game_state_id == game.id
+    ).delete(synchronize_session=False)
+
     db.commit()
     return {"message": f"Новый старт с капиталом ${game.money:.0f}", "money": game.money}
 

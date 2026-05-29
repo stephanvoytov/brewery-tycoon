@@ -39,11 +39,11 @@ def create_recipe(req: BeerRecipeCreate, game_id: int = None, current_user: User
         req.yeast_ingredient_name, req.malt_amount, req.hops_amount
     )
 
-    style = req.style.strip() if req.style else ""
+    style = req.style.value if req.style else ""
     is_discovery = False
     discovered_style = None
 
-    if not style or style == "experimental":
+    if not style or style == BeerStyle.experimental.value:
         detected = detect_style(req.malt_ingredient_name, req.hops_ingredient_name, req.yeast_ingredient_name)
         if detected:
             existing = db.query(BeerRecipe).filter(
@@ -111,12 +111,9 @@ def start_brew(recipe_id: int, req: BrewRequest, game_id: int = None, current_us
         Equipment.is_owned == True,
         Equipment.name == "🛞 Линия кегов"
     ).first()
-    batch_size = req.batch_size_liters
     if has_kegging:
-        max_batch_with_bonus = int(max_batch * (1 + EquipmentBonuses.KEGGING_LINE_BATCH_BONUS))
-        allowed = min(batch_size, max_batch_with_bonus)
-        if allowed > max_batch:
-            batch_size = allowed
+        max_batch = int(max_batch * (1 + EquipmentBonuses.KEGGING_LINE_BATCH_BONUS))
+    batch_size = req.batch_size_liters
     if batch_size > max_batch:
         kettle_count = get_kettle_count(brewery)
         raise HTTPException(400, f"Объём партии превышает ёмкость котлов ({kettle_count} шт. = {max_batch}л)")
@@ -136,6 +133,13 @@ def start_brew(recipe_id: int, req: BrewRequest, game_id: int = None, current_us
 
     if active_fermenters >= get_fermenter_count(brewery):
         raise HTTPException(400, "Все ферментеры заняты")
+
+    active_cond = db.query(BeerBatch).filter(
+        BeerBatch.game_state_id == game_id,
+        BeerBatch.stage == BatchStage.condition
+    ).count()
+    if get_cond_tank_count(brewery) > 0 and active_cond >= get_cond_tank_count(brewery):
+        raise HTTPException(400, "Все танки дозревания заняты. Дождитесь освобождения.")
 
     total_ingredient_cost = recipe.cost_per_liter * batch_size
     bld = Buildings.LIST.get(brewery.building_id, Buildings.LIST[Buildings.DEFAULT_ID])
@@ -299,7 +303,7 @@ def can_brew(recipe_id: int, game_id: int = None, current_user: User = Depends(g
     else:
         ferm_wait = 0
 
-    cond_ready = free_cond > 0 or brewery.conditioning_tank_count == 0
+    cond_ready = free_cond > 0 or get_cond_tank_count(brewery) == 0
     cond_wait = 0
     if not cond_ready:
         earliest_cond = db.query(BeerBatch).filter(

@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
+from backend.models import BeerStyle
 
 
 class GameStateSchema(BaseModel):
@@ -58,9 +59,42 @@ class BrewerySchema(BaseModel):
         from_attributes = True
 
 
+class BreweryKettleSchema(BaseModel):
+    id: int
+    type_id: int
+    purchase_price: float = 0
+    name: str = ""
+    volume: int = 0
+
+    class Config:
+        from_attributes = True
+
+
+class BreweryFermenterSchema(BaseModel):
+    id: int
+    type_id: int
+    purchase_price: float = 0
+    name: str = ""
+    volume: int = 0
+
+    class Config:
+        from_attributes = True
+
+
+class BreweryCondTankSchema(BaseModel):
+    id: int
+    type_id: int
+    purchase_price: float = 0
+    name: str = ""
+    volume: int = 0
+
+    class Config:
+        from_attributes = True
+
+
 class BeerRecipeCreate(BaseModel):
     name: str
-    style: str = ""
+    style: BeerStyle = BeerStyle.lager
     malt_amount: float = 5.0
     hops_amount: float = 0.5
     malt_ingredient_name: str = "Солод Пильзнер"
