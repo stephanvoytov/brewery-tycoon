@@ -91,20 +91,44 @@ function renderBrewery() {
 
                 <text x="900" y="38" text-anchor="middle" fill="${v.titleColor}" font-size="18" font-weight="bold">${v.title}</text>
 
-                <rect x="20" y="50" width="630" height="26" rx="4" fill="${v.sectionBg}" opacity="0.7"/>
-                <text x="335" y="68" text-anchor="middle" fill="${v.boilLabel}" font-size="14" font-weight="bold">⚡ ВАРОЧНЫЙ УЧАСТОК</text>
+                ${(() => {
+                    const showCond = curBld.cond_tanks > 0;
+                    const tankW = svgTanks.length * 145;
+                    const fermW = svgFermenters.length * 82;
+                    const condW = showCond ? svgConditioning.length * 135 : 0;
+                    const gap = 70;
+                    const sections = showCond ? 3 : 2;
+                    const contentW = tankW + fermW + condW + (sections - 1) * gap;
+                    const startX = Math.max(20, (1800 - contentW) / 2);
+                    const tankX = startX;
+                    const fermX = tankX + tankW + gap;
+                    const condX = showCond ? fermX + fermW + gap : 0;
 
-                <rect x="670" y="50" width="810" height="26" rx="4" fill="${v.sectionBg}" opacity="0.7"/>
-                <text x="1075" y="68" text-anchor="middle" fill="${v.fermLabel}" font-size="14" font-weight="bold">🧪 БРОДИЛЬНЯ</text>
+                    let headerTankW = Math.max(630, tankW + 40);
+                    let headerFermW = Math.max(280, fermW + 40);
+                    let headerCondW = showCond ? Math.max(280, condW + 40) : 0;
+                    let headerTotal = headerTankW + headerFermW + headerCondW + (sections - 1) * 20;
+                    let headerStart = Math.max(20, (1800 - headerTotal) / 2);
 
-                <rect x="1500" y="50" width="280" height="26" rx="4" fill="${v.sectionBg}" opacity="0.7"/>
-                <text x="1640" y="68" text-anchor="middle" fill="${v.condLabel}" font-size="14" font-weight="bold">🧊 ДОЗРЕВАНИЕ</text>
+                    let html = '';
 
-                ${svgTanks.map((t, i) => {
-                    const x = 40 + i * 145;
-                    const color = t.occupied ? v.occupiedColor : v.freeColor;
-                    return `
-                        <g>
+                    // Headers
+                    html += `<rect x="${headerStart}" y="50" width="${headerTankW}" height="26" rx="4" fill="${v.sectionBg}" opacity="0.7"/>`;
+                    html += `<text x="${headerStart + headerTankW / 2}" y="68" text-anchor="middle" fill="${v.boilLabel}" font-size="14" font-weight="bold">⚡ ВАРОЧНЫЙ УЧАСТОК</text>`;
+
+                    html += `<rect x="${headerStart + headerTankW + 20}" y="50" width="${headerFermW}" height="26" rx="4" fill="${v.sectionBg}" opacity="0.7"/>`;
+                    html += `<text x="${headerStart + headerTankW + 20 + headerFermW / 2}" y="68" text-anchor="middle" fill="${v.fermLabel}" font-size="14" font-weight="bold">🧪 БРОДИЛЬНЯ</text>`;
+
+                    if (showCond) {
+                        html += `<rect x="${headerStart + headerTankW + 20 + headerFermW + 20}" y="50" width="${headerCondW}" height="26" rx="4" fill="${v.sectionBg}" opacity="0.7"/>`;
+                        html += `<text x="${headerStart + headerTankW + 20 + headerFermW + 20 + headerCondW / 2}" y="68" text-anchor="middle" fill="${v.condLabel}" font-size="14" font-weight="bold">🧊 ДОЗРЕВАНИЕ</text>`;
+                    }
+
+                    // Kettles
+                    svgTanks.forEach((t, i) => {
+                        const x = tankX + i * 145;
+                        const color = t.occupied ? v.occupiedColor : v.freeColor;
+                        html += `<g>
                             <rect x="${x}" y="95" width="130" height="150" rx="8" fill="url(#kettle_${b.building_id})" stroke="${color}" stroke-width="2.5"/>
                             <rect x="${x + 12}" y="105" width="106" height="45" rx="5" fill="#1a0a00" opacity="0.4"/>
                             <rect x="${x + 12}" y="${225 - (t.occupied ? 35 : 0)}" width="106" height="${t.occupied ? 35 : 6}" rx="3" fill="${v.glowColor}" opacity="${t.occupied ? 0.85 : 0.2}"/>
@@ -122,17 +146,17 @@ function renderBrewery() {
                                 </circle>
                             ` : ''}
                             <rect x="${x + 30}" y="245" width="70" height="10" rx="3" fill="${v.floorLine}"/>
-                        </g>
-                    `;
-                }).join('')}
+                        </g>`;
+                    });
 
-                <line x1="40" y1="85" x2="${40 + Math.min(svgTanks.length, 4) * 145 + 60}" y2="85" stroke="${v.floorLine}" stroke-width="2.5"/>
+                    // Baseline under kettles
+                    html += `<line x1="${tankX}" y1="85" x2="${tankX + tankW}" y2="85" stroke="${v.floorLine}" stroke-width="2.5"/>`;
 
-                ${svgFermenters.map((t, i) => {
-                    const x = 690 + i * 82;
-                    const color = t.occupied ? v.occupiedColor : v.fermLabel;
-                    return `
-                        <g>
+                    // Fermenters
+                    svgFermenters.forEach((t, i) => {
+                        const x = fermX + i * 82;
+                        const color = t.occupied ? v.occupiedColor : v.fermLabel;
+                        html += `<g>
                             <rect x="${x}" y="105" width="68" height="140" rx="34" fill="url(#ferm_${b.building_id})" stroke="${color}" stroke-width="2.5"/>
                             <rect x="${x + 10}" y="118" width="48" height="65" rx="24" fill="#0a1a2e" opacity="0.3"/>
                             <text x="${x + 34}" y="172" text-anchor="middle" fill="${v.fermTitle}" font-size="10">Ф${t.id}</text>
@@ -146,23 +170,26 @@ function renderBrewery() {
                                 </circle>
                             ` : ''}
                             <rect x="${x + 17}" y="245" width="34" height="10" rx="3" fill="${v.floorLine}"/>
-                        </g>
-                    `;
-                }).join('')}
+                        </g>`;
+                    });
 
-                ${svgConditioning.map((t, i) => {
-                    const x = 1520 + i * 135;
-                    const color = t.occupied ? v.occupiedColor : v.condLabel;
-                    return `
-                        <g>
-                            <rect x="${x}" y="95" width="110" height="150" rx="10" fill="url(#cond_${b.building_id})" stroke="${color}" stroke-width="2.5"/>
-                            <ellipse cx="${x + 55}" cy="122" rx="42" ry="14" fill="#0a1a0a" opacity="0.35"/>
-                            <text x="${x + 55}" y="172" text-anchor="middle" fill="${v.condTitle}" font-size="13" font-weight="bold">Танк ${t.id}</text>
-                            <text x="${x + 55}" y="195" text-anchor="middle" fill="${color}" font-size="12" font-weight="bold">${t.occupied ? '⏳ Созревает' : '✅ Свободен'}</text>
-                            <rect x="${x + 25}" y="245" width="60" height="10" rx="3" fill="${v.floorLine}"/>
-                        </g>
-                    `;
-                }).join('')}
+                    // Conditioning tanks
+                    if (showCond) {
+                        svgConditioning.forEach((t, i) => {
+                            const x = condX + i * 135;
+                            const color = t.occupied ? v.occupiedColor : v.condLabel;
+                            html += `<g>
+                                <rect x="${x}" y="95" width="110" height="150" rx="10" fill="url(#cond_${b.building_id})" stroke="${color}" stroke-width="2.5"/>
+                                <ellipse cx="${x + 55}" cy="122" rx="42" ry="14" fill="#0a1a0a" opacity="0.35"/>
+                                <text x="${x + 55}" y="172" text-anchor="middle" fill="${v.condTitle}" font-size="13" font-weight="bold">Танк ${t.id}</text>
+                                <text x="${x + 55}" y="195" text-anchor="middle" fill="${color}" font-size="12" font-weight="bold">${t.occupied ? '⏳ Созревает' : '✅ Свободен'}</text>
+                                <rect x="${x + 25}" y="245" width="60" height="10" rx="3" fill="${v.floorLine}"/>
+                            </g>`;
+                        });
+                    }
+
+                    return html;
+                })()}
 
                 ${v.isLoft ? `
                 <g transform="translate(40, 290)">
@@ -186,6 +213,12 @@ function renderBrewery() {
                     <rect x="32" y="2" width="12" height="10" rx="1" fill="#d4a017" opacity="0.15"/>
                 </g>` : ''}
 
+                ${(() => {
+                    const isRoom = curBld.id === 0;
+                    const showSpecial = !isRoom;
+                    let html = '';
+                    if (showSpecial) {
+                        html += `
                 <g transform="translate(40, 330)">
                     <rect x="0" y="0" width="500" height="90" rx="8" fill="${v.sectionBg}" stroke="${v.freeColor}" stroke-width="1.5" stroke-dasharray="5,3"/>
                     <text x="250" y="28" text-anchor="middle" fill="${v.boilLabel}" font-size="14" font-weight="bold">🍾 Линия розлива</text>
@@ -207,7 +240,10 @@ function renderBrewery() {
                     <text x="290" y="28" text-anchor="middle" fill="${b.has_taproom ? v.condLabel : v.bottomText}" font-size="14" font-weight="bold">🍺 Тапрум</text>
                     <text x="290" y="50" text-anchor="middle" fill="${v.bottomText}" font-size="12">${b.has_taproom ? `✅ Открыт (ур. ${b.taproom_level})` : '🔴 Не построен'}</text>
                     ${b.has_taproom ? `<text x="290" y="72" text-anchor="middle" fill="${v.condLabel}" font-size="13">${formatMoney(b.taproom_level * 30)}/день</text>` : ''}
-                </g>
+                </g>`;
+                    }
+                    return html;
+                })()}
 
                 <g transform="translate(40, 445)">
                     <rect x="0" y="0" width="1720" height="42" rx="6" fill="${v.bottomBar}" opacity="0.8"/>
@@ -223,22 +259,22 @@ function renderBrewery() {
                     <tr>
                         <td>Варочные котлы</td>
                         <td>${b.tank_count} шт. × ${b.tank_volume}л</td>
-                        <td><button class="btn btn-sm btn-primary" onclick="doUpgrade('tanks')" ${!getUpgradeCost('tanks', b.tank_count) ? 'disabled' : ''}>+1${getUpgradeCost('tanks', b.tank_count) ? ` (${formatMoney(getUpgradeCost('tanks', b.tank_count))})` : ' MAX'}</button></td>
+                        <td><button class="btn btn-sm btn-primary" onclick="doUpgrade('tanks')" ${!getUpgradeCost('tanks', b.tank_count) ? 'disabled' : ''}>${getUpgradeCost('tanks', b.tank_count) ? `+1 (${formatMoney(getUpgradeCost('tanks', b.tank_count))})` : '🔒 MAX'}</button></td>
                     </tr>
                     <tr>
                         <td>Ферментеры</td>
                         <td>${b.fermenter_count} шт.</td>
-                        <td><button class="btn btn-sm btn-primary" onclick="doUpgrade('fermenters')" ${!getUpgradeCost('fermenters', b.fermenter_count) ? 'disabled' : ''}>+2${getUpgradeCost('fermenters', b.fermenter_count) ? ` (${formatMoney(getUpgradeCost('fermenters', b.fermenter_count))})` : ' MAX'}</button></td>
+                        <td><button class="btn btn-sm btn-primary" onclick="doUpgrade('fermenters')" ${!getUpgradeCost('fermenters', b.fermenter_count) ? 'disabled' : ''}>${getUpgradeCost('fermenters', b.fermenter_count) ? `+1 (${formatMoney(getUpgradeCost('fermenters', b.fermenter_count))})` : '🔒 MAX'}</button></td>
                     </tr>
                     <tr>
                         <td>Хранилище</td>
                         <td>${b.storage_capacity} л</td>
-                        <td><button class="btn btn-sm btn-primary" onclick="doUpgrade('storage')" ${!getUpgradeCost('storage', b.storage_capacity) ? 'disabled' : ''}>+1000л${getUpgradeCost('storage', b.storage_capacity) ? ` (${formatMoney(getUpgradeCost('storage', b.storage_capacity))})` : ' MAX'}</button></td>
+                        <td><button class="btn btn-sm btn-primary" onclick="doUpgrade('storage')" ${!getUpgradeCost('storage', b.storage_capacity) ? 'disabled' : ''}>${getUpgradeCost('storage', b.storage_capacity) ? `+1000л (${formatMoney(getUpgradeCost('storage', b.storage_capacity))})` : '🔒 MAX'}</button></td>
                     </tr>
                     <tr>
                         <td>Тапрум (доход)</td>
                         <td>${b.has_taproom ? `${formatMoney(b.taproom_level * 30)}/день` : 'Нет'}</td>
-                        <td><button class="btn btn-sm btn-primary" onclick="doUpgrade('taproom')" ${!getUpgradeCost('taproom', b.taproom_level) ? 'disabled' : ''}>${b.has_taproom ? 'Улучшить' : 'Построить'}${getUpgradeCost('taproom', b.taproom_level) ? ` (${formatMoney(getUpgradeCost('taproom', b.taproom_level))})` : ' MAX'}</button></td>
+                        <td><button class="btn btn-sm btn-primary" onclick="doUpgrade('taproom')" ${!getUpgradeCost('taproom', b.taproom_level) ? 'disabled' : ''}>${getUpgradeCost('taproom', b.taproom_level) ? `${b.has_taproom ? 'Улучшить' : 'Построить'} (${formatMoney(getUpgradeCost('taproom', b.taproom_level))})` : '🔒 MAX'}</button></td>
                     </tr>
                     <tr>
                         <td><strong>Аренда</strong></td>
@@ -248,19 +284,19 @@ function renderBrewery() {
                 <div class="mobile-card-list">
                     <div class="mobile-card">
                         <div class="mobile-card-row"><span class="label">Варочные котлы:</span><span class="value">${b.tank_count}×${b.tank_volume}л</span></div>
-                        <div class="mobile-card-actions"><button class="btn btn-sm btn-primary" onclick="doUpgrade('tanks')" ${!getUpgradeCost('tanks', b.tank_count) ? 'disabled' : ''}>+1${getUpgradeCost('tanks', b.tank_count) ? ` (${formatMoney(getUpgradeCost('tanks', b.tank_count))})` : ' MAX'}</button></div>
+                        <div class="mobile-card-actions"><button class="btn btn-sm btn-primary" onclick="doUpgrade('tanks')" ${!getUpgradeCost('tanks', b.tank_count) ? 'disabled' : ''}>${getUpgradeCost('tanks', b.tank_count) ? `+1 (${formatMoney(getUpgradeCost('tanks', b.tank_count))})` : '🔒 MAX'}</button></div>
                     </div>
                     <div class="mobile-card">
                         <div class="mobile-card-row"><span class="label">Ферментеры:</span><span class="value">${b.fermenter_count} шт.</span></div>
-                        <div class="mobile-card-actions"><button class="btn btn-sm btn-primary" onclick="doUpgrade('fermenters')" ${!getUpgradeCost('fermenters', b.fermenter_count) ? 'disabled' : ''}>+2${getUpgradeCost('fermenters', b.fermenter_count) ? ` (${formatMoney(getUpgradeCost('fermenters', b.fermenter_count))})` : ' MAX'}</button></div>
+                        <div class="mobile-card-actions"><button class="btn btn-sm btn-primary" onclick="doUpgrade('fermenters')" ${!getUpgradeCost('fermenters', b.fermenter_count) ? 'disabled' : ''}>${getUpgradeCost('fermenters', b.fermenter_count) ? `+1 (${formatMoney(getUpgradeCost('fermenters', b.fermenter_count))})` : '🔒 MAX'}</button></div>
                     </div>
                     <div class="mobile-card">
                         <div class="mobile-card-row"><span class="label">Хранилище:</span><span class="value">${b.storage_capacity} л</span></div>
-                        <div class="mobile-card-actions"><button class="btn btn-sm btn-primary" onclick="doUpgrade('storage')" ${!getUpgradeCost('storage', b.storage_capacity) ? 'disabled' : ''}>+1000л${getUpgradeCost('storage', b.storage_capacity) ? ` (${formatMoney(getUpgradeCost('storage', b.storage_capacity))})` : ' MAX'}</button></div>
+                        <div class="mobile-card-actions"><button class="btn btn-sm btn-primary" onclick="doUpgrade('storage')" ${!getUpgradeCost('storage', b.storage_capacity) ? 'disabled' : ''}>${getUpgradeCost('storage', b.storage_capacity) ? `+1000л (${formatMoney(getUpgradeCost('storage', b.storage_capacity))})` : '🔒 MAX'}</button></div>
                     </div>
                     <div class="mobile-card">
                         <div class="mobile-card-row"><span class="label">Тапрум:</span><span class="value">${b.has_taproom ? `${formatMoney(b.taproom_level * 30)}/день` : 'Нет'}</span></div>
-                        <div class="mobile-card-actions"><button class="btn btn-sm btn-primary" onclick="doUpgrade('taproom')" ${!getUpgradeCost('taproom', b.taproom_level) ? 'disabled' : ''}>${b.has_taproom ? 'Улучшить' : 'Построить'}${getUpgradeCost('taproom', b.taproom_level) ? ` (${formatMoney(getUpgradeCost('taproom', b.taproom_level))})` : ' MAX'}</button></div>
+                        <div class="mobile-card-actions"><button class="btn btn-sm btn-primary" onclick="doUpgrade('taproom')" ${!getUpgradeCost('taproom', b.taproom_level) ? 'disabled' : ''}>${getUpgradeCost('taproom', b.taproom_level) ? `${b.has_taproom ? 'Улучшить' : 'Построить'} (${formatMoney(getUpgradeCost('taproom', b.taproom_level))})` : '🔒 MAX'}</button></div>
                     </div>
                     <div class="mobile-card">
                         <div class="mobile-card-row"><span class="label"><strong>Аренда</strong></span><span class="value"><strong>${formatMonthly(b.rent)}</strong></span></div>
@@ -282,15 +318,16 @@ function renderBrewery() {
                 }).join('')}
 
                 <h4 style="color:var(--accent);font-size:0.85rem;margin:10px 0 8px">Доступно к покупке:</h4>
-                ${availableEquip.length === 0 ? '<div class="empty-state">Всё куплено</div>' : availableEquip.map(e =>
-                    `<div class="equip-row" style="display:flex;flex-direction:column;padding:4px 0;border-bottom:1px solid var(--border)">
+                ${availableEquip.length === 0 ? '<div class="empty-state">Всё куплено</div>' : availableEquip.map(e => {
+                    const equipLocked = e.locked !== undefined ? e.locked : (b.level < (e.min_level || 1));
+                    return `<div class="equip-row" style="display:flex;flex-direction:column;padding:4px 0;border-bottom:1px solid var(--border)">
                         <div style="display:flex;justify-content:space-between;align-items:center;width:100%">
-                            <span><strong>${e.name}</strong></span>
-                            <span>${formatMoney(e.price)} <button class="btn btn-sm btn-success" onclick="doBuyEquipment(${e.id})">Купить</button></span>
+                            <span>${equipLocked ? '🔒' : '📦'} <strong>${e.name}</strong>${equipLocked ? ` <span style="color:var(--red);font-size:0.75rem">ур. ${e.min_level}</span>` : ''}</span>
+                            <span>${formatMoney(e.price)} ${equipLocked ? '' : `<button class="btn btn-sm btn-success" onclick="doBuyEquipment(${e.id})">Купить</button>`}</span>
                         </div>
                         <div style="font-size:0.75rem;color:var(--text-dim);margin-top:2px">${EQUIP_DESC[e.name] || ''}</div>
-                    </div>`
-                ).join('')}
+                    </div>`;
+                }).join('')}
 
             </div>
         </div>

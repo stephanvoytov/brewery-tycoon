@@ -17,12 +17,12 @@ from backend.config import (
 
 def get_available_equipment(level: int):
     return [
-        {"type": EquipmentType.bottling_line, "name": "🍾 Линия розлива", "price": 4000, "efficiency_bonus": EquipmentBonuses.BOTTLING_LINE_PRICE_BONUS, "desc": "+15% к цене продажи"},
-        {"type": EquipmentType.cooling_system, "name": "🧊 Система охлаждения", "price": 3000, "efficiency_bonus": EquipmentBonuses.COOLING_SYSTEM_FERMENT_DAYS, "desc": "−1 день ферментации"},
-        {"type": EquipmentType.conditioning_tank, "name": "🛢 Лагерный танк", "price": 2500, "efficiency_bonus": EquipmentBonuses.CONDITIONING_TANK_CONDITION_DAYS, "desc": "−2 дня дозревания"},
-        {"type": EquipmentType.kegging_line, "name": "🛞 Линия кегов", "price": 5000, "efficiency_bonus": EquipmentBonuses.KEGGING_LINE_BATCH_BONUS, "desc": "+10% к объёму партии при варке"},
-        {"type": EquipmentType.mash_tun, "name": "🏺 Заторный чан", "price": 1800, "efficiency_bonus": EquipmentBonuses.MASH_TUN_QUALITY_BONUS, "desc": "+5% к качеству при варке"},
-        {"type": EquipmentType.mash_tun, "name": "🔬 Фильтрация", "price": 3500, "efficiency_bonus": EquipmentBonuses.FILTRATION_BREW_DAYS, "desc": "−1 день варки (затирание+кипячение)"},
+        {"type": EquipmentType.mash_tun, "name": "🏺 Заторный чан", "price": 1800, "efficiency_bonus": EquipmentBonuses.MASH_TUN_QUALITY_BONUS, "desc": "+5% к качеству при варке", "min_level": 1},
+        {"type": EquipmentType.cooling_system, "name": "🧊 Система охлаждения", "price": 3000, "efficiency_bonus": EquipmentBonuses.COOLING_SYSTEM_FERMENT_DAYS, "desc": "−1 день ферментации", "min_level": 1},
+        {"type": EquipmentType.mash_tun, "name": "🔬 Фильтрация", "price": 3500, "efficiency_bonus": EquipmentBonuses.FILTRATION_BREW_DAYS, "desc": "−1 день варки (затирание+кипячение)", "min_level": 2},
+        {"type": EquipmentType.conditioning_tank, "name": "🛢 Лагерный танк", "price": 2500, "efficiency_bonus": EquipmentBonuses.CONDITIONING_TANK_CONDITION_DAYS, "desc": "−2 дня дозревания", "min_level": 2},
+        {"type": EquipmentType.bottling_line, "name": "🍾 Линия розлива", "price": 4000, "efficiency_bonus": EquipmentBonuses.BOTTLING_LINE_PRICE_BONUS, "desc": "+15% к цене продажи", "min_level": 3},
+        {"type": EquipmentType.kegging_line, "name": "🛞 Линия кегов", "price": 5000, "efficiency_bonus": EquipmentBonuses.KEGGING_LINE_BATCH_BONUS, "desc": "+10% к объёму партии при варке", "min_level": 4},
     ]
 
 

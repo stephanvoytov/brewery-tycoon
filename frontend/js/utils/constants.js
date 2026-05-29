@@ -207,13 +207,13 @@ const BUILDING_VISUALS = {
 function getUpgradeCost(type, current) {
     const costs = {
         tanks: { 2: 3000, 3: 6000, 4: 10000 },
-        fermenters: { 4: 2000, 6: 5000, 8: 9000 },
+        fermenters: { 2: 500, 3: 1000, 4: 1500, 5: 2500, 6: 3500, 7: 4500, 8: 5500, 9: 6500, 10: 8000 },
         storage: { 1000: 2000, 2000: 4000, 4000: 8000 },
         taproom: { 1: 5000, 2: 10000 },
         marketing: { 2: 2000, 3: 4000, 4: 7000 },
     };
     const m = costs[type];
     if (!m) return null;
-    const key = type === 'tanks' ? current + 1 : type === 'taproom' || type === 'marketing' ? current + 1 : current;
+    const key = type === 'tanks' ? current + 1 : type === 'taproom' || type === 'marketing' ? current + 1 : type === 'fermenters' ? current + 1 : current;
     return m[key] || m[Object.keys(m).find(k => Number(k) > current)] || null;
 }

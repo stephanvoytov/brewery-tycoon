@@ -5,6 +5,7 @@ from backend.models import GameState, Brewery, Equipment, User
 from backend.schemas import BrewerySchema, UpgradeBreweryRequest, RenameBreweryRequest, ChangeBuildingRequest
 from backend.config import UpgradeCosts, EquipmentWear, Buildings
 from backend.dependencies import get_current_user, resolve_game
+from backend.game_engine import get_available_equipment
 
 ACHIEVEMENT_UPGRADE_DISCOUNT = 0.1
 
@@ -62,11 +63,10 @@ def upgrade_brewery(req: UpgradeBreweryRequest, game_id: int = None, current_use
 
     elif upgrade_type == "fermenters":
         current = brewery.fermenter_count
-        upgrade_map = {4: 6, 6: 8, 8: 10}
-        next_val = upgrade_map.get(current)
-        if not next_val:
-            raise HTTPException(400, "Максимальный уровень")
-        base_cost = UPGRADE_COSTS["fermenters"].get(current, 999999)
+        next_val = current + 1
+        if next_val > 10:
+            raise HTTPException(400, "Максимальное количество ферментеров")
+        base_cost = UPGRADE_COSTS["fermenters"].get(next_val, 999999)
         cost = apply_cost(base_cost)
         brewery.fermenter_count = next_val
         db.commit()
@@ -104,6 +104,37 @@ def upgrade_brewery(req: UpgradeBreweryRequest, game_id: int = None, current_use
         return {"message": f"Маркетинг улучшен до уровня {next_level}", "cost": cost, "base_cost": base_cost}
 
     raise HTTPException(400, f"Неизвестный тип улучшения: {upgrade_type}")
+
+
+@router.get("/equipment-list")
+def get_equipment_list(game_id: int = None, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    game = resolve_game(game_id, current_user, db)
+    brewery = db.query(Brewery).filter(Brewery.game_state_id == game.id).first()
+    if not brewery:
+        raise HTTPException(404, "Пивоварня не найдена")
+
+    owned = db.query(Equipment).filter(
+        Equipment.game_state_id == game.id,
+        Equipment.is_owned == True
+    ).all()
+    owned_names = {e.name for e in owned}
+
+    all_eq = get_available_equipment(brewery.level)
+    result = []
+    for i, eq in enumerate(all_eq):
+        is_owned = eq["name"] in owned_names
+        locked = not is_owned and eq["min_level"] > brewery.level
+        result.append({
+            "id": eq["name"],
+            "name": eq["name"],
+            "type": eq["type"].value,
+            "price": eq["price"],
+            "desc": eq["desc"],
+            "min_level": eq["min_level"],
+            "is_owned": is_owned,
+            "locked": locked,
+        })
+    return result
 
 
 @router.post("/rename")

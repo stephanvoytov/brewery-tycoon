@@ -96,7 +96,7 @@ class TankVolume:
 class LevelFormula:
     @staticmethod
     def revenue_for_level(level: int) -> int:
-        return 5000 * level * (level - 1)
+        return 1000 * level * (level - 1)
 
     @staticmethod
     def level_from_revenue(revenue: float) -> int:
@@ -110,7 +110,7 @@ class LevelFormula:
 
 class UpgradeCosts:
     TANKS = {2: 3000, 3: 6000, 4: 10000}
-    FERMENTERS = {4: 2000, 6: 5000, 8: 9000}
+    FERMENTERS = {2: 500, 3: 1000, 4: 1500, 5: 2500, 6: 3500, 7: 4500, 8: 5500, 9: 6500, 10: 8000}
     STORAGE = {1000: 2000, 2000: 4000, 4000: 8000}
     TAPROOM = {1: 5000, 2: 10000}
     MARKETING = {2: 2000, 3: 4000, 4: 7000}
