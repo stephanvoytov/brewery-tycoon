@@ -849,7 +849,7 @@ input:focus, select:focus {
     background: var(--accent);
 }
 
-.bottom-nav { display: none; }
+.bottom-nav, .mobile-menu, .hamburger-btn { display: none; }
 
 /* === Custom confirm/prompt modal (desktop & mobile) === */
 .dialog-overlay {
