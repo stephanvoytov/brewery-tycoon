@@ -32,15 +32,17 @@ function switchHelpTab(tab) {
 }
 
 function scrollToHelp(sectionId) {
-    const tabs = document.querySelector('.help-tabs');
-    if (!tabs) {
-        renderCurrentPage('help');
-    }
-    switchHelpTab('guide');
-    setTimeout(() => {
+    if (document.querySelector('.help-tabs')) {
+        switchHelpTab('guide');
         const el = document.getElementById(sectionId);
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
+    } else {
+        navigate('help');
+        renderCurrentPage().then(() => {
+            const el = document.getElementById(sectionId);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    }
 }
 
 function renderGuideTab() {
