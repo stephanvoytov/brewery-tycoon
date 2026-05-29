@@ -79,6 +79,8 @@ function renderStatusBar() {
     }
 
     items.push(`<span class="sb-divider"></span>`);
+    items.push(`<span class="sb-item sb-brew-level">🏭 Ур.${g.brewing_level}</span>`);
+    items.push(`<span class="sb-divider"></span>`);
     items.push(`<span class="sb-item sb-building">${curBld.icon} ${curBld.name}</span>`);
 
     el.innerHTML = items.join('');
@@ -295,11 +297,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             navigate(btn.dataset.page);
             if (API.gameId) renderCurrentPage();
         });
-    });
-
-    // Hamburger button (mobile)
-    document.getElementById('hamburgerBtn').addEventListener('click', () => {
-        document.getElementById('mobileMenu').classList.toggle('open');
     });
 
     // Mobile menu nav buttons

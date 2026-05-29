@@ -30,7 +30,7 @@
     --z-brew-modal: 1400;
     --z-bottom-nav: 1500;
     --z-mobile-menu: 1550;
-    --z-hamburger: 1600;
+
     --z-tutorial: 2000;
     --z-dialog: 3000;
 
@@ -126,13 +126,13 @@ body {
 #statusBar {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 10px 16px;
+    gap: 20px;
+    padding: 14px 24px;
     margin-bottom: 16px;
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 8px;
-    font-size: 0.85rem;
+    font-size: 1rem;
     flex-wrap: wrap;
     position: sticky;
     top: 0;
@@ -142,7 +142,7 @@ body {
 #statusBar .sb-item {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 8px;
     white-space: nowrap;
 }
 #statusBar .sb-money { color: var(--accent-light); font-weight: 700; }
@@ -153,7 +153,8 @@ body {
 #statusBar .sb-rep.low { color: var(--red); }
 #statusBar .sb-batches { color: var(--blue); }
 #statusBar .sb-loan { color: var(--red); font-weight: 600; }
-#statusBar .sb-building { color: var(--text-dim); font-size: 0.8rem; }
+#statusBar .sb-brew-level { color: var(--accent); font-weight: 600; }
+#statusBar .sb-building { color: var(--text-dim); font-size: 0.9rem; }
 #statusBar .sb-divider {
     width: 1px;
     height: 20px;
@@ -1154,7 +1155,7 @@ input:focus, select:focus {
     background: var(--accent);
 }
 
-.bottom-nav, .mobile-menu, .hamburger-btn { display: none; }
+.bottom-nav, .mobile-menu { display: none; }
 
 /* === Custom confirm/prompt modal (desktop & mobile) === */
 .dialog-overlay {
@@ -1262,25 +1263,6 @@ input:focus, select:focus {
     .bottom-nav-btn .bn-icon { font-size: 1.3rem; line-height: 1; }
     .bottom-nav-btn.active { color: var(--accent-light); }
     .bottom-nav-btn:active { opacity: 0.7; }
-
-    .hamburger-btn {
-        display: block;
-        position: fixed;
-        top: 8px;
-        left: 8px;
-        z-index: var(--z-hamburger);
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 8px 10px;
-        box-shadow: var(--shadow-card);
-        color: var(--text);
-        font-size: 1.3rem;
-        cursor: pointer;
-        touch-action: manipulation;
-        -webkit-tap-highlight-color: transparent;
-    }
-    .hamburger-btn:active { opacity: 0.7; }
 
     .mobile-menu {
         display: none;
