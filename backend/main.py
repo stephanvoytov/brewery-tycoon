@@ -91,7 +91,7 @@ if "tank_volume" not in brewery_cols:
         conn.commit()
 if "building_id" not in brewery_cols:
     with engine.connect() as conn:
-        conn.execute(text("ALTER TABLE breweries ADD COLUMN building_id INTEGER DEFAULT 2"))
+        conn.execute(text("ALTER TABLE breweries ADD COLUMN building_id INTEGER DEFAULT 1"))
         conn.commit()
 
 # Remove legacy equipment (дублировали улучшения или не имели эффекта)
@@ -106,6 +106,23 @@ if "name" in eq_cols_new:
             conn.execute(
                 text("DELETE FROM equipment WHERE name = :name AND is_owned = 0"),
                 {"name": eq_name}
+            )
+        conn.commit()
+
+# Rename legacy equipment names to new emoji-prefixed names
+equip_rename_map = {
+    "Линия розлива": "🍾 Линия розлива",
+    "Система охлаждения": "🧊 Система охлаждения",
+    "Лагерный танк": "🛢 Лагерный танк",
+    "Линия кегов": "🛞 Линия кегов",
+    "Заторный чан": "🏺 Заторный чан",
+}
+if "name" in eq_cols_new:
+    with engine.connect() as conn:
+        for old_name, new_name in equip_rename_map.items():
+            conn.execute(
+                text("UPDATE equipment SET name = :new WHERE name = :old"),
+                {"new": new_name, "old": old_name}
             )
         conn.commit()
 

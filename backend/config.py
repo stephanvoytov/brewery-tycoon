@@ -136,7 +136,7 @@ EVENT_CHANCE_PER_TICK = 0.10
 
 
 class Buildings:
-    DEFAULT_ID = 2
+    DEFAULT_ID = 1
 
     LIST = {
         1: {"name": "Подвал", "desc": "Сырой подвал, дёшево и сердито. Порча ингредиентов −50%.",

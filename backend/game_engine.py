@@ -134,17 +134,18 @@ def init_new_game(db: Session) -> GameState:
     db.add(game)
     db.flush()
 
+    default_bld = Buildings.LIST[Buildings.DEFAULT_ID]
     brewery = Brewery(
         game_state_id=game.id,
         name="Моя пивоварня",
         level=1,
-        tank_count=2,
-        tank_volume=TankVolume.DEFAULT,
+        tank_count=default_bld["tanks"],
+        tank_volume=default_bld["kettle_vol"],
         building_id=Buildings.DEFAULT_ID,
-        fermenter_count=4,
-        conditioning_tank_count=2,
-        storage_capacity=1000,
-        rent=Rent.DAILY(),
+        fermenter_count=default_bld["fermenters"],
+        conditioning_tank_count=default_bld.get("cond_tanks", 2),
+        storage_capacity=default_bld["storage"],
+        rent=default_bld["rent"],
     )
     db.add(brewery)
 
