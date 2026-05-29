@@ -851,6 +851,54 @@ input:focus, select:focus {
 
 .bottom-nav { display: none; }
 
+/* === Custom confirm/prompt modal (desktop & mobile) === */
+.dialog-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 30000;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.dialog-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 20px;
+    max-width: 360px;
+    width: 100%;
+    text-align: center;
+}
+.dialog-box h3 {
+    color: var(--accent-light);
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+}
+.dialog-box p {
+    font-size: 0.9rem;
+    color: var(--text);
+    margin-bottom: 16px;
+    line-height: 1.5;
+}
+.dialog-box input {
+    width: 100%;
+    margin-bottom: 16px;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 8px;
+}
+.dialog-actions {
+    display: flex;
+    gap: 10px;
+}
+.dialog-actions .btn {
+    flex: 1;
+    min-height: 44px;
+    font-size: 0.9rem;
+}
+
 /* ===== MOBILE OPTIMIZATION (max-width: 768px) ===== */
 @media (max-width: 768px) {
     /* === Layout === */
@@ -1119,54 +1167,6 @@ input:focus, select:focus {
     .lb-content .table-wrap { display: block; }
     .lb-content .table-wrap table { min-width: 0; }
     .lb-content .mobile-card-list { display: none; }
-
-    /* === Custom confirm/prompt modal === */
-    .dialog-overlay {
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        z-index: 30000;
-        background: rgba(0,0,0,0.8);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-    }
-    .dialog-box {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 24px 20px;
-        max-width: 360px;
-        width: 100%;
-        text-align: center;
-    }
-    .dialog-box h3 {
-        color: var(--accent-light);
-        margin-bottom: 8px;
-        font-size: 1.1rem;
-    }
-    .dialog-box p {
-        font-size: 0.9rem;
-        color: var(--text);
-        margin-bottom: 16px;
-        line-height: 1.5;
-    }
-    .dialog-box input {
-        width: 100%;
-        margin-bottom: 16px;
-        padding: 12px;
-        font-size: 16px;
-        border-radius: 8px;
-    }
-    .dialog-actions {
-        display: flex;
-        gap: 10px;
-    }
-    .dialog-actions .btn {
-        flex: 1;
-        min-height: 44px;
-        font-size: 0.9rem;
-    }
 
     /* === Flex-wrap fixes === */
     .dash-header { flex-wrap: wrap; gap: 8px; }
