@@ -17,15 +17,12 @@ from backend.config import (
 
 def get_available_equipment(level: int):
     return [
-        {"type": EquipmentType.kettle, "name": "Варочный котёл 50л", "price": 2000, "efficiency_bonus": EquipmentBonuses.KETTLE_50L_EXTRA_TANK},
-        {"type": EquipmentType.kettle, "name": "Варочный котёл 100л", "price": 5000, "efficiency_bonus": EquipmentBonuses.KETTLE_100L_VOLUME_BONUS},
-        {"type": EquipmentType.fermenter, "name": "Ферментер 50л", "price": 1500, "efficiency_bonus": 0.03},
-        {"type": EquipmentType.fermenter, "name": "Ферментер 100л", "price": 3000, "efficiency_bonus": 0.06},
-        {"type": EquipmentType.bottling_line, "name": "Линия розлива", "price": 4000, "efficiency_bonus": EquipmentBonuses.BOTTLING_LINE_PRICE_BONUS},
-        {"type": EquipmentType.kegging_line, "name": "Линия кегов", "price": 5000, "efficiency_bonus": 0.1},
-        {"type": EquipmentType.mash_tun, "name": "Заторный чан", "price": 1800, "efficiency_bonus": 0.04},
-        {"type": EquipmentType.cooling_system, "name": "Система охлаждения", "price": 3000, "efficiency_bonus": EquipmentBonuses.COOLING_SYSTEM_FERMENT_DAYS},
-        {"type": EquipmentType.conditioning_tank, "name": "Лагерный танк", "price": 2500, "efficiency_bonus": EquipmentBonuses.CONDITIONING_TANK_CONDITION_DAYS},
+        {"type": EquipmentType.bottling_line, "name": "🍾 Линия розлива", "price": 4000, "efficiency_bonus": EquipmentBonuses.BOTTLING_LINE_PRICE_BONUS, "desc": "+15% к цене продажи"},
+        {"type": EquipmentType.cooling_system, "name": "🧊 Система охлаждения", "price": 3000, "efficiency_bonus": EquipmentBonuses.COOLING_SYSTEM_FERMENT_DAYS, "desc": "−1 день ферментации"},
+        {"type": EquipmentType.conditioning_tank, "name": "🛢 Лагерный танк", "price": 2500, "efficiency_bonus": EquipmentBonuses.CONDITIONING_TANK_CONDITION_DAYS, "desc": "−2 дня дозревания"},
+        {"type": EquipmentType.kegging_line, "name": "🛞 Линия кегов", "price": 5000, "efficiency_bonus": EquipmentBonuses.KEGGING_LINE_BATCH_BONUS, "desc": "+10% к объёму партии при варке"},
+        {"type": EquipmentType.mash_tun, "name": "🏺 Заторный чан", "price": 1800, "efficiency_bonus": EquipmentBonuses.MASH_TUN_QUALITY_BONUS, "desc": "+5% к качеству при варке"},
+        {"type": EquipmentType.mash_tun, "name": "🔬 Фильтрация", "price": 3500, "efficiency_bonus": EquipmentBonuses.FILTRATION_BREW_DAYS, "desc": "−1 день варки (затирание+кипячение)"},
     ]
 
 
@@ -551,7 +548,15 @@ def process_tick(game: GameState, db: Session) -> dict:
 
         stage_duration = 0
         if batch.stage == BatchStage.mash:
-            stage_duration = max(1, int(recipe.brew_time_days / total_efficiency))
+            brew_days = recipe.brew_time_days
+            has_filtration = db.query(Equipment).filter(
+                Equipment.game_state_id == game.id,
+                Equipment.is_owned == True,
+                Equipment.name == "🔬 Фильтрация"
+            ).first()
+            if has_filtration:
+                brew_days = max(1, brew_days + EquipmentBonuses.FILTRATION_BREW_DAYS)
+            stage_duration = max(1, int(brew_days / total_efficiency))
         elif batch.stage == BatchStage.boil:
             stage_duration = max(1, int(1 / total_efficiency))
         elif batch.stage == BatchStage.ferment:

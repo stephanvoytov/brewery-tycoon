@@ -3,11 +3,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from backend.database import get_db
-from backend.models import GameState, BeerRecipe, BeerBatch, BatchStage, Brewery, Equipment, Ingredient, IngredientType, User
+from backend.models import GameState, BeerRecipe, BeerBatch, BatchStage, Brewery, Equipment, EquipmentType, Ingredient, IngredientType, User
 from backend.schemas import BeerRecipeCreate, BeerRecipeSchema, BrewRequest
 from backend.dependencies import get_current_user, resolve_game
 from backend.game_engine import STYLE_INGREDIENT_MAP, INGREDIENT_TEMPLATES, detect_style, EXPERIMENTAL_STYLE
-from backend.config import Buildings
+from backend.config import Buildings, EquipmentBonuses
 
 router = APIRouter(prefix="/api/recipes", tags=["recipes"])
 
@@ -104,7 +104,19 @@ def start_brew(recipe_id: int, req: BrewRequest, game_id: int = None, current_us
         raise HTTPException(404, "Рецепт или пивоварня не найдена")
 
     max_batch = brewery.tank_count * brewery.tank_volume
-    if req.batch_size_liters > max_batch:
+
+    has_kegging = db.query(Equipment).filter(
+        Equipment.game_state_id == game.id,
+        Equipment.is_owned == True,
+        Equipment.name == "🛞 Линия кегов"
+    ).first()
+    batch_size = req.batch_size_liters
+    if has_kegging:
+        max_batch_with_bonus = int(max_batch * (1 + EquipmentBonuses.KEGGING_LINE_BATCH_BONUS))
+        allowed = min(batch_size, max_batch_with_bonus)
+        if allowed > max_batch:
+            batch_size = allowed
+    if batch_size > max_batch:
         raise HTTPException(400, f"Объём партии превышает ёмкость котлов ({brewery.tank_count}×{brewery.tank_volume}л = {max_batch}л)")
 
     active_batches = db.query(BeerBatch).filter(
@@ -115,16 +127,16 @@ def start_brew(recipe_id: int, req: BrewRequest, game_id: int = None, current_us
     if active_batches >= brewery.tank_count:
         raise HTTPException(400, "Все варочные котлы заняты")
 
-    total_ingredient_cost = recipe.cost_per_liter * req.batch_size_liters
+    total_ingredient_cost = recipe.cost_per_liter * batch_size
     bld = Buildings.LIST.get(brewery.building_id, Buildings.LIST[Buildings.DEFAULT_ID])
     cost_reduction = bld.get("cost_reduction", 0)
     total_ingredient_cost *= (1 - cost_reduction)
     if game.money < total_ingredient_cost:
         raise HTTPException(400, f"Недостаточно средств. Нужно ${total_ingredient_cost:.0f}")
 
-    malt_needed = recipe.malt_amount * req.batch_size_liters / 10
-    hops_needed = recipe.hops_amount * req.batch_size_liters / 10
-    yeast_needed = 0.1 * req.batch_size_liters / 10
+    malt_needed = recipe.malt_amount * batch_size / 10
+    hops_needed = recipe.hops_amount * batch_size / 10
+    yeast_needed = 0.1 * batch_size / 10
 
     malt_ing = db.query(Ingredient).filter(
         Ingredient.game_state_id == game_id,
@@ -177,6 +189,14 @@ def start_brew(recipe_id: int, req: BrewRequest, game_id: int = None, current_us
     quality = ingredient_score + equipment_score + skill_score + mastery_score + random_score
     quality = max(10, min(100, quality))
 
+    has_mash_tun = db.query(Equipment).filter(
+        Equipment.game_state_id == game.id,
+        Equipment.is_owned == True,
+        Equipment.name == "🏺 Заторный чан"
+    ).first()
+    if has_mash_tun:
+        quality = min(100, quality + int(quality * EquipmentBonuses.MASH_TUN_QUALITY_BONUS))
+
     game.money -= total_ingredient_cost
     game.total_expenses += total_ingredient_cost
     game.daily_expenses += total_ingredient_cost
@@ -184,7 +204,7 @@ def start_brew(recipe_id: int, req: BrewRequest, game_id: int = None, current_us
     batch = BeerBatch(
         game_state_id=game_id,
         recipe_id=recipe_id,
-        batch_size_liters=req.batch_size_liters,
+        batch_size_liters=batch_size,
         stage=BatchStage.mash,
         started_day=game.day,
         stage_progress=0,

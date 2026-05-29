@@ -255,7 +255,7 @@ function renderBrewery() {
             </div>
 
             <div class="card">
-                <h3>🔧 Оборудование</h3>
+                <h3>🔧 Оборудование <span style="font-size:0.75rem;color:var(--text-dim);font-weight:400">(уникальные бонусы — не дублируют улучшения)</span></h3>
                 <h4 style="color:var(--green);font-size:0.85rem;margin-bottom:8px">Приобретено:</h4>
                 ${ownedEquip.length === 0 ? '<div class="empty-state">Нет оборудования</div>' : ownedEquip.map(e => {
                     const wearColor = e.wear_tear > 80 ? 'var(--green)' : e.wear_tear > 40 ? 'var(--accent)' : 'var(--red)';
@@ -263,15 +263,18 @@ function renderBrewery() {
                     const repairCost = Math.round(e.price * 0.3);
                     return `<div class="equip-row" style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)">
                         <span>${broken ? '❌' : '✅'} ${e.name} <span style="color:${wearColor};font-size:0.75rem">(износ: ${Math.round(e.wear_tear)}%)</span></span>
-                        <span>${broken ? `<button class="btn btn-sm btn-danger" onclick="doRepairEquipment(${e.id})">Ремонт $${repairCost}</button>` : `<span style="color:var(--text-dim);font-size:0.75rem">+${Math.round(e.efficiency_bonus * 100)}%</span>`}</span>
+                        <span>${broken ? `<button class="btn btn-sm btn-danger" onclick="doRepairEquipment(${e.id})">Ремонт $${repairCost}</button>` : `<span style="color:var(--text-dim);font-size:0.75rem">${EQUIP_DESC[e.name] || ''}</span>`}</span>
                     </div>`;
                 }).join('')}
 
                 <h4 style="color:var(--accent);font-size:0.85rem;margin:10px 0 8px">Доступно к покупке:</h4>
                 ${availableEquip.length === 0 ? '<div class="empty-state">Всё куплено</div>' : availableEquip.map(e =>
-                    `<div class="equip-row" style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">
-                        <span>${e.name}</span>
-                        <span>${formatMoney(e.price)} <button class="btn btn-sm btn-success" onclick="doBuyEquipment(${e.id})">Купить</button></span>
+                    `<div class="equip-row" style="display:flex;flex-direction:column;padding:4px 0;border-bottom:1px solid var(--border)">
+                        <div style="display:flex;justify-content:space-between;align-items:center;width:100%">
+                            <span><strong>${e.name}</strong></span>
+                            <span>${formatMoney(e.price)} <button class="btn btn-sm btn-success" onclick="doBuyEquipment(${e.id})">Купить</button></span>
+                        </div>
+                        <div style="font-size:0.75rem;color:var(--text-dim);margin-top:2px">${EQUIP_DESC[e.name] || ''}</div>
                     </div>`
                 ).join('')}
 

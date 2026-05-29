@@ -3,9 +3,8 @@ from sqlalchemy.orm import Session
 from backend.database import get_db
 from backend.models import GameState, Ingredient, Equipment, User
 from backend.schemas import BuyIngredientRequest, BuyEquipmentRequest
-from backend.config import BulkDiscount, EquipmentBonuses
+from backend.config import BulkDiscount
 from backend.dependencies import get_current_user, resolve_game
-from backend.models import Brewery
 
 router = APIRouter(prefix="/api/inventory", tags=["inventory"])
 
@@ -80,26 +79,8 @@ def buy_equipment(req: BuyEquipmentRequest, game_id: int = None, current_user: U
     game.total_expenses += equip.price
     equip.is_owned = True
 
-    # Equipment effects
-    effects = []
-    brewery = db.query(Brewery).filter(Brewery.game_state_id == game.id).first()
-    if equip.name == "Варочный котёл 50л":
-        brewery.tank_count += EquipmentBonuses.KETTLE_50L_EXTRA_TANK
-        effects.append(f"котлов теперь {brewery.tank_count}")
-    elif equip.name == "Варочный котёл 100л":
-        brewery.tank_volume += EquipmentBonuses.KETTLE_100L_VOLUME_BONUS
-        effects.append(f"объём котла теперь {brewery.tank_volume}л")
-    elif equip.name == "Линия розлива":
-        effects.append("+15% к цене продажи")
-    elif equip.name == "Система охлаждения":
-        effects.append("−1 день ферментации")
-    elif equip.name == "Лагерный танк":
-        effects.append("−2 дня дозревания")
-
     db.commit()
 
     msg = f"Куплено: {equip.name} за {equip.price:.0f} {game.currency}"
-    if effects:
-        msg += " (" + ", ".join(effects) + ")"
 
     return {"message": msg, "cost": equip.price}

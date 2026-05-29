@@ -168,6 +168,15 @@ function esc(s) {
     return d.innerHTML;
 }
 
+const EQUIP_DESC = {
+    "🍾 Линия розлива": "+15% к цене продажи",
+    "🧊 Система охлаждения": "−1 день ферментации",
+    "🛢 Лагерный танк": "−2 дня дозревания",
+    "🛞 Линия кегов": "+10% к объёму партии при варке",
+    "🏺 Заторный чан": "+5% к качеству при варке",
+    "🔬 Фильтрация": "−1 день варки (затирание+кипячение)",
+};
+
 const BUILDINGS = {
     1: { id: 1, name: "Подвал", icon: "🕳", desc: "Сырой подвал, дёшево и сердито. Порча −50%.", min_level: 1, rent: 40, storage: 500, tanks: 1, fermenters: 2, cond_tanks: 1, quality_bonus: -5, taproom: false, kettle_vol: 50 },
     2: { id: 2, name: "Небольшой цех", icon: "🏗", desc: "Стандартное помещение для старта.", min_level: 1, rent: 100, storage: 1000, tanks: 2, fermenters: 4, cond_tanks: 2, quality_bonus: 0, taproom: false, kettle_vol: 100 },

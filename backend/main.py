@@ -94,6 +94,21 @@ if "building_id" not in brewery_cols:
         conn.execute(text("ALTER TABLE breweries ADD COLUMN building_id INTEGER DEFAULT 2"))
         conn.commit()
 
+# Remove legacy equipment (дублировали улучшения или не имели эффекта)
+old_equipment_names = [
+    "Варочный котёл 50л", "Варочный котёл 100л",
+    "Ферментер 50л", "Ферментер 100л",
+]
+eq_cols_new = [c["name"] for c in insp.get_columns("equipment")]
+if "name" in eq_cols_new:
+    with engine.connect() as conn:
+        for eq_name in old_equipment_names:
+            conn.execute(
+                text("DELETE FROM equipment WHERE name = :name AND is_owned = 0"),
+                {"name": eq_name}
+            )
+        conn.commit()
+
 app = FastAPI(title="Пивоваренный Тайкун", description="Brewery Tycoon Game API")
 
 app.add_middleware(
