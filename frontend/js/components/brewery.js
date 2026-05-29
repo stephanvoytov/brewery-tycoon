@@ -13,8 +13,93 @@ async function doRenameBrewery() {
     }
 }
 
+const BUILDING_VISUALS = {
+    1: { // 🕳 Подвал
+        wall: ['#1a1a2a','#0e0e1e'], floor: ['#2a1a0a','#1a0a00'], wallStroke: '#2a2a3a',
+        title: '🕳 ПОДВАЛ', titleColor: '#8a8a7a', sectionBg: '#0e0e1a',
+        boilLabel: '#8a6a0f', fermLabel: '#2a5a7a', condLabel: '#2a5a3a',
+        kettle: ['#6a5a3a','#4a3a2a'], kettleTitle: '#ddd',
+        ferm: ['#2a4a6a','#1a3a5a'], fermTitle: '#ddd',
+        cond: ['#2a5a3a','#1a4a2a'], condTitle: '#ddd',
+        occupiedColor: '#e74c3c', freeColor: '#8a7a5a', floorLine: '#2a1a0a',
+        glowColor: '#8a7a5a', fermBubble: '#5a8aaa', condBubble: '#5aaa7a',
+        bottomBar: '#0e0e1a', bottomText: '#6a6a5a',
+    },
+    2: { // 🏗 Небольшой цех
+        wall: ['#2a3a5a','#1a2a4a'], floor: ['#3a2a1a','#2a1a0a'], wallStroke: '#3a4a6a',
+        title: '🏗 ЦЕХ ПИВОВАРНИ', titleColor: '#e0dcd0', sectionBg: '#1a1a2e',
+        boilLabel: '#d4a017', fermLabel: '#3498db', condLabel: '#2ecc71',
+        kettle: ['#d4a017','#8a6a0f'], kettleTitle: '#fff',
+        ferm: ['#3498db','#1a5276'], fermTitle: '#fff',
+        cond: ['#2ecc71','#1a6e3a'], condTitle: '#fff',
+        occupiedColor: '#e74c3c', freeColor: '#d4a017', floorLine: '#4a3a2a',
+        glowColor: '#f0c040', fermBubble: '#85c1e9', condBubble: '#82e0aa',
+        bottomBar: '#1a1a2e', bottomText: '#8a8a7a',
+    },
+    3: { // 🏭 Промышленное здание
+        wall: ['#3a4a5a','#2a3a4a'], floor: ['#4a4a4a','#3a3a3a'], wallStroke: '#5a6a7a',
+        title: '🏭 ПРОМЫШЛЕННОЕ ЗДАНИЕ', titleColor: '#c0d0e0', sectionBg: '#2a3a4a',
+        boilLabel: '#7a9aaa', fermLabel: '#5a8aaa', condLabel: '#5aaa7a',
+        kettle: ['#7a8a9a','#5a6a7a'], kettleTitle: '#fff',
+        ferm: ['#5a7a9a','#3a5a7a'], fermTitle: '#fff',
+        cond: ['#5a8a6a','#3a6a4a'], condTitle: '#fff',
+        occupiedColor: '#e74c3c', freeColor: '#8a9aaa', floorLine: '#5a5a5a',
+        glowColor: '#9aabba', fermBubble: '#7a9aba', condBubble: '#7aba8a',
+        bottomBar: '#2a3a4a', bottomText: '#8a9aaa',
+    },
+    4: { // 🎨 Крафт-лофт
+        wall: ['#5a3a2a','#4a2a1a'], floor: ['#4a3020','#3a2010'], wallStroke: '#7a5a3a',
+        title: '🎨 КРАФТ-ЛОФТ', titleColor: '#f0d0a0', sectionBg: '#3a2a1a',
+        boilLabel: '#d4a017', fermLabel: '#c07a3a', condLabel: '#5aaa5a',
+        kettle: ['#c08a30','#9a6a10'], kettleTitle: '#fff',
+        ferm: ['#b07a4a','#8a5a2a'], fermTitle: '#fff',
+        cond: ['#5a8a5a','#3a6a3a'], condTitle: '#fff',
+        occupiedColor: '#e74c3c', freeColor: '#c0a070', floorLine: '#5a3a2a',
+        glowColor: '#f0d0a0', fermBubble: '#c09a6a', condBubble: '#6aaa6a',
+        bottomBar: '#3a2a1a', bottomText: '#a09070',
+        isLoft: true,
+    },
+    5: { // 🏭 Пивоваренный завод
+        wall: ['#4a5a6a','#3a4a5a'], floor: ['#5a6a7a','#4a5a6a'], wallStroke: '#6a7a8a',
+        title: '🏭 ПИВОВАРЕННЫЙ ЗАВОД', titleColor: '#d0dce0', sectionBg: '#3a4a5a',
+        boilLabel: '#8abbc0', fermLabel: '#6a9abb', condLabel: '#6abb8a',
+        kettle: ['#8a9aaa','#6a7a8a'], kettleTitle: '#fff',
+        ferm: ['#6a8aaa','#4a6a8a'], fermTitle: '#fff',
+        cond: ['#6a9a7a','#4a7a5a'], condTitle: '#fff',
+        occupiedColor: '#e74c3c', freeColor: '#9abac0', floorLine: '#6a7a8a',
+        glowColor: '#aaccd0', fermBubble: '#8abada', condBubble: '#8ada9a',
+        bottomBar: '#3a4a5a', bottomText: '#9abac0',
+        isFactory: true,
+    },
+    6: { // 🔬 Лаборатория
+        wall: ['#d0d8e0','#b0b8c0'], floor: ['#c0c8d0','#a0a8b0'], wallStroke: '#8a9aaa',
+        title: '🔬 ЛАБОРАТОРИЯ', titleColor: '#2a3a4a', sectionBg: '#b0b8c0',
+        boilLabel: '#3a6a8a', fermLabel: '#5a8aaa', condLabel: '#4a9a6a',
+        kettle: ['#b0c0d0','#90a0b0'], kettleTitle: '#2a3a4a',
+        ferm: ['#a0b8d0','#8098b0'], fermTitle: '#2a3a4a',
+        cond: ['#a0c8b0','#80a890'], condTitle: '#2a3a4a',
+        occupiedColor: '#e74c3c', freeColor: '#6a8aaa', floorLine: '#8a9aaa',
+        glowColor: '#80c0e0', fermBubble: '#80a8d0', condBubble: '#80c8a0',
+        bottomBar: '#b0b8c0', bottomText: '#4a5a6a',
+        isLab: true,
+    },
+    7: { // 🌐 Холдинг
+        wall: ['#1a1a2e','#0a0a1e'], floor: ['#2a1a2a','#1a0a1a'], wallStroke: '#3a3a5a',
+        title: '🌐 ХОЛДИНГ', titleColor: '#d4a017', sectionBg: '#1a1a2e',
+        boilLabel: '#d4a017', fermLabel: '#9a5aaa', condLabel: '#5aaa8a',
+        kettle: ['#2a2a3a','#1a1a2a'], kettleTitle: '#d4a017',
+        ferm: ['#3a2a4a','#2a1a3a'], fermTitle: '#c08ae0',
+        cond: ['#2a3a2a','#1a2a1a'], condTitle: '#5aaa8a',
+        occupiedColor: '#e74c3c', freeColor: '#5a5a7a', floorLine: '#3a3a4a',
+        glowColor: '#d4a017', fermBubble: '#b08ad0', condBubble: '#6aba8a',
+        bottomBar: '#1a1a2e', bottomText: '#5a5a7a',
+        isHolding: true,
+    },
+};
+
 function renderBrewery() {
     const b = GAME_STATE.brewery;
+    const v = BUILDING_VISUALS[b.building_id] || BUILDING_VISUALS[2];
     const equip = GAME_STATE.equipment || [];
 
     const ownedEquip = equip.filter(e => e.is_owned);
@@ -58,25 +143,25 @@ function renderBrewery() {
         <div class="brewery-svg-container">
             <svg viewBox="0 0 1800 600" xmlns="http://www.w3.org/2000/svg" style="width:100%">
                 <defs>
-                    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="#2a3a5a"/>
-                        <stop offset="100%" stop-color="#1a2a4a"/>
+                    <linearGradient id="wall_${b.building_id}" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="${v.wall[0]}"/>
+                        <stop offset="100%" stop-color="${v.wall[1]}"/>
                     </linearGradient>
-                    <linearGradient id="kettle" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="#d4a017"/>
-                        <stop offset="100%" stop-color="#8a6a0f"/>
+                    <linearGradient id="kettle_${b.building_id}" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="${v.kettle[0]}"/>
+                        <stop offset="100%" stop-color="${v.kettle[1]}"/>
                     </linearGradient>
-                    <linearGradient id="ferm" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="#3498db"/>
-                        <stop offset="100%" stop-color="#1a5276"/>
+                    <linearGradient id="ferm_${b.building_id}" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="${v.ferm[0]}"/>
+                        <stop offset="100%" stop-color="${v.ferm[1]}"/>
                     </linearGradient>
-                    <linearGradient id="cond" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="#2ecc71"/>
-                        <stop offset="100%" stop-color="#1a6e3a"/>
+                    <linearGradient id="cond_${b.building_id}" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="${v.cond[0]}"/>
+                        <stop offset="100%" stop-color="${v.cond[1]}"/>
                     </linearGradient>
-                    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="#3a2a1a"/>
-                        <stop offset="100%" stop-color="#2a1a0a"/>
+                    <linearGradient id="floor_${b.building_id}" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="${v.floor[0]}"/>
+                        <stop offset="100%" stop-color="${v.floor[1]}"/>
                     </linearGradient>
                     <filter id="glow">
                         <feGaussianBlur stdDeviation="2" result="blur"/>
@@ -84,111 +169,133 @@ function renderBrewery() {
                     </filter>
                 </defs>
 
-                <rect x="10" y="10" width="1780" height="580" rx="10" fill="url(#wall)" stroke="#3a4a6a" stroke-width="2"/>
-                <rect x="10" y="510" width="1780" height="80" rx="0" fill="url(#floor)" opacity="0.6"/>
-                <line x1="10" y1="510" x2="1790" y2="510" stroke="#4a3a2a" stroke-width="1.5"/>
+                <rect x="10" y="10" width="1780" height="580" rx="10" fill="url(#wall_${b.building_id})" stroke="${v.wallStroke}" stroke-width="2"/>
+                <rect x="10" y="510" width="1780" height="80" rx="0" fill="url(#floor_${b.building_id})" opacity="0.6"/>
+                <line x1="10" y1="510" x2="1790" y2="510" stroke="${v.floorLine}" stroke-width="1.5"/>
 
-                <text x="900" y="38" text-anchor="middle" fill="#e0dcd0" font-size="18" font-weight="bold">🍺 ЦЕХ ПИВОВАРНИ</text>
+                <text x="900" y="38" text-anchor="middle" fill="${v.titleColor}" font-size="18" font-weight="bold">${v.title}</text>
 
-                <rect x="20" y="50" width="630" height="26" rx="4" fill="#1a1a2e" opacity="0.7"/>
-                <text x="335" y="68" text-anchor="middle" fill="#d4a017" font-size="14" font-weight="bold">⚡ ВАРОЧНЫЙ УЧАСТОК</text>
+                <rect x="20" y="50" width="630" height="26" rx="4" fill="${v.sectionBg}" opacity="0.7"/>
+                <text x="335" y="68" text-anchor="middle" fill="${v.boilLabel}" font-size="14" font-weight="bold">⚡ ВАРОЧНЫЙ УЧАСТОК</text>
 
-                <rect x="670" y="50" width="810" height="26" rx="4" fill="#1a1a2e" opacity="0.7"/>
-                <text x="1075" y="68" text-anchor="middle" fill="#3498db" font-size="14" font-weight="bold">🧪 БРОДИЛЬНЯ</text>
+                <rect x="670" y="50" width="810" height="26" rx="4" fill="${v.sectionBg}" opacity="0.7"/>
+                <text x="1075" y="68" text-anchor="middle" fill="${v.fermLabel}" font-size="14" font-weight="bold">🧪 БРОДИЛЬНЯ</text>
 
-                <rect x="1500" y="50" width="280" height="26" rx="4" fill="#1a1a2e" opacity="0.7"/>
-                <text x="1640" y="68" text-anchor="middle" fill="#2ecc71" font-size="14" font-weight="bold">🧊 ДОЗРЕВАНИЕ</text>
+                <rect x="1500" y="50" width="280" height="26" rx="4" fill="${v.sectionBg}" opacity="0.7"/>
+                <text x="1640" y="68" text-anchor="middle" fill="${v.condLabel}" font-size="14" font-weight="bold">🧊 ДОЗРЕВАНИЕ</text>
 
                 ${svgTanks.map((t, i) => {
                     const x = 40 + i * 145;
-                    const color = t.occupied ? '#e74c3c' : '#d4a017';
+                    const color = t.occupied ? v.occupiedColor : v.freeColor;
                     return `
                         <g>
-                            <rect x="${x}" y="95" width="130" height="150" rx="8" fill="url(#kettle)" stroke="${color}" stroke-width="2.5"/>
+                            <rect x="${x}" y="95" width="130" height="150" rx="8" fill="url(#kettle_${b.building_id})" stroke="${color}" stroke-width="2.5"/>
                             <rect x="${x + 12}" y="105" width="106" height="45" rx="5" fill="#1a0a00" opacity="0.4"/>
-                            <rect x="${x + 12}" y="${225 - (t.occupied ? 35 : 0)}" width="106" height="${t.occupied ? 35 : 6}" rx="3" fill="#f0c040" opacity="${t.occupied ? 0.85 : 0.2}"/>
-                            <text x="${x + 65}" y="165" text-anchor="middle" fill="#fff" font-size="14" font-weight="bold">Котёл ${t.id}</text>
+                            <rect x="${x + 12}" y="${225 - (t.occupied ? 35 : 0)}" width="106" height="${t.occupied ? 35 : 6}" rx="3" fill="${v.glowColor}" opacity="${t.occupied ? 0.85 : 0.2}"/>
+                            <text x="${x + 65}" y="165" text-anchor="middle" fill="${v.kettleTitle}" font-size="14" font-weight="bold">Котёл ${t.id}</text>
                             <text x="${x + 65}" y="190" text-anchor="middle" fill="${color}" font-size="12" font-weight="bold">${t.occupied ? '🔥 Варка' : '✅ Свободен'}</text>
                             ${t.occupied ? `
-                                <circle cx="${x + 30}" cy="120" r="6" fill="#f0c040" opacity="0.85" filter="url(#glow)">
+                                <circle cx="${x + 30}" cy="120" r="6" fill="${v.glowColor}" opacity="0.85" filter="url(#glow)">
                                     <animate attributeName="opacity" values="0.85;0.2;0.85" dur="1s" repeatCount="indefinite"/>
                                 </circle>
-                                <circle cx="${x + 65}" cy="112" r="5" fill="#f0c040" opacity="0.65">
+                                <circle cx="${x + 65}" cy="112" r="5" fill="${v.glowColor}" opacity="0.65">
                                     <animate attributeName="opacity" values="0.65;0.1;0.65" dur="1.5s" repeatCount="indefinite"/>
                                 </circle>
-                                <circle cx="${x + 100}" cy="125" r="4" fill="#f0c040" opacity="0.55">
+                                <circle cx="${x + 100}" cy="125" r="4" fill="${v.glowColor}" opacity="0.55">
                                     <animate attributeName="opacity" values="0.55;0.1;0.55" dur="1.2s" repeatCount="indefinite"/>
                                 </circle>
                             ` : ''}
-                            <rect x="${x + 30}" y="245" width="70" height="10" rx="3" fill="#5a4a3a"/>
+                            <rect x="${x + 30}" y="245" width="70" height="10" rx="3" fill="${v.floorLine}"/>
                         </g>
                     `;
                 }).join('')}
 
-                <line x1="40" y1="85" x2="${40 + Math.min(svgTanks.length, 4) * 145 + 60}" y2="85" stroke="#5a4a3a" stroke-width="2.5"/>
+                <line x1="40" y1="85" x2="${40 + Math.min(svgTanks.length, 4) * 145 + 60}" y2="85" stroke="${v.floorLine}" stroke-width="2.5"/>
 
                 ${svgFermenters.map((t, i) => {
                     const x = 690 + i * 82;
-                    const color = t.occupied ? '#e74c3c' : '#3498db';
+                    const color = t.occupied ? v.occupiedColor : v.fermLabel;
                     return `
                         <g>
-                            <rect x="${x}" y="105" width="68" height="140" rx="34" fill="url(#ferm)" stroke="${color}" stroke-width="2.5"/>
+                            <rect x="${x}" y="105" width="68" height="140" rx="34" fill="url(#ferm_${b.building_id})" stroke="${color}" stroke-width="2.5"/>
                             <rect x="${x + 10}" y="118" width="48" height="65" rx="24" fill="#0a1a2e" opacity="0.3"/>
-                            <text x="${x + 34}" y="172" text-anchor="middle" fill="#fff" font-size="10">Ф${t.id}</text>
+                            <text x="${x + 34}" y="172" text-anchor="middle" fill="${v.fermTitle}" font-size="10">Ф${t.id}</text>
                             <text x="${x + 34}" y="192" text-anchor="middle" fill="${color}" font-size="11" font-weight="bold">${t.occupied ? '⏳' : '✅'}</text>
                             ${t.occupied ? `
-                                <circle cx="${x + 22}" cy="135" r="4" fill="#85c1e9" opacity="0.75">
+                                <circle cx="${x + 22}" cy="135" r="4" fill="${v.fermBubble}" opacity="0.75">
                                     <animate attributeName="cy" values="135;122;135" dur="2s" repeatCount="indefinite"/>
                                 </circle>
-                                <circle cx="${x + 46}" cy="140" r="4" fill="#85c1e9" opacity="0.55">
+                                <circle cx="${x + 46}" cy="140" r="4" fill="${v.fermBubble}" opacity="0.55">
                                     <animate attributeName="cy" values="140;125;140" dur="2.8s" repeatCount="indefinite"/>
                                 </circle>
                             ` : ''}
-                            <rect x="${x + 17}" y="245" width="34" height="10" rx="3" fill="#5a4a3a"/>
+                            <rect x="${x + 17}" y="245" width="34" height="10" rx="3" fill="${v.floorLine}"/>
                         </g>
                     `;
                 }).join('')}
 
                 ${svgConditioning.map((t, i) => {
                     const x = 1520 + i * 135;
-                    const color = t.occupied ? '#e74c3c' : '#2ecc71';
+                    const color = t.occupied ? v.occupiedColor : v.condLabel;
                     return `
                         <g>
-                            <rect x="${x}" y="95" width="110" height="150" rx="10" fill="url(#cond)" stroke="${color}" stroke-width="2.5"/>
+                            <rect x="${x}" y="95" width="110" height="150" rx="10" fill="url(#cond_${b.building_id})" stroke="${color}" stroke-width="2.5"/>
                             <ellipse cx="${x + 55}" cy="122" rx="42" ry="14" fill="#0a1a0a" opacity="0.35"/>
-                            <text x="${x + 55}" y="172" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold">Танк ${t.id}</text>
+                            <text x="${x + 55}" y="172" text-anchor="middle" fill="${v.condTitle}" font-size="13" font-weight="bold">Танк ${t.id}</text>
                             <text x="${x + 55}" y="195" text-anchor="middle" fill="${color}" font-size="12" font-weight="bold">${t.occupied ? '⏳ Созревает' : '✅ Свободен'}</text>
-                            <rect x="${x + 25}" y="245" width="60" height="10" rx="3" fill="#5a4a3a"/>
+                            <rect x="${x + 25}" y="245" width="60" height="10" rx="3" fill="${v.floorLine}"/>
                         </g>
                     `;
                 }).join('')}
 
+                ${v.isLoft ? `
+                <g transform="translate(40, 290)">
+                    <text x="0" y="10" fill="#d4a017" font-size="10" opacity="0.5">✦ ✦ ✦ ✦ ✦ ✦ ✦ ✦ ✦ ✦ ✦ ✦ ✦ ✦ ✦</text>
+                </g>` : ''}
+                ${v.isLab ? `
+                <g transform="translate(40, 290)">
+                    <circle cx="30" cy="10" r="6" fill="none" stroke="#5a8aaa" stroke-width="1.5" opacity="0.4"/>
+                    <circle cx="50" cy="10" r="4" fill="none" stroke="#5a8aaa" stroke-width="1" opacity="0.4"/>
+                    <line x1="20" y1="14" x2="40" y2="14" stroke="#5a8aaa" stroke-width="1" opacity="0.3"/>
+                </g>` : ''}
+                ${v.isFactory ? `
+                <g transform="translate(40, 290)">
+                    <rect x="0" y="2" width="30" height="8" rx="2" fill="#6a7a8a" opacity="0.3"/>
+                    <rect x="35" y="4" width="20" height="6" rx="2" fill="#6a7a8a" opacity="0.2"/>
+                </g>` : ''}
+                ${v.isHolding ? `
+                <g transform="translate(40, 290)">
+                    <rect x="0" y="2" width="12" height="10" rx="1" fill="#d4a017" opacity="0.3"/>
+                    <rect x="16" y="2" width="12" height="10" rx="1" fill="#d4a017" opacity="0.2"/>
+                    <rect x="32" y="2" width="12" height="10" rx="1" fill="#d4a017" opacity="0.15"/>
+                </g>` : ''}
+
                 <g transform="translate(40, 330)">
-                    <rect x="0" y="0" width="500" height="90" rx="8" fill="#4a3a2a" stroke="#8a7a5a" stroke-width="1.5" stroke-dasharray="5,3"/>
-                    <text x="250" y="28" text-anchor="middle" fill="#d4a017" font-size="14" font-weight="bold">🍾 Линия розлива</text>
-                    <text x="250" y="50" text-anchor="middle" fill="#8a8a7a" font-size="12">${ownedEquip.some(e => e.type === 'bottling_line') ? '✅ Установлена' : '❌ Не куплена'}</text>
-                    <circle cx="60" cy="72" r="7" fill="#3498db" opacity="0.5"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="0.8s" repeatCount="indefinite"/></circle>
-                    <circle cx="120" cy="72" r="7" fill="#3498db" opacity="0.4"><animate attributeName="opacity" values="0.4;0.1;0.4" dur="0.6s" repeatCount="indefinite"/></circle>
-                    <circle cx="180" cy="72" r="7" fill="#3498db" opacity="0.5"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="0.7s" repeatCount="indefinite"/></circle>
+                    <rect x="0" y="0" width="500" height="90" rx="8" fill="${v.sectionBg}" stroke="${v.freeColor}" stroke-width="1.5" stroke-dasharray="5,3"/>
+                    <text x="250" y="28" text-anchor="middle" fill="${v.boilLabel}" font-size="14" font-weight="bold">🍾 Линия розлива</text>
+                    <text x="250" y="50" text-anchor="middle" fill="${v.bottomText}" font-size="12">${ownedEquip.some(e => e.type === 'bottling_line') ? '✅ Установлена' : '❌ Не куплена'}</text>
+                    <circle cx="60" cy="72" r="7" fill="${v.fermBubble}" opacity="0.5"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="0.8s" repeatCount="indefinite"/></circle>
+                    <circle cx="120" cy="72" r="7" fill="${v.fermBubble}" opacity="0.4"><animate attributeName="opacity" values="0.4;0.1;0.4" dur="0.6s" repeatCount="indefinite"/></circle>
+                    <circle cx="180" cy="72" r="7" fill="${v.fermBubble}" opacity="0.5"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="0.7s" repeatCount="indefinite"/></circle>
                 </g>
 
                 <g transform="translate(580, 330)">
-                    <rect x="0" y="0" width="540" height="90" rx="8" fill="#4a3a2a" stroke="#8a7a5a" stroke-width="1.5" stroke-dasharray="5,3"/>
-                    <text x="270" y="28" text-anchor="middle" fill="#d4a017" font-size="14" font-weight="bold">🛢 Линия кегов</text>
-                    <text x="270" y="50" text-anchor="middle" fill="#8a8a7a" font-size="12">${ownedEquip.some(e => e.type === 'kegging_line') ? '✅ Установлена' : '❌ Не куплена'}</text>
-                    <ellipse cx="270" cy="68" rx="45" ry="22" fill="#8a7a5a" opacity="0.4" stroke="#8a7a5a" stroke-width="1.5"/>
+                    <rect x="0" y="0" width="540" height="90" rx="8" fill="${v.sectionBg}" stroke="${v.freeColor}" stroke-width="1.5" stroke-dasharray="5,3"/>
+                    <text x="270" y="28" text-anchor="middle" fill="${v.boilLabel}" font-size="14" font-weight="bold">🛢 Линия кегов</text>
+                    <text x="270" y="50" text-anchor="middle" fill="${v.bottomText}" font-size="12">${ownedEquip.some(e => e.type === 'kegging_line') ? '✅ Установлена' : '❌ Не куплена'}</text>
+                    <ellipse cx="270" cy="68" rx="45" ry="22" fill="${v.floorLine}" opacity="0.4" stroke="${v.freeColor}" stroke-width="1.5"/>
                 </g>
 
                 <g transform="translate(1160, 330)">
-                    <rect x="0" y="0" width="580" height="90" rx="8" fill="#3a2a1a" stroke="${b.has_taproom ? '#2ecc71' : '#8a8a7a'}" stroke-width="1.5"/>
-                    <text x="290" y="28" text-anchor="middle" fill="${b.has_taproom ? '#2ecc71' : '#8a8a7a'}" font-size="14" font-weight="bold">🍺 Тапрум</text>
-                    <text x="290" y="50" text-anchor="middle" fill="#8a8a7a" font-size="12">${b.has_taproom ? `✅ Открыт (ур. ${b.taproom_level})` : '🔴 Не построен'}</text>
-                    ${b.has_taproom ? `<text x="290" y="72" text-anchor="middle" fill="#2ecc71" font-size="13">${formatMoney(b.taproom_level * 30)}/день</text>` : ''}
+                    <rect x="0" y="0" width="580" height="90" rx="8" fill="${v.sectionBg}" stroke="${b.has_taproom ? v.condLabel : v.bottomText}" stroke-width="1.5"/>
+                    <text x="290" y="28" text-anchor="middle" fill="${b.has_taproom ? v.condLabel : v.bottomText}" font-size="14" font-weight="bold">🍺 Тапрум</text>
+                    <text x="290" y="50" text-anchor="middle" fill="${v.bottomText}" font-size="12">${b.has_taproom ? `✅ Открыт (ур. ${b.taproom_level})` : '🔴 Не построен'}</text>
+                    ${b.has_taproom ? `<text x="290" y="72" text-anchor="middle" fill="${v.condLabel}" font-size="13">${formatMoney(b.taproom_level * 30)}/день</text>` : ''}
                 </g>
 
                 <g transform="translate(40, 445)">
-                    <rect x="0" y="0" width="1720" height="42" rx="6" fill="#1a1a2e" opacity="0.8"/>
-                    <text x="860" y="26" text-anchor="middle" fill="#8a8a7a" font-size="14">📦 Хранилище: ${b.storage_capacity} л • Аренда: ${formatMonthly(b.rent)} • Уровень: ${b.level} • Котлы: ${b.tank_count}×${b.tank_volume}л (макс. партия ${b.tank_count * b.tank_volume}л)</text>
+                    <rect x="0" y="0" width="1720" height="42" rx="6" fill="${v.bottomBar}" opacity="0.8"/>
+                    <text x="860" y="26" text-anchor="middle" fill="${v.bottomText}" font-size="14">📦 Хранилище: ${b.storage_capacity} л • Аренда: ${formatMonthly(b.rent)} • Уровень: ${b.level} • Котлы: ${b.tank_count}×${b.tank_volume}л (макс. партия ${b.tank_count * b.tank_volume}л)</text>
                 </g>
             </svg>
         </div>
