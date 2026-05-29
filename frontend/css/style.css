@@ -589,6 +589,35 @@ input:focus, select:focus {
 }
 
 /* Help page */
+.help-tabs {
+    margin-top: 8px;
+}
+.help-tab-bar {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 0;
+}
+.help-tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    padding: 10px 20px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.15s;
+}
+.help-tab-btn:hover {
+    color: var(--text);
+}
+.help-tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    font-weight: 600;
+}
 .help-section {
     margin-bottom: 24px;
 }
