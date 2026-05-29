@@ -123,6 +123,7 @@ async function enterGame() {
     if (!savedPage || !validPages.includes(savedPage)) {
         renderCurrentPage();
     }
+    showTutorial();
 }
 
 async function initGameFlow() {

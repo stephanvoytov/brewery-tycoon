@@ -752,6 +752,89 @@ input:focus, select:focus {
     to { opacity: 1; transform: translateX(0); }
 }
 
+/* Tutorial overlay */
+#tutorialOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#tutorialBackdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: -1;
+}
+#tutorialBox {
+    background: var(--bg-card);
+    border: 2px solid var(--accent);
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 480px;
+    width: 90%;
+    text-align: center;
+    animation: fadeIn 0.3s ease;
+}
+#tutorialStep {
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+#tutorialStep .tutorial-icon {
+    font-size: 48px;
+}
+#tutorialStep .tutorial-title {
+    font-size: 1.3rem;
+    color: var(--accent-light);
+    font-weight: 700;
+}
+#tutorialStep .tutorial-desc {
+    font-size: 0.95rem;
+    color: var(--text);
+    line-height: 1.6;
+    padding: 0 8px;
+}
+#tutorialStep .tutorial-tip {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    background: var(--bg-main);
+    padding: 8px 14px;
+    border-radius: 8px;
+    margin-top: 4px;
+}
+#tutorialNav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 24px;
+    gap: 12px;
+}
+#tutorialNav .btn {
+    font-size: 0.85rem;
+    padding: 8px 20px;
+    min-width: 100px;
+}
+#tutorialDots {
+    display: flex;
+    gap: 6px;
+}
+#tutorialDots .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background 0.2s;
+    cursor: pointer;
+}
+#tutorialDots .dot.active {
+    background: var(--accent);
+}
+
 @media (max-width: 768px) {
     .sidebar { width: 60px; }
     .sidebar-header h1, .sidebar-header span, .nav-btn span, .game-id-bar { display: none; }
