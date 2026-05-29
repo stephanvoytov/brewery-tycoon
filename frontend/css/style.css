@@ -849,6 +849,8 @@ input:focus, select:focus {
     background: var(--accent);
 }
 
+.bottom-nav { display: none; }
+
 /* ===== MOBILE OPTIMIZATION (max-width: 768px) ===== */
 @media (max-width: 768px) {
     /* === Layout === */
