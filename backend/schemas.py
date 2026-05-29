@@ -145,6 +145,8 @@ class EquipmentSchema(BaseModel):
     is_owned: bool
     is_busy: bool
     wear_tear: float = 100.0
+    min_level: int = 1
+    locked: bool = False
 
     class Config:
         from_attributes = True
