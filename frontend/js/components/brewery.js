@@ -262,9 +262,16 @@ function renderBrewery() {
 
                         // Room floor
                         html += `                        <rect x="${roomX}" y="${roomY}" width="${roomW}" height="${roomH}" rx="6" fill="${v.wall[1]}" stroke="${v.wallStroke}" stroke-width="2"/>
-                        <foreignObject x="${roomX}" y="${roomY}" width="${roomW}" height="${roomH}">
-                            <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;background-image:url('/img/textures/${v.floorType}.jpg');background-repeat:repeat;background-size:100px 100px;pointer-events:none;border-radius:6px"/>
-                        </foreignObject>`;
+                        `;
+                            // Floor texture tiles
+                            for (let ty = 0; ty < roomH; ty += 100) {
+                                for (let tx = 0; tx < roomW; tx += 100) {
+                                    const tw = Math.min(100, roomW - tx);
+                                    const th = Math.min(100, roomH - ty);
+                                    html += `<image href="/img/textures/${v.floorType}.jpg" x="${roomX + tx}" y="${roomY + ty}" width="${tw}" height="${th}" preserveAspectRatio="xMidYMid slice" opacity="1"/>`;
+                                }
+                            }
+                        html += ``;
 
                         // Room border accent
                         html += `<rect x="${roomX + 4}" y="${roomY + 4}" width="${roomW - 8}" height="${roomH - 8}" rx="4" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
