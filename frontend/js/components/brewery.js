@@ -217,30 +217,6 @@ function renderBrewery() {
         <div class="brewery-svg-container">
             <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" style="width:100%;cursor:grab">
                 <defs>
-                    <pattern id="floorPlanks" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <image href="/img/textures/planks.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
-                    </pattern>
-                    <pattern id="floorStone" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <image href="/img/textures/stone.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
-                    </pattern>
-                    <pattern id="floorTile" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <image href="/img/textures/tile.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
-                    </pattern>
-                    <pattern id="floorConcrete" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <image href="/img/textures/concrete.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
-                    </pattern>
-                    <pattern id="floorHerringbone" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <image href="/img/textures/herringbone.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
-                    </pattern>
-                    <pattern id="floorPolished" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <image href="/img/textures/polished.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
-                    </pattern>
-                    <pattern id="floorEpoxy" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <image href="/img/textures/epoxy.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
-                    </pattern>
-                    <pattern id="floorMarble" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <image href="/img/textures/marble.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
-                    </pattern>
                     <linearGradient id="kettleGrad" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stop-color="${v.kettle[0]}"/>
                         <stop offset="100%" stop-color="${v.kettle[1]}"/>
@@ -591,6 +567,38 @@ function renderBrewery() {
             })()}
         </div>
     `;
+    // Build floor patterns via createElementNS (proper SVG namespace)
+    try {
+        const defs = el.querySelector('svg defs');
+        if (defs) {
+            const textures = [
+                ['planks','/img/textures/planks.jpg'],
+                ['stone','/img/textures/stone.jpg'],
+                ['tile','/img/textures/tile.jpg'],
+                ['concrete','/img/textures/concrete.jpg'],
+                ['herringbone','/img/textures/herringbone.jpg'],
+                ['polished','/img/textures/polished.jpg'],
+                ['epoxy','/img/textures/epoxy.jpg'],
+                ['marble','/img/textures/marble.jpg'],
+            ];
+            for (const [name, src] of textures) {
+                const p = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
+                p.setAttribute('id', 'floor' + name.charAt(0).toUpperCase() + name.slice(1));
+                p.setAttribute('width', '100');
+                p.setAttribute('height', '100');
+                p.setAttribute('patternUnits', 'userSpaceOnUse');
+                const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+                img.setAttribute('href', src);
+                img.setAttribute('width', '100');
+                img.setAttribute('height', '100');
+                img.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+                p.appendChild(img);
+                defs.insertBefore(p, defs.firstChild);
+            }
+        }
+    } catch (e) {
+        console.warn('Floor patterns:', e.message);
+    }
     const svg = el.querySelector('.brewery-svg-container svg');
     if (svg) brewSetupEvents(svg);
 }
