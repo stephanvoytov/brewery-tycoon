@@ -285,8 +285,8 @@ function renderBrewery() {
                         let html = '';
 
                         // Room floor
-                        html += `<rect x="${roomX}" y="${roomY}" width="${roomW}" height="${roomH}" rx="6" fill="${v.wall[1]}" stroke="${v.wallStroke}" stroke-width="2"/>
-                        <rect x="${roomX}" y="${roomY}" width="${roomW}" height="${roomH}" fill="url(#floor${v.floorType})" opacity="0.5"/>`;
+                        html += `                        <rect x="${roomX}" y="${roomY}" width="${roomW}" height="${roomH}" rx="6" fill="${v.wall[1]}" stroke="${v.wallStroke}" stroke-width="2"/>
+                        <rect x="${roomX}" y="${roomY}" width="${roomW}" height="${roomH}" fill="url(#floor${v.floorType})" opacity="1"/>`;
 
                         // Room border accent
                         html += `<rect x="${roomX + 4}" y="${roomY + 4}" width="${roomW - 8}" height="${roomH - 8}" rx="4" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
@@ -296,18 +296,18 @@ function renderBrewery() {
 
                         // Zone: Kettles
                         const z1cy = zoneY + zoneH / 2;
-                        html += `<rect x="${z1x}" y="${zoneY}" width="${zoneW}" height="${zoneH}" rx="6" fill="${v.sectionBg}" opacity="0.25"/>
+                        html += `<rect x="${z1x}" y="${zoneY}" width="${zoneW}" height="${zoneH}" rx="6" fill="${v.sectionBg}" opacity="0.12"/>
                         <text x="${z1x + zoneW / 2}" y="${zoneY + 16}" text-anchor="middle" fill="${v.boilLabel}" font-size="11" font-weight="bold" opacity="0.8">⚡ ВАРОЧНЫЙ УЧАСТОК</text>`;
                         html += renderTankGrid(svgTanks, z1x + zoneW / 2, z1cy, zoneW, zoneH, 32, '#kettleGrad', v.freeColor, v.occupiedColor, v.kettleTitle, v.occupiedColor, v.glowColor, v.fermBubble, true);
 
                         // Zone: Fermenters
-                        html += `<rect x="${z2x}" y="${zoneY}" width="${zoneW}" height="${zoneH}" rx="6" fill="${v.sectionBg}" opacity="0.25"/>
+                        html += `<rect x="${z2x}" y="${zoneY}" width="${zoneW}" height="${zoneH}" rx="6" fill="${v.sectionBg}" opacity="0.12"/>
                         <text x="${z2x + zoneW / 2}" y="${zoneY + 16}" text-anchor="middle" fill="${v.fermLabel}" font-size="11" font-weight="bold" opacity="0.8">🧪 БРОДИЛЬНЯ</text>`;
                         html += renderTankGrid(svgFermenters, z2x + zoneW / 2, z1cy, zoneW, zoneH, 26, '#fermGrad', v.fermLabel, v.occupiedColor, v.fermTitle, v.occupiedColor, v.glowColor, v.fermBubble, false);
 
                         // Zone: Conditioning
                         if (showCond) {
-                            html += `<rect x="${z3x}" y="${zoneY}" width="${zoneW}" height="${zoneH}" rx="6" fill="${v.sectionBg}" opacity="0.25"/>
+                            html += `<rect x="${z3x}" y="${zoneY}" width="${zoneW}" height="${zoneH}" rx="6" fill="${v.sectionBg}" opacity="0.12"/>
                             <text x="${z3x + zoneW / 2}" y="${zoneY + 16}" text-anchor="middle" fill="${v.condLabel}" font-size="11" font-weight="bold" opacity="0.8">🧊 ДОЗРЕВАНИЕ</text>`;
                             html += renderTankGrid(svgConditioning, z3x + zoneW / 2, z1cy, zoneW, zoneH, 28, '#condGrad', v.condLabel, v.occupiedColor, v.condTitle, v.occupiedColor, v.glowColor, v.condBubble, false);
                         }
@@ -319,25 +319,25 @@ function renderBrewery() {
                             const eqW = availW;
                             const eqX = roomX + pad;
                             const thirdW = (eqW - 2 * secGap) / 3;
-                            html += `<rect x="${eqX}" y="${eqY}" width="${eqW}" height="${eqH}" rx="6" fill="${v.sectionBg}" opacity="0.3"/>`;
+                            html += `<rect x="${eqX}" y="${eqY}" width="${eqW}" height="${eqH}" rx="6" fill="${v.sectionBg}" opacity="0.15"/>`;
 
                             // Bottling
                             html += `<g transform="translate(${eqX}, ${eqY})">
-                                <rect x="0" y="0" width="${thirdW}" height="${eqH}" rx="4" fill="${v.sectionBg}" opacity="0.5"/>
+                                <rect x="0" y="0" width="${thirdW}" height="${eqH}" rx="4" fill="${v.sectionBg}" opacity="0.25"/>
                                 <text x="${thirdW / 2}" y="18" text-anchor="middle" fill="${v.boilLabel}" font-size="11" font-weight="bold">🍾 Розлив</text>
                                 <text x="${thirdW / 2}" y="34" text-anchor="middle" fill="${v.bottomText}" font-size="9">${ownedEquip.some(e => e.type === 'bottling_line') ? '✅ Установлена' : '❌ Не куплена'}</text>
                             </g>`;
 
                             // Kegging
                             html += `<g transform="translate(${eqX + thirdW + secGap}, ${eqY})">
-                                <rect x="0" y="0" width="${thirdW}" height="${eqH}" rx="4" fill="${v.sectionBg}" opacity="0.5"/>
+                                <rect x="0" y="0" width="${thirdW}" height="${eqH}" rx="4" fill="${v.sectionBg}" opacity="0.25"/>
                                 <text x="${thirdW / 2}" y="18" text-anchor="middle" fill="${v.boilLabel}" font-size="11" font-weight="bold">🛢 Кеги</text>
                                 <text x="${thirdW / 2}" y="34" text-anchor="middle" fill="${v.bottomText}" font-size="9">${ownedEquip.some(e => e.type === 'kegging_line') ? '✅ Установлена' : '❌ Не куплена'}</text>
                             </g>`;
 
                             // Taproom
                             html += `<g transform="translate(${eqX + 2 * (thirdW + secGap)}, ${eqY})">
-                                <rect x="0" y="0" width="${thirdW}" height="${eqH}" rx="4" fill="${v.sectionBg}" opacity="0.5"/>
+                                <rect x="0" y="0" width="${thirdW}" height="${eqH}" rx="4" fill="${v.sectionBg}" opacity="0.25"/>
                                 <text x="${thirdW / 2}" y="18" text-anchor="middle" fill="${b.has_taproom ? v.condLabel : v.bottomText}" font-size="11" font-weight="bold">🍺 Тапрум</text>
                                 <text x="${thirdW / 2}" y="34" text-anchor="middle" fill="${v.bottomText}" font-size="9">${b.has_taproom ? `Ур.${b.taproom_level}` : 'Не построен'}</text>
                             </g>`;
