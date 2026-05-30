@@ -104,8 +104,9 @@ function renderTankGrid(tanks, zoneCx, zoneCy, zoneW, zoneH, baseR, gradId, free
     const rows = Math.ceil(count / cols);
     const radii = tanks.map(t => tankRadius(t.vol, baseR));
     const gap = 12;
-    const totalW = cols * Math.max(...radii) * 2 + (cols - 1) * gap;
-    const totalH = rows * Math.max(...radii) * 2 + (rows - 1) * gap;
+    const maxR = Math.max(...radii);
+    const totalW = cols * maxR * 2 + (cols - 1) * gap;
+    const totalH = rows * maxR * 2 + (rows - 1) * gap;
     const startX = zoneCx + (cols === 1 ? 0 : -totalW / 2) + (cols === 1 ? -radii[0] : 0);
     const startY = zoneCy + (rows === 1 ? 0 : -totalH / 2) + (rows === 1 ? -radii[0] : 0);
     let html = '';
@@ -113,13 +114,13 @@ function renderTankGrid(tanks, zoneCx, zoneCy, zoneW, zoneH, baseR, gradId, free
         const col = i % cols;
         const row = Math.floor(i / cols);
         const r = radii[i];
-        const cx = startX + r + col * (2 * Math.max(...radii) + gap);
-        const cy = startY + r + row * (2 * Math.max(...radii) + gap);
+        const cx = startX + r + col * (2 * maxR + gap);
+        const cy = startY + r + row * (2 * maxR + gap);
         const color = t.occupied ? occColor : freeColor;
         html += `<g>
             <circle cx="${cx}" cy="${cy}" r="${r}" fill="url(${gradId})" stroke="${color}" stroke-width="3"/>
             <circle cx="${cx}" cy="${cy}" r="${r * 0.7}" fill="${t.occupied ? 'rgba(180,80,0,0.2)' : 'rgba(0,80,180,0.08)'}"/>
-            <text x="${cx}" y="${cy + 4}" text-anchor="middle" fill="${txtColor}" font-size="${Math.max(9, r * 0.48)}" font-weight="bold">${t.vol}л</text>
+            <text x="${cx}" y="${cy + 4}" text-anchor="middle" fill="${txtColor}" font-size="${Math.max(11, r * 0.55)}" font-weight="bold">${t.vol}л</text>
             ${t.occupied ? `
                 <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${glowColor}" stroke-width="2" opacity="0.6">
                     <animate attributeName="opacity" values="0.6;0.1;0.6" dur="1.2s" repeatCount="indefinite"/>
@@ -272,19 +273,19 @@ function renderBrewery() {
                         // Zone: Kettles
                         const z1cy = zoneY + zoneH / 2;
                         html += `<rect x="${z1x}" y="${zoneY}" width="${zoneW}" height="${zoneH}" rx="6" fill="${v.sectionBg}" opacity="0.25"/>
-                        <text x="${z1x + zoneW / 2}" y="${zoneY + 16}" text-anchor="middle" fill="${v.boilLabel}" font-size="10" font-weight="bold" opacity="0.8">⚡ ВАРОЧНЫЙ УЧАСТОК</text>`;
-                        html += renderTankGrid(svgTanks, z1x + zoneW / 2, z1cy, zoneW, zoneH, 22, '#kettleGrad', v.freeColor, v.occupiedColor, v.kettleTitle, v.occupiedColor, v.glowColor, v.fermBubble, true);
+                        <text x="${z1x + zoneW / 2}" y="${zoneY + 16}" text-anchor="middle" fill="${v.boilLabel}" font-size="11" font-weight="bold" opacity="0.8">⚡ ВАРОЧНЫЙ УЧАСТОК</text>`;
+                        html += renderTankGrid(svgTanks, z1x + zoneW / 2, z1cy, zoneW, zoneH, 32, '#kettleGrad', v.freeColor, v.occupiedColor, v.kettleTitle, v.occupiedColor, v.glowColor, v.fermBubble, true);
 
                         // Zone: Fermenters
                         html += `<rect x="${z2x}" y="${zoneY}" width="${zoneW}" height="${zoneH}" rx="6" fill="${v.sectionBg}" opacity="0.25"/>
-                        <text x="${z2x + zoneW / 2}" y="${zoneY + 16}" text-anchor="middle" fill="${v.fermLabel}" font-size="10" font-weight="bold" opacity="0.8">🧪 БРОДИЛЬНЯ</text>`;
-                        html += renderTankGrid(svgFermenters, z2x + zoneW / 2, z1cy, zoneW, zoneH, 18, '#fermGrad', v.fermLabel, v.occupiedColor, v.fermTitle, v.occupiedColor, v.glowColor, v.fermBubble, false);
+                        <text x="${z2x + zoneW / 2}" y="${zoneY + 16}" text-anchor="middle" fill="${v.fermLabel}" font-size="11" font-weight="bold" opacity="0.8">🧪 БРОДИЛЬНЯ</text>`;
+                        html += renderTankGrid(svgFermenters, z2x + zoneW / 2, z1cy, zoneW, zoneH, 26, '#fermGrad', v.fermLabel, v.occupiedColor, v.fermTitle, v.occupiedColor, v.glowColor, v.fermBubble, false);
 
                         // Zone: Conditioning
                         if (showCond) {
                             html += `<rect x="${z3x}" y="${zoneY}" width="${zoneW}" height="${zoneH}" rx="6" fill="${v.sectionBg}" opacity="0.25"/>
-                            <text x="${z3x + zoneW / 2}" y="${zoneY + 16}" text-anchor="middle" fill="${v.condLabel}" font-size="10" font-weight="bold" opacity="0.8">🧊 ДОЗРЕВАНИЕ</text>`;
-                            html += renderTankGrid(svgConditioning, z3x + zoneW / 2, z1cy, zoneW, zoneH, 20, '#condGrad', v.condLabel, v.occupiedColor, v.condTitle, v.occupiedColor, v.glowColor, v.condBubble, false);
+                            <text x="${z3x + zoneW / 2}" y="${zoneY + 16}" text-anchor="middle" fill="${v.condLabel}" font-size="11" font-weight="bold" opacity="0.8">🧊 ДОЗРЕВАНИЕ</text>`;
+                            html += renderTankGrid(svgConditioning, z3x + zoneW / 2, z1cy, zoneW, zoneH, 28, '#condGrad', v.condLabel, v.occupiedColor, v.condTitle, v.occupiedColor, v.glowColor, v.condBubble, false);
                         }
 
                         // Equipment section (bottom)
@@ -532,6 +533,8 @@ function renderBrewery() {
             })()}
         </div>
     `;
+    const svg = el.querySelector('.brewery-svg-container svg');
+    if (svg) brewSetupEvents(svg);
 }
 
 async function doUpgrade(type) {
@@ -749,3 +752,4 @@ function showEquipmentShop(category) {
     overlay.querySelector('#shopModalClose').onclick = () => overlay.remove();
     overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
 }
+ 
