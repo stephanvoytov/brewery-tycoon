@@ -97,43 +97,87 @@ function tankRadius(vol, base) {
     return base * 2.5;
 }
 
-function renderTankGrid(tanks, zoneCx, zoneCy, zoneW, zoneH, baseR, gradId, freeColor, occColor, txtColor, occupiedColor, glowColor, bubbleColor, isKettle) {
+function drawKettle(cx, cy, r, tank, glowColor, bubbleColor, txtColor) {
+    const isOcc = tank.occupied;
+    const beerColor = '#d4a017';
+    return `<g filter="url(#tankShadow)">
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="#555" stroke="#444" stroke-width="2"/>
+        <circle cx="${cx}" cy="${cy}" r="${r - 3}" fill="#666" stroke="#777" stroke-width="1.5"/>
+        ${isOcc ? `<circle cx="${cx}" cy="${cy}" r="${r - 6}" fill="${beerColor}" opacity="0.7"/>` : ''}
+        <rect x="${cx - 8}" y="${cy - 8}" width="16" height="16" rx="2" fill="#444" stroke="#333" stroke-width="1"/>
+        <rect x="${cx - 4}" y="${cy - 2}" width="8" height="4" rx="1" fill="#333"/>
+        <text x="${cx}" y="${cy + 4}" text-anchor="middle" fill="${txtColor}" font-size="${Math.max(10, r * 0.5)}" font-weight="bold">${tank.vol}л</text>
+        <rect x="${cx + r - 7}" y="${cy - r * 0.6}" width="4" height="${r * 1.2}" rx="2" fill="#333"/>
+        ${isOcc ? `<rect x="${cx + r - 7}" y="${cy + r * 0.6 - r * 1.2 * 0.7}" width="4" height="${r * 1.2 * 0.7}" rx="2" fill="#e74c3c"/>` : ''}
+        ${isOcc ? `
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${glowColor}" stroke-width="2" opacity="0.6">
+            <animate attributeName="opacity" values="0.6;0.1;0.6" dur="1.2s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="${cx - r * 0.25}" cy="${cy - r * 0.2}" r="3" fill="${bubbleColor}" opacity="0.7">
+            <animate attributeName="cy" values="${cy - r * 0.2};${cy - r * 0.5};${cy - r * 0.2}" dur="2s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="${cx + r * 0.3}" cy="${cy + r * 0.15}" r="2.5" fill="${bubbleColor}" opacity="0.5">
+            <animate attributeName="cy" values="${cy + r * 0.15};${cy - r * 0.3};${cy + r * 0.15}" dur="2.5s" repeatCount="indefinite"/>
+        </circle>` : ''}
+    </g>`;
+}
+
+function drawTank(x, y, w, h, tank, occColor, txtColor) {
+    const isOcc = tank.occupied;
+    const beerColor = '#58d68d';
+    const liquidPct = isOcc ? 0.75 : 0.1;
+    const liquidH = (h - 8) * liquidPct;
+    return `<g filter="url(#tankShadow)">
+        <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="#555" stroke="#444" stroke-width="2"/>
+        <rect x="${x + 2}" y="${y + 2}" width="${w - 4}" height="${h - 4}" rx="4" fill="#666" stroke="#777" stroke-width="1"/>
+        <rect x="${x + 4}" y="${y + 4}" width="6" height="${h - 8}" rx="2" fill="#333"/>
+        <rect x="${x + 4}" y="${y + h - 4 - liquidH}" width="6" height="${liquidH}" rx="2" fill="${isOcc ? beerColor : '#555'}"/>
+        <polygon points="${x + w * 0.25},${y + h} ${x + w * 0.75},${y + h} ${x + w / 2},${y + h + 6}" fill="#444" stroke="#333" stroke-width="1"/>
+        <text x="${x + w / 2}" y="${y + h / 2 + 3}" text-anchor="middle" fill="${txtColor}" font-size="10" font-weight="bold">${tank.vol}л</text>
+        ${isOcc ? `
+        <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="none" stroke="${occColor}" stroke-width="2" opacity="0.6">
+            <animate attributeName="opacity" values="0.6;0.1;0.6" dur="1.2s" repeatCount="indefinite"/>
+        </rect>` : ''}
+    </g>`;
+}
+
+function renderTankGrid(tanks, zoneCx, zoneCy, zoneW, zoneH, baseR, occColor, txtColor, glowColor, bubbleColor, isKettle) {
     if (tanks.length === 0) return '';
     const count = tanks.length;
     const cols = count <= 3 ? count : Math.min(3, Math.ceil(Math.sqrt(count)));
     const rows = Math.ceil(count / cols);
-    const radii = tanks.map(t => tankRadius(t.vol, baseR));
     const gap = 12;
-    const maxR = Math.max(...radii);
-    const totalW = cols * maxR * 2 + (cols - 1) * gap;
-    const totalH = rows * maxR * 2 + (rows - 1) * gap;
-    const startX = zoneCx + (cols === 1 ? 0 : -totalW / 2) + (cols === 1 ? -radii[0] : 0);
-    const startY = zoneCy + (rows === 1 ? 0 : -totalH / 2) + (rows === 1 ? -radii[0] : 0);
     let html = '';
-    tanks.forEach((t, i) => {
-        const col = i % cols;
-        const row = Math.floor(i / cols);
-        const r = radii[i];
-        const cx = startX + r + col * (2 * maxR + gap);
-        const cy = startY + r + row * (2 * maxR + gap);
-        const color = t.occupied ? occColor : freeColor;
-        html += `<g filter="url(#tankShadow)">
-            <circle cx="${cx}" cy="${cy}" r="${r}" fill="url(${gradId})" stroke="${color}" stroke-width="3"/>
-            <circle cx="${cx}" cy="${cy}" r="${r * 0.7}" fill="${t.occupied ? 'rgba(180,80,0,0.2)' : 'rgba(0,80,180,0.08)'}"/>
-            <text x="${cx}" y="${cy + 4}" text-anchor="middle" fill="${txtColor}" font-size="${Math.max(11, r * 0.55)}" font-weight="bold">${t.vol}л</text>
-            ${t.occupied ? `
-                <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${glowColor}" stroke-width="2" opacity="0.6">
-                    <animate attributeName="opacity" values="0.6;0.1;0.6" dur="1.2s" repeatCount="indefinite"/>
-                </circle>
-                <circle cx="${cx - r * 0.25}" cy="${cy - r * 0.2}" r="3" fill="${bubbleColor}" opacity="0.7">
-                    <animate attributeName="cy" values="${cy - r * 0.2};${cy - r * 0.5};${cy - r * 0.2}" dur="2s" repeatCount="indefinite"/>
-                </circle>
-                <circle cx="${cx + r * 0.3}" cy="${cy + r * 0.15}" r="2.5" fill="${bubbleColor}" opacity="0.5">
-                    <animate attributeName="cy" values="${cy + r * 0.15};${cy - r * 0.3};${cy + r * 0.15}" dur="2.5s" repeatCount="indefinite"/>
-                </circle>
-            ` : ''}
-        </g>`;
-    });
+    if (isKettle) {
+        const radii = tanks.map(t => tankRadius(t.vol, baseR));
+        const maxR = Math.max(...radii);
+        const totalW = cols * maxR * 2 + (cols - 1) * gap;
+        const totalH = rows * maxR * 2 + (rows - 1) * gap;
+        const startX = zoneCx + (cols === 1 ? 0 : -totalW / 2) + (cols === 1 ? -radii[0] : 0);
+        const startY = zoneCy + (rows === 1 ? 0 : -totalH / 2) + (rows === 1 ? -radii[0] : 0);
+        tanks.forEach((t, i) => {
+            const col = i % cols;
+            const row = Math.floor(i / cols);
+            const r = radii[i];
+            const cx = startX + r + col * (2 * maxR + gap);
+            const cy = startY + r + row * (2 * maxR + gap);
+            html += drawKettle(cx, cy, r, t, glowColor, bubbleColor, txtColor);
+        });
+    } else {
+        const tankW = baseR * 1.6;
+        const tankH = baseR * 2.4;
+        const totalW = cols * tankW + (cols - 1) * gap;
+        const totalH = rows * tankH + (rows - 1) * gap;
+        const startX = zoneCx - totalW / 2;
+        const startY = zoneCy - totalH / 2;
+        tanks.forEach((t, i) => {
+            const col = i % cols;
+            const row = Math.floor(i / cols);
+            const x = startX + col * (tankW + gap);
+            const y = startY + row * (tankH + gap);
+            html += drawTank(x, y, tankW, tankH, t, occColor, txtColor);
+        });
+    }
     return html;
 }
 
@@ -163,14 +207,6 @@ function renderBrewery() {
     const shopKettles = (GAME_STATE.shop && GAME_STATE.shop.owned_kettles) || [];
     const shopFerms = (GAME_STATE.shop && GAME_STATE.shop.owned_fermenters) || [];
     const shopConds = (GAME_STATE.shop && GAME_STATE.shop.owned_cond_tanks) || [];
-
-    function scaleByVol(vol, baseW) {
-        if (vol <= 50) return baseW;
-        if (vol <= 100) return baseW * 1.2;
-        if (vol <= 200) return baseW * 1.5;
-        if (vol <= 500) return baseW * 2.0;
-        return baseW * 2.5;
-    }
 
     const svgTanks = [];
     const svgFermenters = [];
@@ -217,25 +253,88 @@ function renderBrewery() {
         <div class="brewery-svg-container">
             <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" style="width:100%;cursor:grab">
                 <defs>
-                    <linearGradient id="kettleGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="${v.kettle[0]}"/>
-                        <stop offset="100%" stop-color="${v.kettle[1]}"/>
-                    </linearGradient>
-                    <linearGradient id="fermGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="${v.ferm[0]}"/>
-                        <stop offset="100%" stop-color="${v.ferm[1]}"/>
-                    </linearGradient>
-                    <linearGradient id="condGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="${v.cond[0]}"/>
-                        <stop offset="100%" stop-color="${v.cond[1]}"/>
-                    </linearGradient>
-                    <filter id="glow">
-                        <feGaussianBlur stdDeviation="2" result="blur"/>
-                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                    </filter>
                     <filter id="tankShadow" x="-20%" y="-20%" width="140%" height="140%">
                         <feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="rgba(0,0,0,0.5)"/>
                     </filter>
+                    <pattern id="floor-planks" patternUnits="userSpaceOnUse" width="100" height="100">
+                        <rect width="100" height="100" fill="#3a2010"/>
+                        <rect x="0" y="0" width="18" height="100" fill="#4a3020"/>
+                        <rect x="20" y="0" width="18" height="100" fill="#3d2818"/>
+                        <rect x="40" y="0" width="18" height="100" fill="#453020"/>
+                        <rect x="60" y="0" width="18" height="100" fill="#382418"/>
+                        <rect x="80" y="0" width="18" height="100" fill="#402c1c"/>
+                        <line x1="18" y1="0" x2="18" y2="100" stroke="#2a1008" stroke-width="1"/>
+                        <line x1="38" y1="0" x2="38" y2="100" stroke="#2a1008" stroke-width="1"/>
+                        <line x1="58" y1="0" x2="58" y2="100" stroke="#2a1008" stroke-width="1"/>
+                        <line x1="78" y1="0" x2="78" y2="100" stroke="#2a1008" stroke-width="1"/>
+                    </pattern>
+                    <pattern id="floor-stone" patternUnits="userSpaceOnUse" width="100" height="100">
+                        <rect width="100" height="100" fill="#1a0a00"/>
+                        <rect x="0" y="0" width="24" height="24" fill="#2a1a0a" rx="1"/>
+                        <rect x="25" y="0" width="24" height="24" fill="#221408" rx="1"/>
+                        <rect x="50" y="0" width="24" height="24" fill="#28180c" rx="1"/>
+                        <rect x="75" y="0" width="24" height="24" fill="#1e1006" rx="1"/>
+                        <rect x="0" y="25" width="24" height="24" fill="#221408" rx="1"/>
+                        <rect x="25" y="25" width="24" height="24" fill="#2a1a0a" rx="1"/>
+                        <rect x="50" y="25" width="24" height="24" fill="#1e1006" rx="1"/>
+                        <rect x="75" y="25" width="24" height="24" fill="#28180c" rx="1"/>
+                        <rect x="0" y="50" width="24" height="24" fill="#28180c" rx="1"/>
+                        <rect x="25" y="50" width="24" height="24" fill="#1e1006" rx="1"/>
+                        <rect x="50" y="50" width="24" height="24" fill="#2a1a0a" rx="1"/>
+                        <rect x="75" y="50" width="24" height="24" fill="#221408" rx="1"/>
+                        <rect x="0" y="75" width="24" height="24" fill="#1e1006" rx="1"/>
+                        <rect x="25" y="75" width="24" height="24" fill="#28180c" rx="1"/>
+                        <rect x="50" y="75" width="24" height="24" fill="#221408" rx="1"/>
+                        <rect x="75" y="75" width="24" height="24" fill="#2a1a0a" rx="1"/>
+                    </pattern>
+                    <pattern id="floor-tile" patternUnits="userSpaceOnUse" width="100" height="100">
+                        <rect width="100" height="100" fill="#4a4a3a"/>
+                        <rect x="0" y="0" width="50" height="50" fill="#5a5a4a"/>
+                        <rect x="50" y="50" width="50" height="50" fill="#5a5a4a"/>
+                    </pattern>
+                    <pattern id="floor-concrete" patternUnits="userSpaceOnUse" width="40" height="40">
+                        <rect width="40" height="40" fill="#3a3a3a"/>
+                        <circle cx="5" cy="5" r="0.5" fill="#4a4a4a"/>
+                        <circle cx="15" cy="12" r="0.5" fill="#4a4a4a"/>
+                        <circle cx="8" cy="18" r="0.4" fill="#4a4a4a"/>
+                        <circle cx="12" cy="3" r="0.3" fill="#5a5a5a"/>
+                        <circle cx="25" cy="10" r="0.5" fill="#4a4a4a"/>
+                        <circle cx="35" cy="25" r="0.4" fill="#4a4a4a"/>
+                        <circle cx="28" cy="35" r="0.5" fill="#5a5a5a"/>
+                        <circle cx="30" cy="30" r="0.3" fill="#4a4a4a"/>
+                    </pattern>
+                    <pattern id="floor-herringbone" patternUnits="userSpaceOnUse" width="80" height="80">
+                        <rect width="80" height="80" fill="#3a2010"/>
+                        <g transform="rotate(45 40 40)">
+                            <rect x="0" y="0" width="30" height="10" fill="#4a3020"/>
+                            <rect x="30" y="0" width="30" height="10" fill="#3d2818"/>
+                            <rect x="0" y="10" width="30" height="10" fill="#3d2818"/>
+                            <rect x="30" y="10" width="30" height="10" fill="#4a3020"/>
+                            <rect x="0" y="20" width="30" height="10" fill="#4a3020"/>
+                            <rect x="30" y="20" width="30" height="10" fill="#3d2818"/>
+                            <rect x="0" y="30" width="30" height="10" fill="#3d2818"/>
+                            <rect x="30" y="30" width="30" height="10" fill="#4a3020"/>
+                        </g>
+                    </pattern>
+                    <pattern id="floor-polished" patternUnits="userSpaceOnUse" width="60" height="60">
+                        <rect width="60" height="60" fill="#5a6a7a"/>
+                        <rect x="0" y="15" width="60" height="1" fill="#8abbc0" opacity="0.3"/>
+                        <rect x="0" y="35" width="60" height="1" fill="#8abbc0" opacity="0.2"/>
+                        <rect x="15" y="0" width="1" height="60" fill="#8abbc0" opacity="0.15"/>
+                        <rect x="35" y="0" width="1" height="60" fill="#8abbc0" opacity="0.1"/>
+                    </pattern>
+                    <pattern id="floor-epoxy" patternUnits="userSpaceOnUse" width="50" height="50">
+                        <rect width="50" height="50" fill="#a0b0c0"/>
+                        <rect x="0" y="0" width="25" height="25" fill="#b0c0d0"/>
+                        <rect x="25" y="25" width="25" height="25" fill="#b0c0d0"/>
+                    </pattern>
+                    <pattern id="floor-marble" patternUnits="userSpaceOnUse" width="100" height="100">
+                        <rect width="100" height="100" fill="#2a1a2a"/>
+                        <path d="M0 20 Q20 15 40 25 T80 20 T100 30" stroke="#4a3a4a" stroke-width="2" fill="none" opacity="0.5"/>
+                        <path d="M0 60 Q30 55 50 65 T100 60" stroke="#4a3a4a" stroke-width="1.5" fill="none" opacity="0.4"/>
+                        <path d="M20 0 Q15 20 25 40 T20 80" stroke="#4a3a4a" stroke-width="1.5" fill="none" opacity="0.3"/>
+                        <path d="M70 0 Q60 30 75 50 T80 100" stroke="#5a4a5a" stroke-width="1" fill="none" opacity="0.3"/>
+                    </pattern>
                 </defs>
 
                 <rect width="1200" height="800" fill="#12121e"/>
@@ -262,7 +361,7 @@ function renderBrewery() {
 
                         // Room floor
                         html += `                        <rect x="${roomX}" y="${roomY}" width="${roomW}" height="${roomH}" rx="6" fill="${v.wall[1]}" stroke="${v.wallStroke}" stroke-width="2"/>
-                        <image href="/img/textures/${v.floorType}.jpg" x="${roomX}" y="${roomY}" width="${roomW}" height="${roomH}" preserveAspectRatio="xMidYMid slice" opacity="1"/>`;
+                        <rect x="${roomX}" y="${roomY}" width="${roomW}" height="${roomH}" rx="6" fill="url(#floor-${v.floorType})"/>`;
 
                         // Room border accent
                         html += `<rect x="${roomX + 4}" y="${roomY + 4}" width="${roomW - 8}" height="${roomH - 8}" rx="4" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
@@ -274,18 +373,18 @@ function renderBrewery() {
                         const z1cy = zoneY + zoneH / 2;
                         html += `<rect x="${z1x}" y="${zoneY}" width="${zoneW}" height="${zoneH}" rx="6" fill="${v.sectionBg}" opacity="0.12"/>
                         <text x="${z1x + zoneW / 2}" y="${zoneY + 16}" text-anchor="middle" fill="${v.boilLabel}" font-size="11" font-weight="bold" opacity="0.8">⚡ ВАРОЧНЫЙ УЧАСТОК</text>`;
-                        html += renderTankGrid(svgTanks, z1x + zoneW / 2, z1cy, zoneW, zoneH, 32, '#kettleGrad', v.freeColor, v.occupiedColor, v.kettleTitle, v.occupiedColor, v.glowColor, v.fermBubble, true);
+                        html += renderTankGrid(svgTanks, z1x + zoneW / 2, z1cy, zoneW, zoneH, 32, v.occupiedColor, v.kettleTitle, v.glowColor, v.fermBubble, true);
 
                         // Zone: Fermenters
                         html += `<rect x="${z2x}" y="${zoneY}" width="${zoneW}" height="${zoneH}" rx="6" fill="${v.sectionBg}" opacity="0.12"/>
                         <text x="${z2x + zoneW / 2}" y="${zoneY + 16}" text-anchor="middle" fill="${v.fermLabel}" font-size="11" font-weight="bold" opacity="0.8">🧪 БРОДИЛЬНЯ</text>`;
-                        html += renderTankGrid(svgFermenters, z2x + zoneW / 2, z1cy, zoneW, zoneH, 26, '#fermGrad', v.fermLabel, v.occupiedColor, v.fermTitle, v.occupiedColor, v.glowColor, v.fermBubble, false);
+                        html += renderTankGrid(svgFermenters, z2x + zoneW / 2, z1cy, zoneW, zoneH, 26, v.occupiedColor, v.fermTitle, v.glowColor, v.fermBubble, false);
 
                         // Zone: Conditioning
                         if (showCond) {
                             html += `<rect x="${z3x}" y="${zoneY}" width="${zoneW}" height="${zoneH}" rx="6" fill="${v.sectionBg}" opacity="0.12"/>
                             <text x="${z3x + zoneW / 2}" y="${zoneY + 16}" text-anchor="middle" fill="${v.condLabel}" font-size="11" font-weight="bold" opacity="0.8">🧊 ДОЗРЕВАНИЕ</text>`;
-                            html += renderTankGrid(svgConditioning, z3x + zoneW / 2, z1cy, zoneW, zoneH, 28, '#condGrad', v.condLabel, v.occupiedColor, v.condTitle, v.occupiedColor, v.glowColor, v.condBubble, false);
+                            html += renderTankGrid(svgConditioning, z3x + zoneW / 2, z1cy, zoneW, zoneH, 28, v.occupiedColor, v.condTitle, v.glowColor, v.condBubble, false);
                         }
 
                         // Equipment section (bottom)
