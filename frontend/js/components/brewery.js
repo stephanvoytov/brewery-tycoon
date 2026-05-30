@@ -1,19 +1,140 @@
-const BUILDING_BG = (() => {
-    const urls = {
-        0: "https://image.pollinations.ai/prompt/Empty%20room%20interior%2C%20beige%20walls%2C%20wooden%20floor%2C%20warm%20cozy%20lighting%2C%20game%20background%2C%20flat%20style%2C%20no%20people?model=flux&seed=88&width=1400&height=700&nologo=true&private=true&safe=false",
-        1: "https://image.pollinations.ai/prompt/Stone%20basement%20interior%2C%20brick%20walls%2C%20dim%20warm%20light%2C%20game%20background%2C%20flat%20vector%20style%2C%20no%20people?model=flux&seed=111&width=1400&height=700&nologo=true&private=true&safe=false",
-        2: "https://image.pollinations.ai/prompt/Small%20brewery%20workshop%20interior%2C%20white%20tile%20walls%2C%20concrete%20floor%2C%20clean%20industrial%2C%20game%20background%2C%20flat%20style%2C%20no%20people?model=flux&seed=222&width=1400&height=700&nologo=true&private=true&safe=false",
-        3: "https://image.pollinations.ai/prompt/Large%20industrial%20hall%20interior%2C%20steel%20beams%2C%20concrete%20floor%2C%20cool%20lighting%2C%20game%20background%2C%20flat%20style%2C%20no%20people?model=flux&seed=333&width=1400&height=700&nologo=true&private=true&safe=false",
-        4: "https://image.pollinations.ai/prompt/Craft%20brewery%20loft%20interior%2C%20exposed%20brick%20walls%2C%20warm%20wood%20ceiling%2C%20trendy%20decor%2C%20game%20background%2C%20flat%20style%2C%20no%20people?model=flux&seed=444&width=1400&height=700&nologo=true&private=true&safe=false",
-        5: "https://image.pollinations.ai/prompt/Large%20brewery%20factory%20interior%2C%20stainless%20steel%20tanks%20in%20background%2C%20bright%20clean%2C%20game%20background%2C%20flat%20style%2C%20no%20people?model=flux&seed=555&width=1400&height=700&nologo=true&private=true&safe=false",
-        6: "https://image.pollinations.ai/prompt/Modern%20laboratory%20interior%2C%20white%20clean%20surfaces%2C%20blue%20accents%2C%20sleek%20scientific%2C%20game%20background%2C%20flat%20style%2C%20no%20people?model=flux&seed=666&width=1400&height=700&nologo=true&private=true&safe=false",
-        7: "https://image.pollinations.ai/prompt/Corporate%20modern%20office%20interior%2C%20sleek%20dark%20wood%2C%20glass%20walls%2C%20premium%20atmosphere%2C%20game%20background%2C%20flat%20style%2C%20no%20people?model=flux&seed=777&width=1400&height=700&nologo=true&private=true&safe=false",
-    };
-    return Object.fromEntries(Object.keys(urls).map(id => [
-        parseInt(id),
-        `/img/buildings/${id}.png`
-    ]));
-})();
+const BUILDING_LAYOUTS = {
+    0: { w: 400, h: 280 },
+    1: { w: 520, h: 380 },
+    2: { w: 820, h: 500 },
+    3: { w: 1020, h: 550 },
+    4: { w: 920, h: 550 },
+    5: { w: 1220, h: 600 },
+    6: { w: 1120, h: 550 },
+    7: { w: 1620, h: 700 },
+};
+
+let brewPanX = 0, brewPanY = 0, brewZoom = 1, brewDragging = false;
+let brewDragStartX = 0, brewDragStartY = 0, brewStartPanX = 0, brewStartPanY = 0;
+let brewLastTouchDist = 0;
+
+function brewUpdateTransform() {
+    const g = document.getElementById('brewery-map');
+    if (g) g.setAttribute('transform', `translate(${brewPanX},${brewPanY}) scale(${brewZoom})`);
+}
+
+function brewSetupEvents(svg) {
+    svg.addEventListener('wheel', e => {
+        e.preventDefault();
+        const rect = svg.getBoundingClientRect();
+        const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+        const oldZ = brewZoom;
+        brewZoom = Math.max(0.3, Math.min(3, brewZoom - e.deltaY * 0.001));
+        brewPanX = mx - (mx - brewPanX) * (brewZoom / oldZ);
+        brewPanY = my - (my - brewPanY) * (brewZoom / oldZ);
+        brewUpdateTransform();
+    });
+    svg.addEventListener('mousedown', e => {
+        brewDragging = true;
+        brewDragStartX = e.clientX;
+        brewDragStartY = e.clientY;
+        brewStartPanX = brewPanX;
+        brewStartPanY = brewPanY;
+        svg.style.cursor = 'grabbing';
+    });
+    window.addEventListener('mousemove', e => {
+        if (!brewDragging) return;
+        brewPanX = brewStartPanX + (e.clientX - brewDragStartX);
+        brewPanY = brewStartPanY + (e.clientY - brewDragStartY);
+        brewUpdateTransform();
+    });
+    window.addEventListener('mouseup', () => {
+        brewDragging = false;
+        const svgEl = document.querySelector('.brewery-svg-container svg');
+        if (svgEl) svgEl.style.cursor = 'grab';
+    });
+    svg.addEventListener('touchstart', e => {
+        if (e.touches.length === 1) {
+            brewDragging = true;
+            brewDragStartX = e.touches[0].clientX;
+            brewDragStartY = e.touches[0].clientY;
+            brewStartPanX = brewPanX;
+            brewStartPanY = brewPanY;
+        } else if (e.touches.length === 2) {
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            brewLastTouchDist = Math.sqrt(dx * dx + dy * dy);
+        }
+    }, { passive: true });
+    svg.addEventListener('touchmove', e => {
+        if (e.touches.length === 1 && brewDragging) {
+            brewPanX = brewStartPanX + (e.touches[0].clientX - brewDragStartX);
+            brewPanY = brewStartPanY + (e.touches[0].clientY - brewDragStartY);
+            brewUpdateTransform();
+        } else if (e.touches.length === 2) {
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (brewLastTouchDist > 0) {
+                const oldZ = brewZoom;
+                brewZoom = Math.max(0.3, Math.min(3, brewZoom * (dist / brewLastTouchDist)));
+                const rect = svg.getBoundingClientRect();
+                const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+                const my = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+                brewPanX = mx - (mx - brewPanX) * (brewZoom / oldZ);
+                brewPanY = my - (my - brewPanY) * (brewZoom / oldZ);
+                brewUpdateTransform();
+            }
+            brewLastTouchDist = dist;
+        }
+    }, { passive: true });
+    svg.addEventListener('touchend', () => {
+        brewDragging = false;
+        brewLastTouchDist = 0;
+    }, { passive: true });
+}
+
+function tankRadius(vol, base) {
+    if (vol <= 50) return base;
+    if (vol <= 100) return base * 1.25;
+    if (vol <= 200) return base * 1.55;
+    if (vol <= 500) return base * 2.0;
+    return base * 2.5;
+}
+
+function renderTankGrid(tanks, zoneCx, zoneCy, zoneW, zoneH, baseR, gradId, freeColor, occColor, txtColor, occupiedColor, glowColor, bubbleColor, isKettle) {
+    if (tanks.length === 0) return '';
+    const count = tanks.length;
+    const cols = count <= 3 ? count : Math.min(3, Math.ceil(Math.sqrt(count)));
+    const rows = Math.ceil(count / cols);
+    const radii = tanks.map(t => tankRadius(t.vol, baseR));
+    const gap = 12;
+    const totalW = cols * Math.max(...radii) * 2 + (cols - 1) * gap;
+    const totalH = rows * Math.max(...radii) * 2 + (rows - 1) * gap;
+    const startX = zoneCx + (cols === 1 ? 0 : -totalW / 2) + (cols === 1 ? -radii[0] : 0);
+    const startY = zoneCy + (rows === 1 ? 0 : -totalH / 2) + (rows === 1 ? -radii[0] : 0);
+    let html = '';
+    tanks.forEach((t, i) => {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const r = radii[i];
+        const cx = startX + r + col * (2 * Math.max(...radii) + gap);
+        const cy = startY + r + row * (2 * Math.max(...radii) + gap);
+        const color = t.occupied ? occColor : freeColor;
+        html += `<g>
+            <circle cx="${cx}" cy="${cy}" r="${r}" fill="url(${gradId})" stroke="${color}" stroke-width="3"/>
+            <circle cx="${cx}" cy="${cy}" r="${r * 0.7}" fill="${t.occupied ? 'rgba(180,80,0,0.2)' : 'rgba(0,80,180,0.08)'}"/>
+            <text x="${cx}" y="${cy + 4}" text-anchor="middle" fill="${txtColor}" font-size="${Math.max(9, r * 0.48)}" font-weight="bold">${t.vol}л</text>
+            ${t.occupied ? `
+                <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${glowColor}" stroke-width="2" opacity="0.6">
+                    <animate attributeName="opacity" values="0.6;0.1;0.6" dur="1.2s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="${cx - r * 0.25}" cy="${cy - r * 0.2}" r="3" fill="${bubbleColor}" opacity="0.7">
+                    <animate attributeName="cy" values="${cy - r * 0.2};${cy - r * 0.5};${cy - r * 0.2}" dur="2s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="${cx + r * 0.3}" cy="${cy + r * 0.15}" r="2.5" fill="${bubbleColor}" opacity="0.5">
+                    <animate attributeName="cy" values="${cy + r * 0.15};${cy - r * 0.3};${cy + r * 0.15}" dur="2.5s" repeatCount="indefinite"/>
+                </circle>
+            ` : ''}
+        </g>`;
+    });
+    return html;
+}
 
 async function doRenameBrewery() {
     const b = GAME_STATE.brewery;
@@ -75,6 +196,10 @@ function renderBrewery() {
 
     const el = document.getElementById('page-brewery');
     const curBld = BUILDINGS[b.building_id] || BUILDINGS[0];
+    const layout = BUILDING_LAYOUTS[b.building_id] || BUILDING_LAYOUTS[2];
+    const showCond = curBld.cond_tanks > 0;
+    const isRoom = curBld.id === 0;
+
     el.innerHTML = `
         <div class="brewery-header" style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
             <h2 style="margin-bottom:0">🏭 Пивоварня «${b.name}»</h2>
@@ -89,20 +214,20 @@ function renderBrewery() {
         </div>
 
         <div class="brewery-svg-container">
-            <svg viewBox="0 0 1800 900" xmlns="http://www.w3.org/2000/svg" style="width:100%">
+            <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" style="width:100%;cursor:grab">
                 <defs>
-                    <clipPath id="bgClip">
-                        <rect x="10" y="10" width="1780" height="880" rx="10"/>
-                    </clipPath>
-                    <linearGradient id="kettle_${b.building_id}" x1="0" y1="0" x2="0" y2="1">
+                    <pattern id="floorPat" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse">
+                        <rect width="30" height="30" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+                    </pattern>
+                    <linearGradient id="kettleGrad" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stop-color="${v.kettle[0]}"/>
                         <stop offset="100%" stop-color="${v.kettle[1]}"/>
                     </linearGradient>
-                    <linearGradient id="ferm_${b.building_id}" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="fermGrad" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stop-color="${v.ferm[0]}"/>
                         <stop offset="100%" stop-color="${v.ferm[1]}"/>
                     </linearGradient>
-                    <linearGradient id="cond_${b.building_id}" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="condGrad" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stop-color="${v.cond[0]}"/>
                         <stop offset="100%" stop-color="${v.cond[1]}"/>
                     </linearGradient>
@@ -112,189 +237,124 @@ function renderBrewery() {
                     </filter>
                 </defs>
 
-                ${(() => {
-                    const bg = BUILDING_BG[b.building_id] || BUILDING_BG[2];
-                    const isLight = b.building_id === 6;
-                    return `<image href="${bg}" x="10" y="10" width="1780" height="880" preserveAspectRatio="xMidYMid slice" clip-path="url(#bgClip)"/>
-                    <rect x="10" y="10" width="1780" height="880" rx="10" fill="${isLight ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.35)'}"/>
-                    <rect x="10" y="10" width="1780" height="880" rx="10" fill="none" stroke="var(--border)" stroke-width="1.5"/>`;
-                })()}
+                <rect width="1200" height="800" fill="#12121e"/>
 
-                <text x="900" y="38" text-anchor="middle" fill="${v.titleColor}" font-size="18" font-weight="bold">${v.title}</text>
-                <g transform="translate(0, 300)">
+                <g id="brewery-map" transform="translate(0,0) scale(1)">
+                    ${(() => {
+                        const roomW = layout.w, roomH = layout.h;
+                        const roomX = Math.max(10, (1200 - roomW) / 2);
+                        const roomY = Math.max(10, (800 - roomH) / 2);
+                        const pad = 16;
+                        const secGap = 14;
+                        const zoneCount = showCond ? 3 : 2;
+                        const equipH = isRoom ? 0 : 70;
+                        const availW = roomW - 2 * pad;
+                        const availH = roomH - 2 * pad - equipH - 10;
+                        const zoneW = (availW - (zoneCount - 1) * secGap) / zoneCount;
+                        const zoneH = availH;
+                        const zoneY = roomY + pad;
+                        const z1x = roomX + pad;
+                        const z2x = z1x + zoneW + secGap;
+                        const z3x = showCond ? z2x + zoneW + secGap : 0;
 
-                ${(() => {
-                    const showCond = curBld.cond_tanks > 0;
-                    const BASE_KETTLE_W = 130, BASE_FERM_W = 68, BASE_COND_W = 110;
-                    const KETTLE_GAP = 15, FERM_GAP = 14, COND_GAP = 25;
-                    const BASE_H = 150;
+                        let html = '';
 
-                    const kettleWidths = svgTanks.map(t => scaleByVol(t.vol, BASE_KETTLE_W));
-                    const fermWidths = svgFermenters.map(t => scaleByVol(t.vol, BASE_FERM_W));
-                    const condWidths = svgConditioning.map(t => scaleByVol(t.vol, BASE_COND_W));
+                        // Room floor
+                        html += `<rect x="${roomX}" y="${roomY}" width="${roomW}" height="${roomH}" rx="6" fill="${v.wall[1]}" stroke="${v.wallStroke}" stroke-width="2"/>
+                        <rect x="${roomX}" y="${roomY}" width="${roomW}" height="${roomH}" fill="url(#floorPat)" opacity="0.5"/>`;
 
-                    const tankW = kettleWidths.reduce((a, b) => a + b, 0) + Math.max(0, svgTanks.length - 1) * KETTLE_GAP;
-                    const fermW = fermWidths.reduce((a, b) => a + b, 0) + Math.max(0, svgFermenters.length - 1) * FERM_GAP;
-                    const condW = showCond ? condWidths.reduce((a, b) => a + b, 0) + Math.max(0, svgConditioning.length - 1) * COND_GAP : 0;
-                    const gap = 70;
-                    const sections = showCond ? 3 : 2;
-                    const contentW = tankW + fermW + condW + (sections - 1) * gap;
-                    const startX = Math.max(20, (1800 - contentW) / 2);
-                    const tankX = startX;
-                    const fermX = tankX + tankW + gap;
-                    const condX = showCond ? fermX + fermW + gap : 0;
+                        // Room border accent
+                        html += `<rect x="${roomX + 4}" y="${roomY + 4}" width="${roomW - 8}" height="${roomH - 8}" rx="4" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
 
-                    let headerTankW = tankW + 40;
-                    let headerFermW = fermW + 40;
-                    let headerCondW = showCond ? condW + 40 : 0;
-                    let headerTotal = headerTankW + headerFermW + headerCondW + (sections - 1) * 20;
-                    let headerStart = Math.max(20, (1800 - headerTotal) / 2);
+                        // Room label
+                        html += `<text x="${roomX + roomW / 2}" y="${roomY + 18}" text-anchor="middle" fill="${v.titleColor}" font-size="12" font-weight="bold" opacity="0.6">${v.title}</text>`;
 
-                    let html = '';
+                        // Zone: Kettles
+                        const z1cy = zoneY + zoneH / 2;
+                        html += `<rect x="${z1x}" y="${zoneY}" width="${zoneW}" height="${zoneH}" rx="6" fill="${v.sectionBg}" opacity="0.25"/>
+                        <text x="${z1x + zoneW / 2}" y="${zoneY + 16}" text-anchor="middle" fill="${v.boilLabel}" font-size="10" font-weight="bold" opacity="0.8">⚡ ВАРОЧНЫЙ УЧАСТОК</text>`;
+                        html += renderTankGrid(svgTanks, z1x + zoneW / 2, z1cy, zoneW, zoneH, 22, '#kettleGrad', v.freeColor, v.occupiedColor, v.kettleTitle, v.occupiedColor, v.glowColor, v.fermBubble, true);
 
-                    // Headers
-                    html += `<rect x="${headerStart}" y="50" width="${headerTankW}" height="26" rx="4" fill="${v.sectionBg}" opacity="0.7"/>`;
-                    html += `<text x="${headerStart + headerTankW / 2}" y="68" text-anchor="middle" fill="${v.boilLabel}" font-size="14" font-weight="bold">⚡ ВАРОЧНЫЙ УЧАСТОК</text>`;
+                        // Zone: Fermenters
+                        html += `<rect x="${z2x}" y="${zoneY}" width="${zoneW}" height="${zoneH}" rx="6" fill="${v.sectionBg}" opacity="0.25"/>
+                        <text x="${z2x + zoneW / 2}" y="${zoneY + 16}" text-anchor="middle" fill="${v.fermLabel}" font-size="10" font-weight="bold" opacity="0.8">🧪 БРОДИЛЬНЯ</text>`;
+                        html += renderTankGrid(svgFermenters, z2x + zoneW / 2, z1cy, zoneW, zoneH, 18, '#fermGrad', v.fermLabel, v.occupiedColor, v.fermTitle, v.occupiedColor, v.glowColor, v.fermBubble, false);
 
-                    html += `<rect x="${headerStart + headerTankW + 20}" y="50" width="${headerFermW}" height="26" rx="4" fill="${v.sectionBg}" opacity="0.7"/>`;
-                    html += `<text x="${headerStart + headerTankW + 20 + headerFermW / 2}" y="68" text-anchor="middle" fill="${v.fermLabel}" font-size="14" font-weight="bold">🧪 БРОДИЛЬНЯ</text>`;
+                        // Zone: Conditioning
+                        if (showCond) {
+                            html += `<rect x="${z3x}" y="${zoneY}" width="${zoneW}" height="${zoneH}" rx="6" fill="${v.sectionBg}" opacity="0.25"/>
+                            <text x="${z3x + zoneW / 2}" y="${zoneY + 16}" text-anchor="middle" fill="${v.condLabel}" font-size="10" font-weight="bold" opacity="0.8">🧊 ДОЗРЕВАНИЕ</text>`;
+                            html += renderTankGrid(svgConditioning, z3x + zoneW / 2, z1cy, zoneW, zoneH, 20, '#condGrad', v.condLabel, v.occupiedColor, v.condTitle, v.occupiedColor, v.glowColor, v.condBubble, false);
+                        }
 
-                    if (showCond) {
-                        html += `<rect x="${headerStart + headerTankW + 20 + headerFermW + 20}" y="50" width="${headerCondW}" height="26" rx="4" fill="${v.sectionBg}" opacity="0.7"/>`;
-                        html += `<text x="${headerStart + headerTankW + 20 + headerFermW + 20 + headerCondW / 2}" y="68" text-anchor="middle" fill="${v.condLabel}" font-size="14" font-weight="bold">🧊 ДОЗРЕВАНИЕ</text>`;
-                    }
+                        // Equipment section (bottom)
+                        if (!isRoom) {
+                            const eqY = roomY + roomH - equipH - pad + 5;
+                            const eqH = equipH - 5;
+                            const eqW = availW;
+                            const eqX = roomX + pad;
+                            const thirdW = (eqW - 2 * secGap) / 3;
+                            html += `<rect x="${eqX}" y="${eqY}" width="${eqW}" height="${eqH}" rx="6" fill="${v.sectionBg}" opacity="0.3"/>`;
 
-                    // Kettles
-                    let kAccX = tankX;
-                    svgTanks.forEach((t, i) => {
-                        const w = kettleWidths[i];
-                        const x = kAccX;
-                        const color = t.occupied ? v.occupiedColor : v.freeColor;
-                        html += `<g>
-                            <rect x="${x}" y="95" width="${w}" height="150" rx="8" fill="url(#kettle_${b.building_id})" stroke="${color}" stroke-width="2.5"/>
-                            <rect x="${x + 12}" y="105" width="${w - 24}" height="45" rx="5" fill="#1a0a00" opacity="0.4"/>
-                            <rect x="${x + 12}" y="${225 - (t.occupied ? 35 : 0)}" width="${w - 24}" height="${t.occupied ? 35 : 6}" rx="3" fill="${v.glowColor}" opacity="${t.occupied ? 0.85 : 0.2}"/>
-                            <text x="${x + w / 2}" y="165" text-anchor="middle" fill="${v.kettleTitle}" font-size="14" font-weight="bold">${t.vol}л</text>
-                            <text x="${x + w / 2}" y="190" text-anchor="middle" fill="${color}" font-size="12" font-weight="bold">${t.occupied ? '🔥 Варка' : '✅ Свободен'}</text>
-                            ${t.occupied ? `
-                                <circle cx="${x + 30}" cy="120" r="6" fill="${v.glowColor}" opacity="0.85" filter="url(#glow)">
-                                    <animate attributeName="opacity" values="0.85;0.2;0.85" dur="1s" repeatCount="indefinite"/>
-                                </circle>
-                                <circle cx="${x + w * 0.5}" cy="112" r="5" fill="${v.glowColor}" opacity="0.65">
-                                    <animate attributeName="opacity" values="0.65;0.1;0.65" dur="1.5s" repeatCount="indefinite"/>
-                                </circle>
-                                <circle cx="${x + w - 30}" cy="125" r="4" fill="${v.glowColor}" opacity="0.55">
-                                    <animate attributeName="opacity" values="0.55;0.1;0.55" dur="1.2s" repeatCount="indefinite"/>
-                                </circle>
-                            ` : ''}
-                            <rect x="${x + w * 0.25}" y="245" width="${w * 0.5}" height="10" rx="3" fill="${v.floorLine}"/>
-                        </g>`;
-                        kAccX += w + KETTLE_GAP;
-                    });
-
-                    // Baseline under kettles
-                    html += `<line x1="${tankX}" y1="255" x2="${tankX + tankW}" y2="255" stroke="${v.floorLine}" stroke-width="2.5"/>`;
-
-                    // Fermenters
-                    let fAccX = fermX;
-                    svgFermenters.forEach((t, i) => {
-                        const w = fermWidths[i];
-                        const x = fAccX;
-                        const color = t.occupied ? v.occupiedColor : v.fermLabel;
-                        html += `<g>
-                            <rect x="${x}" y="105" width="${w}" height="140" rx="${w * 0.5}" fill="url(#ferm_${b.building_id})" stroke="${color}" stroke-width="2.5"/>
-                            <rect x="${x + w * 0.15}" y="118" width="${w * 0.7}" height="65" rx="24" fill="#0a1a2e" opacity="0.3"/>
-                            <text x="${x + w / 2}" y="172" text-anchor="middle" fill="${v.fermTitle}" font-size="10">${t.vol}л</text>
-                            <text x="${x + w / 2}" y="192" text-anchor="middle" fill="${color}" font-size="11" font-weight="bold">${t.occupied ? '⏳' : '✅'}</text>
-                            ${t.occupied ? `
-                                <circle cx="${x + w * 0.32}" cy="135" r="4" fill="${v.fermBubble}" opacity="0.75">
-                                    <animate attributeName="cy" values="135;122;135" dur="2s" repeatCount="indefinite"/>
-                                </circle>
-                                <circle cx="${x + w * 0.68}" cy="140" r="4" fill="${v.fermBubble}" opacity="0.55">
-                                    <animate attributeName="cy" values="140;125;140" dur="2.8s" repeatCount="indefinite"/>
-                                </circle>
-                            ` : ''}
-                            <rect x="${x + w * 0.25}" y="245" width="${w * 0.5}" height="10" rx="3" fill="${v.floorLine}"/>
-                        </g>`;
-                        fAccX += w + FERM_GAP;
-                    });
-
-                    // Conditioning tanks
-                    if (showCond) {
-                        let cAccX = condX;
-                        svgConditioning.forEach((t, i) => {
-                            const w = condWidths[i];
-                            const x = cAccX;
-                            const color = t.occupied ? v.occupiedColor : v.condLabel;
-                            html += `<g>
-                                <rect x="${x}" y="95" width="${w}" height="150" rx="10" fill="url(#cond_${b.building_id})" stroke="${color}" stroke-width="2.5"/>
-                                <ellipse cx="${x + w / 2}" cy="122" rx="${w * 0.38}" ry="14" fill="#0a1a0a" opacity="0.35"/>
-                                <text x="${x + w / 2}" y="172" text-anchor="middle" fill="${v.condTitle}" font-size="13" font-weight="bold">${t.vol}л</text>
-                                <text x="${x + w / 2}" y="195" text-anchor="middle" fill="${color}" font-size="12" font-weight="bold">${t.occupied ? '⏳ Созревает' : '✅ Свободен'}</text>
-                                <rect x="${x + w * 0.23}" y="245" width="${w * 0.54}" height="10" rx="3" fill="${v.floorLine}"/>
+                            // Bottling
+                            html += `<g transform="translate(${eqX}, ${eqY})">
+                                <rect x="0" y="0" width="${thirdW}" height="${eqH}" rx="4" fill="${v.sectionBg}" opacity="0.5"/>
+                                <text x="${thirdW / 2}" y="18" text-anchor="middle" fill="${v.boilLabel}" font-size="11" font-weight="bold">🍾 Розлив</text>
+                                <text x="${thirdW / 2}" y="34" text-anchor="middle" fill="${v.bottomText}" font-size="9">${ownedEquip.some(e => e.type === 'bottling_line') ? '✅ Установлена' : '❌ Не куплена'}</text>
                             </g>`;
-                            cAccX += w + COND_GAP;
-                        });
-                    }
 
-                    return html;
-                })()}
+                            // Kegging
+                            html += `<g transform="translate(${eqX + thirdW + secGap}, ${eqY})">
+                                <rect x="0" y="0" width="${thirdW}" height="${eqH}" rx="4" fill="${v.sectionBg}" opacity="0.5"/>
+                                <text x="${thirdW / 2}" y="18" text-anchor="middle" fill="${v.boilLabel}" font-size="11" font-weight="bold">🛢 Кеги</text>
+                                <text x="${thirdW / 2}" y="34" text-anchor="middle" fill="${v.bottomText}" font-size="9">${ownedEquip.some(e => e.type === 'kegging_line') ? '✅ Установлена' : '❌ Не куплена'}</text>
+                            </g>`;
 
-                ${v.isLoft ? `
-                <g transform="translate(40, 290)">
-                    <text x="0" y="10" fill="#d4a017" font-size="10" opacity="0.5">✦ ✦ ✦ ✦ ✦ ✦ ✦ ✦ ✦ ✦ ✦ ✦ ✦ ✦ ✦</text>
-                </g>` : ''}
-                ${v.isLab ? `
-                <g transform="translate(40, 290)">
-                    <circle cx="30" cy="10" r="6" fill="none" stroke="#5a8aaa" stroke-width="1.5" opacity="0.4"/>
-                    <circle cx="50" cy="10" r="4" fill="none" stroke="#5a8aaa" stroke-width="1" opacity="0.4"/>
-                    <line x1="20" y1="14" x2="40" y2="14" stroke="#5a8aaa" stroke-width="1" opacity="0.3"/>
-                </g>` : ''}
-                ${v.isFactory ? `
-                <g transform="translate(40, 290)">
-                    <rect x="0" y="2" width="30" height="8" rx="2" fill="#6a7a8a" opacity="0.3"/>
-                    <rect x="35" y="4" width="20" height="6" rx="2" fill="#6a7a8a" opacity="0.2"/>
-                </g>` : ''}
-                ${v.isHolding ? `
-                <g transform="translate(40, 290)">
-                    <rect x="0" y="2" width="12" height="10" rx="1" fill="#d4a017" opacity="0.3"/>
-                    <rect x="16" y="2" width="12" height="10" rx="1" fill="#d4a017" opacity="0.2"/>
-                    <rect x="32" y="2" width="12" height="10" rx="1" fill="#d4a017" opacity="0.15"/>
-                </g>` : ''}
+                            // Taproom
+                            html += `<g transform="translate(${eqX + 2 * (thirdW + secGap)}, ${eqY})">
+                                <rect x="0" y="0" width="${thirdW}" height="${eqH}" rx="4" fill="${v.sectionBg}" opacity="0.5"/>
+                                <text x="${thirdW / 2}" y="18" text-anchor="middle" fill="${b.has_taproom ? v.condLabel : v.bottomText}" font-size="11" font-weight="bold">🍺 Тапрум</text>
+                                <text x="${thirdW / 2}" y="34" text-anchor="middle" fill="${v.bottomText}" font-size="9">${b.has_taproom ? `Ур.${b.taproom_level}` : 'Не построен'}</text>
+                            </g>`;
+                        }
 
-                ${(() => {
-                    const isRoom = curBld.id === 0;
-                    const showSpecial = !isRoom;
-                    let html = '';
-                    if (showSpecial) {
-                        html += `
-                <g transform="translate(40, 330)">
-                    <rect x="0" y="0" width="500" height="90" rx="8" fill="${v.sectionBg}" stroke="${v.freeColor}" stroke-width="1.5" stroke-dasharray="5,3"/>
-                    <text x="250" y="28" text-anchor="middle" fill="${v.boilLabel}" font-size="14" font-weight="bold">🍾 Линия розлива</text>
-                    <text x="250" y="50" text-anchor="middle" fill="${v.bottomText}" font-size="12">${ownedEquip.some(e => e.type === 'bottling_line') ? '✅ Установлена' : '❌ Не куплена'}</text>
-                    <circle cx="60" cy="72" r="7" fill="${v.fermBubble}" opacity="0.5"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="0.8s" repeatCount="indefinite"/></circle>
-                    <circle cx="120" cy="72" r="7" fill="${v.fermBubble}" opacity="0.4"><animate attributeName="opacity" values="0.4;0.1;0.4" dur="0.6s" repeatCount="indefinite"/></circle>
-                    <circle cx="180" cy="72" r="7" fill="${v.fermBubble}" opacity="0.5"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="0.7s" repeatCount="indefinite"/></circle>
+                        // Building-specific decorations
+                        if (v.isLoft) {
+                            html += `<g opacity="0.15">
+                                ${[1,2,3,4,5].map(i => `<circle cx="${roomX + i * (roomW/6)}" cy="${roomY + roomH - 40}" r="3" fill="#d4a017"/>`).join('')}
+                            </g>`;
+                        }
+                        if (v.isLab) {
+                            html += `<g opacity="0.15">
+                                <circle cx="${roomX + 25}" cy="${roomY + roomH - 25}" r="8" fill="none" stroke="#5a8aaa" stroke-width="1.5"/>
+                                <circle cx="${roomX + 45}" cy="${roomY + roomH - 25}" r="5" fill="none" stroke="#5a8aaa" stroke-width="1"/>
+                            </g>`;
+                        }
+                        if (v.isFactory) {
+                            html += `<g opacity="0.15">
+                                <rect x="${roomX + 15}" y="${roomY + roomH - 35}" width="20" height="8" rx="2" fill="#6a7a8a"/>
+                                <rect x="${roomX + 40}" y="${roomY + roomH - 33}" width="15" height="6" rx="2" fill="#6a7a8a"/>
+                            </g>`;
+                        }
+                        if (v.isHolding) {
+                            html += `<g opacity="0.15">
+                                ${[0,1,2].map(i => `<rect x="${roomX + 15 + i * 16}" y="${roomY + roomH - 32}" width="10" height="8" rx="1" fill="#d4a017"/>`).join('')}
+                            </g>`;
+                        }
+
+                        return html;
+                    })()}
                 </g>
 
-                <g transform="translate(580, 330)">
-                    <rect x="0" y="0" width="540" height="90" rx="8" fill="${v.sectionBg}" stroke="${v.freeColor}" stroke-width="1.5" stroke-dasharray="5,3"/>
-                    <text x="270" y="28" text-anchor="middle" fill="${v.boilLabel}" font-size="14" font-weight="bold">🛢 Линия кегов</text>
-                    <text x="270" y="50" text-anchor="middle" fill="${v.bottomText}" font-size="12">${ownedEquip.some(e => e.type === 'kegging_line') ? '✅ Установлена' : '❌ Не куплена'}</text>
-                    <ellipse cx="270" cy="68" rx="45" ry="22" fill="${v.floorLine}" opacity="0.4" stroke="${v.freeColor}" stroke-width="1.5"/>
-                </g>
+                <rect x="0" y="0" width="1200" height="800" fill="none" stroke="var(--border)" stroke-width="1" opacity="0.3"/>
 
-                <g transform="translate(1160, 330)">
-                    <rect x="0" y="0" width="580" height="90" rx="8" fill="${v.sectionBg}" stroke="${b.has_taproom ? v.condLabel : v.bottomText}" stroke-width="1.5"/>
-                    <text x="290" y="28" text-anchor="middle" fill="${b.has_taproom ? v.condLabel : v.bottomText}" font-size="14" font-weight="bold">🍺 Тапрум</text>
-                    <text x="290" y="50" text-anchor="middle" fill="${v.bottomText}" font-size="12">${b.has_taproom ? `✅ Открыт (ур. ${b.taproom_level})` : '🔴 Не построен'}</text>
-                    ${b.has_taproom ? `<text x="290" y="72" text-anchor="middle" fill="${v.condLabel}" font-size="13">${formatMoney(b.taproom_level * 30)}/день</text>` : ''}
-                </g>`;
-                    }
-                    return html;
-                })()}
+                <g transform="translate(8, 8)">
+                    <rect x="0" y="0" width="56" height="56" rx="6" fill="rgba(0,0,0,0.5)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+                    <text x="28" y="22" text-anchor="middle" fill="#fff" font-size="16" font-weight="bold" style="cursor:pointer" onclick="brewZoom=Math.min(3,brewZoom+0.3);brewUpdateTransform()">➕</text>
+                    <line x1="10" y1="28" x2="46" y2="28" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+                    <rect x="20" y="33" width="16" height="3" rx="1.5" fill="#aaa" style="cursor:pointer" onclick="brewZoom=Math.max(0.3,brewZoom-0.3);brewUpdateTransform()"/>
+                    <text x="28" y="50" text-anchor="middle" fill="#fff" font-size="9" opacity="0.5">${Math.round(brewZoom * 100)}%</text>
                 </g>
-
             </svg>
         </div>
 
