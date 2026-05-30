@@ -217,65 +217,29 @@ function renderBrewery() {
         <div class="brewery-svg-container">
             <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" style="width:100%;cursor:grab">
                 <defs>
-                    <pattern id="floorPlanks" x="0" y="0" width="40" height="20" patternUnits="userSpaceOnUse">
-                        <rect width="40" height="20" fill="none"/>
-                        <rect x="0" y="0" width="40" height="9" rx="1" fill="rgba(139,119,90,0.12)"/>
-                        <rect x="0" y="10" width="40" height="9" rx="1" fill="rgba(139,119,90,0.06)"/>
-                        <line x1="0" y1="9.5" x2="40" y2="9.5" stroke="rgba(80,60,40,0.2)" stroke-width="0.5"/>
+                    <pattern id="floorPlanks" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+                        <image href="img/textures/planks.png" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
                     </pattern>
-                    <pattern id="floorStone" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
-                        <rect width="60" height="60" fill="none"/>
-                        <rect x="0" y="0" width="28" height="28" rx="2" fill="rgba(100,90,80,0.15)" stroke="rgba(60,50,40,0.2)" stroke-width="0.5"/>
-                        <rect x="30" y="0" width="28" height="28" rx="2" fill="rgba(90,80,70,0.1)" stroke="rgba(60,50,40,0.2)" stroke-width="0.5"/>
-                        <rect x="0" y="30" width="28" height="28" rx="2" fill="rgba(80,70,60,0.12)" stroke="rgba(60,50,40,0.2)" stroke-width="0.5"/>
-                        <rect x="30" y="30" width="28" height="28" rx="2" fill="rgba(100,85,70,0.1)" stroke="rgba(60,50,40,0.2)" stroke-width="0.5"/>
+                    <pattern id="floorStone" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+                        <image href="https://image.pollinations.ai/prompt/seamless%20tileable%20texture%20of%20grey%20stone%20flagstone%20flooring%2C%20top-down%20view%2C%20photorealistic%2C%20512x512?model=flux&seed=898491&width=512&height=512&enhance=true&nologo=true&private=true&safe=false" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
                     </pattern>
-                    <pattern id="floorTile" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-                        <rect width="40" height="40" fill="none"/>
-                        <rect x="0" y="0" width="19" height="19" rx="1" fill="rgba(100,110,130,0.1)" stroke="rgba(80,90,110,0.15)" stroke-width="0.5"/>
-                        <rect x="20" y="0" width="19" height="19" rx="1" fill="rgba(110,120,140,0.08)" stroke="rgba(80,90,110,0.15)" stroke-width="0.5"/>
-                        <rect x="0" y="20" width="19" height="19" rx="1" fill="rgba(110,120,140,0.08)" stroke="rgba(80,90,110,0.15)" stroke-width="0.5"/>
-                        <rect x="20" y="20" width="19" height="19" rx="1" fill="rgba(100,110,130,0.1)" stroke="rgba(80,90,110,0.15)" stroke-width="0.5"/>
+                    <pattern id="floorTile" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+                        <image href="https://image.pollinations.ai/prompt/seamless%20tileable%20texture%20of%20white%20ceramic%20tile%20floor%20checkerboard%20pattern%2C%20top-down%20view%2C%20photorealistic%2C%20512x512?model=flux&seed=914557&width=512&height=512&enhance=true&nologo=true&private=true&safe=false" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
                     </pattern>
-                    <pattern id="floorConcrete" x="0" y="0" width="160" height="160" patternUnits="userSpaceOnUse">
-                        <rect width="160" height="160" fill="none"/>
-                        <rect x="0" y="0" width="78" height="78" rx="0" fill="none" stroke="rgba(100,100,100,0.12)" stroke-width="1"/>
-                        <rect x="80" y="0" width="78" height="78" rx="0" fill="none" stroke="rgba(100,100,100,0.12)" stroke-width="1"/>
-                        <rect x="0" y="80" width="78" height="78" rx="0" fill="none" stroke="rgba(100,100,100,0.12)" stroke-width="1"/>
-                        <rect x="80" y="80" width="78" height="78" rx="0" fill="none" stroke="rgba(100,100,100,0.12)" stroke-width="1"/>
-                        <circle cx="40" cy="40" r="1.5" fill="rgba(100,100,100,0.15)"/>
-                        <circle cx="120" cy="40" r="1.5" fill="rgba(100,100,100,0.15)"/>
-                        <circle cx="40" cy="120" r="1.5" fill="rgba(100,100,100,0.15)"/>
-                        <circle cx="120" cy="120" r="1.5" fill="rgba(100,100,100,0.15)"/>
+                    <pattern id="floorConcrete" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+                        <image href="https://image.pollinations.ai/prompt/seamless%20tileable%20texture%20of%20grey%20concrete%20floor%2C%20industrial%2C%20top-down%20view%2C%20photorealistic%2C%20512x512?model=flux&seed=435034&width=512&height=512&enhance=true&nologo=true&private=true&safe=false" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
                     </pattern>
-                    <pattern id="floorHerringbone" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-                        <rect width="40" height="40" fill="none"/>
-                        <rect x="-5" y="0" width="20" height="8" rx="1" fill="rgba(160,120,80,0.12)" stroke="rgba(120,80,50,0.15)" stroke-width="0.5" transform="rotate(-15,-5,0)"/>
-                        <rect x="15" y="0" width="20" height="8" rx="1" fill="rgba(150,110,70,0.1)" stroke="rgba(120,80,50,0.15)" stroke-width="0.5" transform="rotate(-15,15,0)"/>
-                        <rect x="10" y="20" width="20" height="8" rx="1" fill="rgba(145,105,65,0.12)" stroke="rgba(120,80,50,0.15)" stroke-width="0.5" transform="rotate(15,10,20)"/>
-                        <rect x="30" y="20" width="20" height="8" rx="1" fill="rgba(155,115,75,0.1)" stroke="rgba(120,80,50,0.15)" stroke-width="0.5" transform="rotate(15,30,20)"/>
+                    <pattern id="floorHerringbone" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+                        <image href="https://image.pollinations.ai/prompt/seamless%20tileable%20texture%20herringbone%20wood%20floor%2C%20warm%20brown%20oak%20parquet%2C%20top-down%20view%2C%20photorealistic%2C%20512x512?model=flux&seed=632791&width=512&height=512&enhance=true&nologo=true&private=true&safe=false" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
                     </pattern>
-                    <pattern id="floorPolished" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
-                        <rect width="80" height="80" fill="none"/>
-                        <line x1="0" y1="20" x2="80" y2="20" stroke="rgba(200,210,220,0.08)" stroke-width="1"/>
-                        <line x1="0" y1="40" x2="80" y2="40" stroke="rgba(200,210,220,0.05)" stroke-width="1"/>
-                        <line x1="0" y1="60" x2="80" y2="60" stroke="rgba(200,210,220,0.08)" stroke-width="1"/>
-                        <rect x="0" y="0" width="80" height="80" fill="url(#shine)" opacity="0.06"/>
+                    <pattern id="floorPolished" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+                        <image href="https://image.pollinations.ai/prompt/seamless%20tileable%20texture%20polished%20concrete%20floor%2C%20light%20grey%2C%20top-down%20view%2C%20photorealistic%2C%20512x512?model=flux&seed=832937&width=512&height=512&enhance=true&nologo=true&private=true&safe=false" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
                     </pattern>
-                    <pattern id="floorEpoxy" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse">
-                        <rect width="50" height="50" fill="none"/>
-                        <rect x="0" y="0" width="24" height="24" rx="3" fill="rgba(180,200,220,0.1)" stroke="rgba(160,180,200,0.12)" stroke-width="0.5"/>
-                        <rect x="25" y="0" width="24" height="24" rx="3" fill="rgba(190,210,230,0.07)" stroke="rgba(160,180,200,0.12)" stroke-width="0.5"/>
-                        <rect x="0" y="25" width="24" height="24" rx="3" fill="rgba(190,210,230,0.07)" stroke="rgba(160,180,200,0.12)" stroke-width="0.5"/>
-                        <rect x="25" y="25" width="24" height="24" rx="3" fill="rgba(180,200,220,0.1)" stroke="rgba(160,180,200,0.12)" stroke-width="0.5"/>
+                    <pattern id="floorEpoxy" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+                        <image href="https://image.pollinations.ai/prompt/seamless%20tileable%20texture%20white%20epoxy%20clean%20room%20floor%2C%20light%20grey%2C%20top-down%20view%2C%20photorealistic%2C%20512x512?model=flux&seed=261689&width=512&height=512&enhance=true&nologo=true&private=true&safe=false" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
                     </pattern>
-                    <pattern id="floorMarble" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
-                        <rect width="80" height="80" fill="none"/>
-                        <rect x="0" y="0" width="39" height="39" rx="0" fill="rgba(60,50,70,0.1)" stroke="rgba(100,80,120,0.08)" stroke-width="0.5"/>
-                        <rect x="40" y="0" width="39" height="39" rx="0" fill="rgba(70,60,80,0.07)" stroke="rgba(100,80,120,0.08)" stroke-width="0.5"/>
-                        <rect x="0" y="40" width="39" height="39" rx="0" fill="rgba(70,60,80,0.07)" stroke="rgba(100,80,120,0.08)" stroke-width="0.5"/>
-                        <rect x="40" y="40" width="39" height="39" rx="0" fill="rgba(60,50,70,0.1)" stroke="rgba(100,80,120,0.08)" stroke-width="0.5"/>
-                        <path d="M0,20 Q20,18 40,22 Q60,26 80,20" fill="none" stroke="rgba(160,140,180,0.06)" stroke-width="1"/>
+                    <pattern id="floorMarble" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+                        <image href="https://image.pollinations.ai/prompt/seamless%20tileable%20texture%20dark%20marble%20floor%2C%20black%20and%20gold%20veins%2C%20top-down%20view%2C%20photorealistic%2C%20512x512?model=flux&seed=476494&width=512&height=512&enhance=true&nologo=true&private=true&safe=false" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
                     </pattern>
                     <linearGradient id="kettleGrad" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stop-color="${v.kettle[0]}"/>
@@ -288,13 +252,6 @@ function renderBrewery() {
                     <linearGradient id="condGrad" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stop-color="${v.cond[0]}"/>
                         <stop offset="100%" stop-color="${v.cond[1]}"/>
-                    </linearGradient>
-                    <linearGradient id="shine" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stop-color="rgba(255,255,255,0)"/>
-                        <stop offset="40%" stop-color="rgba(255,255,255,0)"/>
-                        <stop offset="50%" stop-color="rgba(255,255,255,0.3)"/>
-                        <stop offset="60%" stop-color="rgba(255,255,255,0)"/>
-                        <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
                     </linearGradient>
                     <filter id="glow">
                         <feGaussianBlur stdDeviation="2" result="blur"/>
