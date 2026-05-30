@@ -262,7 +262,9 @@ function renderBrewery() {
 
                         // Room floor
                         html += `                        <rect x="${roomX}" y="${roomY}" width="${roomW}" height="${roomH}" rx="6" fill="${v.wall[1]}" stroke="${v.wallStroke}" stroke-width="2"/>
-                        <rect x="${roomX}" y="${roomY}" width="${roomW}" height="${roomH}" fill="url(#floor${v.floorType})" opacity="1"/>`;
+                        <foreignObject x="${roomX}" y="${roomY}" width="${roomW}" height="${roomH}">
+                            <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;background-image:url('/img/textures/${v.floorType}.jpg');background-repeat:repeat;background-size:100px 100px;pointer-events:none;border-radius:6px"/>
+                        </foreignObject>`;
 
                         // Room border accent
                         html += `<rect x="${roomX + 4}" y="${roomY + 4}" width="${roomW - 8}" height="${roomH - 8}" rx="4" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
@@ -567,38 +569,6 @@ function renderBrewery() {
             })()}
         </div>
     `;
-    // Build floor patterns via createElementNS (proper SVG namespace)
-    try {
-        const defs = el.querySelector('svg defs');
-        if (defs) {
-            const textures = [
-                ['planks','/img/textures/planks.jpg'],
-                ['stone','/img/textures/stone.jpg'],
-                ['tile','/img/textures/tile.jpg'],
-                ['concrete','/img/textures/concrete.jpg'],
-                ['herringbone','/img/textures/herringbone.jpg'],
-                ['polished','/img/textures/polished.jpg'],
-                ['epoxy','/img/textures/epoxy.jpg'],
-                ['marble','/img/textures/marble.jpg'],
-            ];
-            for (const [name, src] of textures) {
-                const p = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
-                p.setAttribute('id', 'floor' + name.charAt(0).toUpperCase() + name.slice(1));
-                p.setAttribute('width', '100');
-                p.setAttribute('height', '100');
-                p.setAttribute('patternUnits', 'userSpaceOnUse');
-                const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
-                img.setAttribute('href', src);
-                img.setAttribute('width', '100');
-                img.setAttribute('height', '100');
-                img.setAttribute('preserveAspectRatio', 'xMidYMid slice');
-                p.appendChild(img);
-                defs.insertBefore(p, defs.firstChild);
-            }
-        }
-    } catch (e) {
-        console.warn('Floor patterns:', e.message);
-    }
     const svg = el.querySelector('.brewery-svg-container svg');
     if (svg) brewSetupEvents(svg);
 }
