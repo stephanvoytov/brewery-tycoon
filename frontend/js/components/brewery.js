@@ -218,28 +218,28 @@ function renderBrewery() {
             <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" style="width:100%;cursor:grab">
                 <defs>
                     <pattern id="floorPlanks" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <image href="img/textures/planks.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
+                        <image href="/img/textures/planks.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
                     </pattern>
                     <pattern id="floorStone" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <image href="img/textures/stone.webp" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
+                        <image href="/img/textures/stone.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
                     </pattern>
                     <pattern id="floorTile" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <image href="img/textures/tile.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
+                        <image href="/img/textures/tile.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
                     </pattern>
                     <pattern id="floorConcrete" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <image href="img/textures/concrete.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
+                        <image href="/img/textures/concrete.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
                     </pattern>
                     <pattern id="floorHerringbone" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <image href="img/textures/herringbone.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
+                        <image href="/img/textures/herringbone.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
                     </pattern>
                     <pattern id="floorPolished" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <image href="img/textures/polished.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
+                        <image href="/img/textures/polished.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
                     </pattern>
                     <pattern id="floorEpoxy" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <image href="img/textures/epoxy.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
+                        <image href="/img/textures/epoxy.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
                     </pattern>
                     <pattern id="floorMarble" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <image href="img/textures/marble.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
+                        <image href="/img/textures/marble.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
                     </pattern>
                     <linearGradient id="kettleGrad" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stop-color="${v.kettle[0]}"/>
