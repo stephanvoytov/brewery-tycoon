@@ -143,7 +143,7 @@ const BUILDING_VISUALS = {
         occupiedColor: '#e74c3c', freeColor: '#7a6a4a', floorLine: '#2a1a0a',
         glowColor: '#7a6a4a', fermBubble: '#4a6a8a', condBubble: '#4a6a6a',
         bottomBar: '#1a1a0a', bottomText: '#5a5a4a',
-        isRoom: true,
+        floorType: 'planks', decor: ['baseboard', 'door'],
     },
     1: {
         wall: ['#1a1a2a','#0e0e1e'], floor: ['#2a1a0a','#1a0a00'], wallStroke: '#2a2a3a',
@@ -155,6 +155,7 @@ const BUILDING_VISUALS = {
         occupiedColor: '#e74c3c', freeColor: '#8a7a5a', floorLine: '#2a1a0a',
         glowColor: '#8a7a5a', fermBubble: '#5a8aaa', condBubble: '#5aaa7a',
         bottomBar: '#0e0e1a', bottomText: '#6a6a5a',
+        floorType: 'stone', decor: ['pipes', 'drain'],
     },
     2: {
         wall: ['#2a3a5a','#1a2a4a'], floor: ['#3a2a1a','#2a1a0a'], wallStroke: '#3a4a6a',
@@ -166,6 +167,7 @@ const BUILDING_VISUALS = {
         occupiedColor: '#e74c3c', freeColor: '#d4a017', floorLine: '#4a3a2a',
         glowColor: '#f0c040', fermBubble: '#85c1e9', condBubble: '#82e0aa',
         bottomBar: '#1a1a2e', bottomText: '#8a8a7a',
+        floorType: 'tile', decor: ['zoneMarkings', 'lights'],
     },
     3: {
         wall: ['#3a4a5a','#2a3a4a'], floor: ['#4a4a4a','#3a3a3a'], wallStroke: '#5a6a7a',
@@ -177,6 +179,7 @@ const BUILDING_VISUALS = {
         occupiedColor: '#e74c3c', freeColor: '#8a9aaa', floorLine: '#5a5a5a',
         glowColor: '#9aabba', fermBubble: '#7a9aba', condBubble: '#7aba8a',
         bottomBar: '#2a3a4a', bottomText: '#8a9aaa',
+        floorType: 'concrete', decor: ['vent', 'lights'],
     },
     4: {
         wall: ['#5a3a2a','#4a2a1a'], floor: ['#4a3020','#3a2010'], wallStroke: '#7a5a3a',
@@ -188,7 +191,7 @@ const BUILDING_VISUALS = {
         occupiedColor: '#e74c3c', freeColor: '#c0a070', floorLine: '#5a3a2a',
         glowColor: '#f0d0a0', fermBubble: '#c09a6a', condBubble: '#6aaa6a',
         bottomBar: '#3a2a1a', bottomText: '#a09070',
-        isLoft: true,
+        floorType: 'herringbone', decor: ['columns', 'pendant'],
     },
     5: {
         wall: ['#4a5a6a','#3a4a5a'], floor: ['#5a6a7a','#4a5a6a'], wallStroke: '#6a7a8a',
@@ -200,7 +203,7 @@ const BUILDING_VISUALS = {
         occupiedColor: '#e74c3c', freeColor: '#9abac0', floorLine: '#6a7a8a',
         glowColor: '#aaccd0', fermBubble: '#8abada', condBubble: '#8ada9a',
         bottomBar: '#3a4a5a', bottomText: '#9abac0',
-        isFactory: true,
+        floorType: 'polished', decor: ['zoneMarkings', 'gantry'],
     },
     6: {
         wall: ['#d0d8e0','#b0b8c0'], floor: ['#c0c8d0','#a0a8b0'], wallStroke: '#8a9aaa',
@@ -212,7 +215,7 @@ const BUILDING_VISUALS = {
         occupiedColor: '#e74c3c', freeColor: '#6a8aaa', floorLine: '#8a9aaa',
         glowColor: '#80c0e0', fermBubble: '#80a8d0', condBubble: '#80c8a0',
         bottomBar: '#b0b8c0', bottomText: '#4a5a6a',
-        isLab: true,
+        floorType: 'epoxy', decor: ['lights', 'columns'],
     },
     7: {
         wall: ['#1a1a2e','#0a0a1e'], floor: ['#2a1a2a','#1a0a1a'], wallStroke: '#3a3a5a',
@@ -224,7 +227,7 @@ const BUILDING_VISUALS = {
         occupiedColor: '#e74c3c', freeColor: '#5a5a7a', floorLine: '#3a3a4a',
         glowColor: '#d4a017', fermBubble: '#b08ad0', condBubble: '#6aba8a',
         bottomBar: '#1a1a2e', bottomText: '#5a5a7a',
-        isHolding: true,
+        floorType: 'marble', decor: ['trim', 'chandelier'],
     },
 };
 

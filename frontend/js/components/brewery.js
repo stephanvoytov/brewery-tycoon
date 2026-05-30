@@ -117,7 +117,7 @@ function renderTankGrid(tanks, zoneCx, zoneCy, zoneW, zoneH, baseR, gradId, free
         const cx = startX + r + col * (2 * maxR + gap);
         const cy = startY + r + row * (2 * maxR + gap);
         const color = t.occupied ? occColor : freeColor;
-        html += `<g>
+        html += `<g filter="url(#tankShadow)">
             <circle cx="${cx}" cy="${cy}" r="${r}" fill="url(${gradId})" stroke="${color}" stroke-width="3"/>
             <circle cx="${cx}" cy="${cy}" r="${r * 0.7}" fill="${t.occupied ? 'rgba(180,80,0,0.2)' : 'rgba(0,80,180,0.08)'}"/>
             <text x="${cx}" y="${cy + 4}" text-anchor="middle" fill="${txtColor}" font-size="${Math.max(11, r * 0.55)}" font-weight="bold">${t.vol}л</text>
@@ -217,8 +217,65 @@ function renderBrewery() {
         <div class="brewery-svg-container">
             <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" style="width:100%;cursor:grab">
                 <defs>
-                    <pattern id="floorPat" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse">
-                        <rect width="30" height="30" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+                    <pattern id="floorPlanks" x="0" y="0" width="40" height="20" patternUnits="userSpaceOnUse">
+                        <rect width="40" height="20" fill="none"/>
+                        <rect x="0" y="0" width="40" height="9" rx="1" fill="rgba(139,119,90,0.12)"/>
+                        <rect x="0" y="10" width="40" height="9" rx="1" fill="rgba(139,119,90,0.06)"/>
+                        <line x1="0" y1="9.5" x2="40" y2="9.5" stroke="rgba(80,60,40,0.2)" stroke-width="0.5"/>
+                    </pattern>
+                    <pattern id="floorStone" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+                        <rect width="60" height="60" fill="none"/>
+                        <rect x="0" y="0" width="28" height="28" rx="2" fill="rgba(100,90,80,0.15)" stroke="rgba(60,50,40,0.2)" stroke-width="0.5"/>
+                        <rect x="30" y="0" width="28" height="28" rx="2" fill="rgba(90,80,70,0.1)" stroke="rgba(60,50,40,0.2)" stroke-width="0.5"/>
+                        <rect x="0" y="30" width="28" height="28" rx="2" fill="rgba(80,70,60,0.12)" stroke="rgba(60,50,40,0.2)" stroke-width="0.5"/>
+                        <rect x="30" y="30" width="28" height="28" rx="2" fill="rgba(100,85,70,0.1)" stroke="rgba(60,50,40,0.2)" stroke-width="0.5"/>
+                    </pattern>
+                    <pattern id="floorTile" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+                        <rect width="40" height="40" fill="none"/>
+                        <rect x="0" y="0" width="19" height="19" rx="1" fill="rgba(100,110,130,0.1)" stroke="rgba(80,90,110,0.15)" stroke-width="0.5"/>
+                        <rect x="20" y="0" width="19" height="19" rx="1" fill="rgba(110,120,140,0.08)" stroke="rgba(80,90,110,0.15)" stroke-width="0.5"/>
+                        <rect x="0" y="20" width="19" height="19" rx="1" fill="rgba(110,120,140,0.08)" stroke="rgba(80,90,110,0.15)" stroke-width="0.5"/>
+                        <rect x="20" y="20" width="19" height="19" rx="1" fill="rgba(100,110,130,0.1)" stroke="rgba(80,90,110,0.15)" stroke-width="0.5"/>
+                    </pattern>
+                    <pattern id="floorConcrete" x="0" y="0" width="160" height="160" patternUnits="userSpaceOnUse">
+                        <rect width="160" height="160" fill="none"/>
+                        <rect x="0" y="0" width="78" height="78" rx="0" fill="none" stroke="rgba(100,100,100,0.12)" stroke-width="1"/>
+                        <rect x="80" y="0" width="78" height="78" rx="0" fill="none" stroke="rgba(100,100,100,0.12)" stroke-width="1"/>
+                        <rect x="0" y="80" width="78" height="78" rx="0" fill="none" stroke="rgba(100,100,100,0.12)" stroke-width="1"/>
+                        <rect x="80" y="80" width="78" height="78" rx="0" fill="none" stroke="rgba(100,100,100,0.12)" stroke-width="1"/>
+                        <circle cx="40" cy="40" r="1.5" fill="rgba(100,100,100,0.15)"/>
+                        <circle cx="120" cy="40" r="1.5" fill="rgba(100,100,100,0.15)"/>
+                        <circle cx="40" cy="120" r="1.5" fill="rgba(100,100,100,0.15)"/>
+                        <circle cx="120" cy="120" r="1.5" fill="rgba(100,100,100,0.15)"/>
+                    </pattern>
+                    <pattern id="floorHerringbone" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+                        <rect width="40" height="40" fill="none"/>
+                        <rect x="-5" y="0" width="20" height="8" rx="1" fill="rgba(160,120,80,0.12)" stroke="rgba(120,80,50,0.15)" stroke-width="0.5" transform="rotate(-15,-5,0)"/>
+                        <rect x="15" y="0" width="20" height="8" rx="1" fill="rgba(150,110,70,0.1)" stroke="rgba(120,80,50,0.15)" stroke-width="0.5" transform="rotate(-15,15,0)"/>
+                        <rect x="10" y="20" width="20" height="8" rx="1" fill="rgba(145,105,65,0.12)" stroke="rgba(120,80,50,0.15)" stroke-width="0.5" transform="rotate(15,10,20)"/>
+                        <rect x="30" y="20" width="20" height="8" rx="1" fill="rgba(155,115,75,0.1)" stroke="rgba(120,80,50,0.15)" stroke-width="0.5" transform="rotate(15,30,20)"/>
+                    </pattern>
+                    <pattern id="floorPolished" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+                        <rect width="80" height="80" fill="none"/>
+                        <line x1="0" y1="20" x2="80" y2="20" stroke="rgba(200,210,220,0.08)" stroke-width="1"/>
+                        <line x1="0" y1="40" x2="80" y2="40" stroke="rgba(200,210,220,0.05)" stroke-width="1"/>
+                        <line x1="0" y1="60" x2="80" y2="60" stroke="rgba(200,210,220,0.08)" stroke-width="1"/>
+                        <rect x="0" y="0" width="80" height="80" fill="url(#shine)" opacity="0.06"/>
+                    </pattern>
+                    <pattern id="floorEpoxy" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse">
+                        <rect width="50" height="50" fill="none"/>
+                        <rect x="0" y="0" width="24" height="24" rx="3" fill="rgba(180,200,220,0.1)" stroke="rgba(160,180,200,0.12)" stroke-width="0.5"/>
+                        <rect x="25" y="0" width="24" height="24" rx="3" fill="rgba(190,210,230,0.07)" stroke="rgba(160,180,200,0.12)" stroke-width="0.5"/>
+                        <rect x="0" y="25" width="24" height="24" rx="3" fill="rgba(190,210,230,0.07)" stroke="rgba(160,180,200,0.12)" stroke-width="0.5"/>
+                        <rect x="25" y="25" width="24" height="24" rx="3" fill="rgba(180,200,220,0.1)" stroke="rgba(160,180,200,0.12)" stroke-width="0.5"/>
+                    </pattern>
+                    <pattern id="floorMarble" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+                        <rect width="80" height="80" fill="none"/>
+                        <rect x="0" y="0" width="39" height="39" rx="0" fill="rgba(60,50,70,0.1)" stroke="rgba(100,80,120,0.08)" stroke-width="0.5"/>
+                        <rect x="40" y="0" width="39" height="39" rx="0" fill="rgba(70,60,80,0.07)" stroke="rgba(100,80,120,0.08)" stroke-width="0.5"/>
+                        <rect x="0" y="40" width="39" height="39" rx="0" fill="rgba(70,60,80,0.07)" stroke="rgba(100,80,120,0.08)" stroke-width="0.5"/>
+                        <rect x="40" y="40" width="39" height="39" rx="0" fill="rgba(60,50,70,0.1)" stroke="rgba(100,80,120,0.08)" stroke-width="0.5"/>
+                        <path d="M0,20 Q20,18 40,22 Q60,26 80,20" fill="none" stroke="rgba(160,140,180,0.06)" stroke-width="1"/>
                     </pattern>
                     <linearGradient id="kettleGrad" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stop-color="${v.kettle[0]}"/>
@@ -232,9 +289,19 @@ function renderBrewery() {
                         <stop offset="0%" stop-color="${v.cond[0]}"/>
                         <stop offset="100%" stop-color="${v.cond[1]}"/>
                     </linearGradient>
+                    <linearGradient id="shine" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="rgba(255,255,255,0)"/>
+                        <stop offset="40%" stop-color="rgba(255,255,255,0)"/>
+                        <stop offset="50%" stop-color="rgba(255,255,255,0.3)"/>
+                        <stop offset="60%" stop-color="rgba(255,255,255,0)"/>
+                        <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+                    </linearGradient>
                     <filter id="glow">
                         <feGaussianBlur stdDeviation="2" result="blur"/>
                         <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                    <filter id="tankShadow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="rgba(0,0,0,0.5)"/>
                     </filter>
                 </defs>
 
@@ -262,7 +329,7 @@ function renderBrewery() {
 
                         // Room floor
                         html += `<rect x="${roomX}" y="${roomY}" width="${roomW}" height="${roomH}" rx="6" fill="${v.wall[1]}" stroke="${v.wallStroke}" stroke-width="2"/>
-                        <rect x="${roomX}" y="${roomY}" width="${roomW}" height="${roomH}" fill="url(#floorPat)" opacity="0.5"/>`;
+                        <rect x="${roomX}" y="${roomY}" width="${roomW}" height="${roomH}" fill="url(#floor${v.floorType})" opacity="0.5"/>`;
 
                         // Room border accent
                         html += `<rect x="${roomX + 4}" y="${roomY + 4}" width="${roomW - 8}" height="${roomH - 8}" rx="4" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
@@ -320,26 +387,93 @@ function renderBrewery() {
                         }
 
                         // Building-specific decorations
-                        if (v.isLoft) {
-                            html += `<g opacity="0.15">
-                                ${[1,2,3,4,5].map(i => `<circle cx="${roomX + i * (roomW/6)}" cy="${roomY + roomH - 40}" r="3" fill="#d4a017"/>`).join('')}
+                        const dec = v.decor || [];
+                        if (dec.includes('baseboard')) {
+                            html += `<rect x="${roomX + 4}" y="${roomY + roomH - 12}" width="${roomW - 8}" height="8" rx="1" fill="rgba(255,255,255,0.03)"/>`;
+                        }
+                        if (dec.includes('door')) {
+                            const dW = 36, dH = 44;
+                            const dX = roomX + roomW / 2 - dW / 2;
+                            const dY = roomY + roomH - dH;
+                            html += `<g opacity="0.4">
+                                <rect x="${dX}" y="${dY}" width="${dW}" height="${dH}" rx="2" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+                                <rect x="${dX + 4}" y="${dY + 4}" width="${dW - 8}" height="${dH - 8}" rx="1" fill="rgba(255,255,255,0.02)"/>
+                                <circle cx="${dX + dW - 8}" cy="${dY + dH / 2}" r="2" fill="rgba(255,255,255,0.15)"/>
                             </g>`;
                         }
-                        if (v.isLab) {
-                            html += `<g opacity="0.15">
-                                <circle cx="${roomX + 25}" cy="${roomY + roomH - 25}" r="8" fill="none" stroke="#5a8aaa" stroke-width="1.5"/>
-                                <circle cx="${roomX + 45}" cy="${roomY + roomH - 25}" r="5" fill="none" stroke="#5a8aaa" stroke-width="1"/>
+                        if (dec.includes('lights')) {
+                            html += `<g opacity="0.2">
+                                ${[0,1,2].map(i => {
+                                    const lx = roomX + 40 + i * ((roomW - 80) / 3);
+                                    return `<rect x="${lx}" y="${roomY + 4}" width="20" height="4" rx="2" fill="#fff"/>
+                                        <rect x="${lx + 6}" y="${roomY + 8}" width="8" height="6" rx="1" fill="rgba(255,255,150,0.3)"/>`;
+                                }).join('')}
                             </g>`;
                         }
-                        if (v.isFactory) {
+                        if (dec.includes('pipes')) {
                             html += `<g opacity="0.15">
-                                <rect x="${roomX + 15}" y="${roomY + roomH - 35}" width="20" height="8" rx="2" fill="#6a7a8a"/>
-                                <rect x="${roomX + 40}" y="${roomY + roomH - 33}" width="15" height="6" rx="2" fill="#6a7a8a"/>
+                                <line x1="${roomX + 10}" y1="${roomY}" x2="${roomX + 10}" y2="${roomY + roomH}" stroke="#5a7a8a" stroke-width="3"/>
+                                <line x1="${roomX + 16}" y1="${roomY}" x2="${roomX + 16}" y2="${roomY + roomH}" stroke="#5a7a8a" stroke-width="2"/>
+                                <circle cx="${roomX + 10}" cy="${roomY + roomH * 0.3}" r="4" fill="none" stroke="#4a6a7a" stroke-width="1.5"/>
+                                <circle cx="${roomX + 10}" cy="${roomY + roomH * 0.7}" r="4" fill="none" stroke="#4a6a7a" stroke-width="1.5"/>
                             </g>`;
                         }
-                        if (v.isHolding) {
-                            html += `<g opacity="0.15">
-                                ${[0,1,2].map(i => `<rect x="${roomX + 15 + i * 16}" y="${roomY + roomH - 32}" width="10" height="8" rx="1" fill="#d4a017"/>`).join('')}
+                        if (dec.includes('drain')) {
+                            html += `<g opacity="0.2">
+                                <circle cx="${roomX + roomW / 2}" cy="${roomY + roomH - 20}" r="6" fill="none" stroke="#5a6a5a" stroke-width="1.5"/>
+                                <line x1="${roomX + roomW / 2 - 4}" y1="${roomY + roomH - 20}" x2="${roomX + roomW / 2 + 4}" y2="${roomY + roomH - 20}" stroke="#5a6a5a" stroke-width="1.5"/>
+                                <line x1="${roomX + roomW / 2}" y1="${roomY + roomH - 24}" x2="${roomX + roomW / 2}" y2="${roomY + roomH - 16}" stroke="#5a6a5a" stroke-width="1.5"/>
+                            </g>`;
+                        }
+                        if (dec.includes('zoneMarkings')) {
+                            html += `<rect x="${z1x}" y="${zoneY}" width="${zoneW}" height="${zoneH}" rx="6" fill="none" stroke="${v.boilLabel}" stroke-width="1" stroke-dasharray="6,4" opacity="0.12"/>`;
+                            html += `<rect x="${z2x}" y="${zoneY}" width="${zoneW}" height="${zoneH}" rx="6" fill="none" stroke="${v.fermLabel}" stroke-width="1" stroke-dasharray="6,4" opacity="0.12"/>`;
+                            if (showCond) {
+                                html += `<rect x="${z3x}" y="${zoneY}" width="${zoneW}" height="${zoneH}" rx="6" fill="none" stroke="${v.condLabel}" stroke-width="1" stroke-dasharray="6,4" opacity="0.12"/>`;
+                            }
+                        }
+                        if (dec.includes('vent')) {
+                            html += `<g opacity="0.12">
+                                <rect x="${roomX + 20}" y="${roomY + 15}" width="${roomW - 40}" height="6" rx="2" fill="#7a9aaa"/>
+                                <line x1="${roomX + 40}" y1="${roomY + 15}" x2="${roomX + 40}" y2="${roomY + 21}" stroke="#5a7a8a" stroke-width="1"/>
+                                <line x1="${roomX + 60}" y1="${roomY + 15}" x2="${roomX + 60}" y2="${roomY + 21}" stroke="#5a7a8a" stroke-width="1"/>
+                                <line x1="${roomX + 80}" y1="${roomY + 15}" x2="${roomX + 80}" y2="${roomY + 21}" stroke="#5a7a8a" stroke-width="1"/>
+                            </g>`;
+                        }
+                        if (dec.includes('gantry')) {
+                            html += `<g opacity="0.12">
+                                <line x1="${roomX + 10}" y1="${roomY + 20}" x2="${roomX + roomW - 10}" y2="${roomY + 20}" stroke="#8a9aaa" stroke-width="3"/>
+                                <rect x="${roomX + 30}" y="${roomY + 16}" width="6" height="10" fill="#6a7a8a"/>
+                                <rect x="${roomX + 80}" y="${roomY + 16}" width="6" height="10" fill="#6a7a8a"/>
+                                <rect x="${roomX + 50}" y="${roomY + 20}" width="4" height="4" rx="1" fill="#aa5a3a"/>
+                            </g>`;
+                        }
+                        if (dec.includes('columns')) {
+                            html += `<g opacity="0.12">
+                                <rect x="${roomX + 8}" y="${roomY + 8}" width="12" height="${roomH - 16}" rx="2" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+                            </g>`;
+                        }
+                        if (dec.includes('trim')) {
+                            html += `<rect x="${roomX + 4}" y="${roomY + 4}" width="${roomW - 8}" height="${roomH - 8}" rx="4" fill="none" stroke="#d4a017" stroke-width="1" opacity="0.15"/>`;
+                            html += `<rect x="${roomX + 8}" y="${roomY + 8}" width="${roomW - 16}" height="${roomH - 16}" rx="3" fill="none" stroke="#d4a017" stroke-width="0.5" opacity="0.08"/>`;
+                        }
+                        if (dec.includes('pendant')) {
+                            html += `<g opacity="0.18">
+                                <line x1="${roomX + roomW / 4}" y1="${roomY}" x2="${roomX + roomW / 4}" y2="${roomY + 40}" stroke="#7a6a5a" stroke-width="1"/>
+                                <circle cx="${roomX + roomW / 4}" cy="${roomY + 45}" r="5" fill="#d4a017"/>
+                                <circle cx="${roomX + roomW / 4}" cy="${roomY + 45}" r="3" fill="#f0d080" opacity="0.6"/>
+                                <line x1="${roomX + roomW * 3 / 4}" y1="${roomY}" x2="${roomX + roomW * 3 / 4}" y2="${roomY + 40}" stroke="#7a6a5a" stroke-width="1"/>
+                                <circle cx="${roomX + roomW * 3 / 4}" cy="${roomY + 45}" r="5" fill="#d4a017"/>
+                                <circle cx="${roomX + roomW * 3 / 4}" cy="${roomY + 45}" r="3" fill="#f0d080" opacity="0.6"/>
+                            </g>`;
+                        }
+                        if (dec.includes('chandelier')) {
+                            html += `<g opacity="0.2">
+                                <line x1="${roomX + roomW / 2}" y1="${roomY}" x2="${roomX + roomW / 2}" y2="${roomY + 20}" stroke="#d4a017" stroke-width="1.5"/>
+                                <rect x="${roomX + roomW / 2 - 20}" y="${roomY + 20}" width="40" height="4" rx="2" fill="#d4a017"/>
+                                <circle cx="${roomX + roomW / 2 - 14}" cy="${roomY + 28}" r="3" fill="#f0d080" opacity="0.5"/>
+                                <circle cx="${roomX + roomW / 2}" cy="${roomY + 28}" r="3" fill="#f0d080" opacity="0.5"/>
+                                <circle cx="${roomX + roomW / 2 + 14}" cy="${roomY + 28}" r="3" fill="#f0d080" opacity="0.5"/>
                             </g>`;
                         }
 
