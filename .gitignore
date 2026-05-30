@@ -6,6 +6,8 @@ venv/
 .env
 .idea/
 .vscode/
+.opencode/
+.github/
 *.egg-info/
 dist/
 build/
