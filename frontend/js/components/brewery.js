@@ -218,28 +218,28 @@ function renderBrewery() {
             <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" style="width:100%;cursor:grab">
                 <defs>
                     <pattern id="floorPlanks" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <image href="img/textures/planks.png" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
+                        <image href="img/textures/planks.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
                     </pattern>
                     <pattern id="floorStone" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <image href="https://image.pollinations.ai/prompt/seamless%20tileable%20texture%20of%20grey%20stone%20flagstone%20flooring%2C%20top-down%20view%2C%20photorealistic%2C%20512x512?model=flux&seed=898491&width=512&height=512&enhance=true&nologo=true&private=true&safe=false" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
+                        <image href="img/textures/stone.webp" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
                     </pattern>
                     <pattern id="floorTile" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <image href="https://image.pollinations.ai/prompt/seamless%20tileable%20texture%20of%20white%20ceramic%20tile%20floor%20checkerboard%20pattern%2C%20top-down%20view%2C%20photorealistic%2C%20512x512?model=flux&seed=914557&width=512&height=512&enhance=true&nologo=true&private=true&safe=false" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
+                        <image href="img/textures/tile.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
                     </pattern>
                     <pattern id="floorConcrete" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <image href="https://image.pollinations.ai/prompt/seamless%20tileable%20texture%20of%20grey%20concrete%20floor%2C%20industrial%2C%20top-down%20view%2C%20photorealistic%2C%20512x512?model=flux&seed=435034&width=512&height=512&enhance=true&nologo=true&private=true&safe=false" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
+                        <image href="img/textures/concrete.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
                     </pattern>
                     <pattern id="floorHerringbone" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <image href="https://image.pollinations.ai/prompt/seamless%20tileable%20texture%20herringbone%20wood%20floor%2C%20warm%20brown%20oak%20parquet%2C%20top-down%20view%2C%20photorealistic%2C%20512x512?model=flux&seed=632791&width=512&height=512&enhance=true&nologo=true&private=true&safe=false" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
+                        <image href="img/textures/herringbone.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
                     </pattern>
                     <pattern id="floorPolished" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <image href="https://image.pollinations.ai/prompt/seamless%20tileable%20texture%20polished%20concrete%20floor%2C%20light%20grey%2C%20top-down%20view%2C%20photorealistic%2C%20512x512?model=flux&seed=832937&width=512&height=512&enhance=true&nologo=true&private=true&safe=false" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
+                        <image href="img/textures/polished.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
                     </pattern>
                     <pattern id="floorEpoxy" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <image href="https://image.pollinations.ai/prompt/seamless%20tileable%20texture%20white%20epoxy%20clean%20room%20floor%2C%20light%20grey%2C%20top-down%20view%2C%20photorealistic%2C%20512x512?model=flux&seed=261689&width=512&height=512&enhance=true&nologo=true&private=true&safe=false" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
+                        <image href="img/textures/epoxy.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
                     </pattern>
                     <pattern id="floorMarble" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <image href="https://image.pollinations.ai/prompt/seamless%20tileable%20texture%20dark%20marble%20floor%2C%20black%20and%20gold%20veins%2C%20top-down%20view%2C%20photorealistic%2C%20512x512?model=flux&seed=476494&width=512&height=512&enhance=true&nologo=true&private=true&safe=false" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
+                        <image href="img/textures/marble.jpg" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"/>
                     </pattern>
                     <linearGradient id="kettleGrad" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stop-color="${v.kettle[0]}"/>
@@ -343,94 +343,61 @@ function renderBrewery() {
                             </g>`;
                         }
 
-                        // Building-specific decorations
+                        // Building decorations
                         const dec = v.decor || [];
-                        if (dec.includes('baseboard')) {
-                            html += `<rect x="${roomX + 4}" y="${roomY + roomH - 12}" width="${roomW - 8}" height="8" rx="1" fill="rgba(255,255,255,0.03)"/>`;
-                        }
-                        if (dec.includes('door')) {
-                            const dW = 36, dH = 44;
-                            const dX = roomX + roomW / 2 - dW / 2;
-                            const dY = roomY + roomH - dH;
-                            html += `<g opacity="0.4">
-                                <rect x="${dX}" y="${dY}" width="${dW}" height="${dH}" rx="2" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-                                <rect x="${dX + 4}" y="${dY + 4}" width="${dW - 8}" height="${dH - 8}" rx="1" fill="rgba(255,255,255,0.02)"/>
-                                <circle cx="${dX + dW - 8}" cy="${dY + dH / 2}" r="2" fill="rgba(255,255,255,0.15)"/>
-                            </g>`;
-                        }
                         if (dec.includes('lights')) {
-                            html += `<g opacity="0.2">
+                            html += `<g opacity="0.35">
                                 ${[0,1,2].map(i => {
                                     const lx = roomX + 40 + i * ((roomW - 80) / 3);
                                     return `<rect x="${lx}" y="${roomY + 4}" width="20" height="4" rx="2" fill="#fff"/>
-                                        <rect x="${lx + 6}" y="${roomY + 8}" width="8" height="6" rx="1" fill="rgba(255,255,150,0.3)"/>`;
+                                        <rect x="${lx + 6}" y="${roomY + 8}" width="8" height="6" rx="1" fill="rgba(255,255,200,0.5)"/>`;
                                 }).join('')}
                             </g>`;
                         }
-                        if (dec.includes('pipes')) {
-                            html += `<g opacity="0.15">
-                                <line x1="${roomX + 10}" y1="${roomY}" x2="${roomX + 10}" y2="${roomY + roomH}" stroke="#5a7a8a" stroke-width="3"/>
-                                <line x1="${roomX + 16}" y1="${roomY}" x2="${roomX + 16}" y2="${roomY + roomH}" stroke="#5a7a8a" stroke-width="2"/>
-                                <circle cx="${roomX + 10}" cy="${roomY + roomH * 0.3}" r="4" fill="none" stroke="#4a6a7a" stroke-width="1.5"/>
-                                <circle cx="${roomX + 10}" cy="${roomY + roomH * 0.7}" r="4" fill="none" stroke="#4a6a7a" stroke-width="1.5"/>
-                            </g>`;
-                        }
-                        if (dec.includes('drain')) {
-                            html += `<g opacity="0.2">
-                                <circle cx="${roomX + roomW / 2}" cy="${roomY + roomH - 20}" r="6" fill="none" stroke="#5a6a5a" stroke-width="1.5"/>
-                                <line x1="${roomX + roomW / 2 - 4}" y1="${roomY + roomH - 20}" x2="${roomX + roomW / 2 + 4}" y2="${roomY + roomH - 20}" stroke="#5a6a5a" stroke-width="1.5"/>
-                                <line x1="${roomX + roomW / 2}" y1="${roomY + roomH - 24}" x2="${roomX + roomW / 2}" y2="${roomY + roomH - 16}" stroke="#5a6a5a" stroke-width="1.5"/>
-                            </g>`;
-                        }
                         if (dec.includes('zoneMarkings')) {
-                            html += `<rect x="${z1x}" y="${zoneY}" width="${zoneW}" height="${zoneH}" rx="6" fill="none" stroke="${v.boilLabel}" stroke-width="1" stroke-dasharray="6,4" opacity="0.12"/>`;
-                            html += `<rect x="${z2x}" y="${zoneY}" width="${zoneW}" height="${zoneH}" rx="6" fill="none" stroke="${v.fermLabel}" stroke-width="1" stroke-dasharray="6,4" opacity="0.12"/>`;
+                            html += `<rect x="${z1x}" y="${zoneY}" width="${zoneW}" height="${zoneH}" rx="6" fill="none" stroke="${v.boilLabel}" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.25"/>`;
+                            html += `<rect x="${z2x}" y="${zoneY}" width="${zoneW}" height="${zoneH}" rx="6" fill="none" stroke="${v.fermLabel}" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.25"/>`;
                             if (showCond) {
-                                html += `<rect x="${z3x}" y="${zoneY}" width="${zoneW}" height="${zoneH}" rx="6" fill="none" stroke="${v.condLabel}" stroke-width="1" stroke-dasharray="6,4" opacity="0.12"/>`;
+                                html += `<rect x="${z3x}" y="${zoneY}" width="${zoneW}" height="${zoneH}" rx="6" fill="none" stroke="${v.condLabel}" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.25"/>`;
                             }
                         }
                         if (dec.includes('vent')) {
-                            html += `<g opacity="0.12">
+                            html += `<g opacity="0.25">
                                 <rect x="${roomX + 20}" y="${roomY + 15}" width="${roomW - 40}" height="6" rx="2" fill="#7a9aaa"/>
-                                <line x1="${roomX + 40}" y1="${roomY + 15}" x2="${roomX + 40}" y2="${roomY + 21}" stroke="#5a7a8a" stroke-width="1"/>
-                                <line x1="${roomX + 60}" y1="${roomY + 15}" x2="${roomX + 60}" y2="${roomY + 21}" stroke="#5a7a8a" stroke-width="1"/>
-                                <line x1="${roomX + 80}" y1="${roomY + 15}" x2="${roomX + 80}" y2="${roomY + 21}" stroke="#5a7a8a" stroke-width="1"/>
+                                <line x1="${roomX + 40}" y1="${roomY + 15}" x2="${roomX + 40}" y2="${roomY + 21}" stroke="#5a7a8a" stroke-width="1.5"/>
+                                <line x1="${roomX + 60}" y1="${roomY + 15}" x2="${roomX + 60}" y2="${roomY + 21}" stroke="#5a7a8a" stroke-width="1.5"/>
+                                <line x1="${roomX + 80}" y1="${roomY + 15}" x2="${roomX + 80}" y2="${roomY + 21}" stroke="#5a7a8a" stroke-width="1.5"/>
                             </g>`;
                         }
                         if (dec.includes('gantry')) {
-                            html += `<g opacity="0.12">
-                                <line x1="${roomX + 10}" y1="${roomY + 20}" x2="${roomX + roomW - 10}" y2="${roomY + 20}" stroke="#8a9aaa" stroke-width="3"/>
-                                <rect x="${roomX + 30}" y="${roomY + 16}" width="6" height="10" fill="#6a7a8a"/>
-                                <rect x="${roomX + 80}" y="${roomY + 16}" width="6" height="10" fill="#6a7a8a"/>
-                                <rect x="${roomX + 50}" y="${roomY + 20}" width="4" height="4" rx="1" fill="#aa5a3a"/>
-                            </g>`;
-                        }
-                        if (dec.includes('columns')) {
-                            html += `<g opacity="0.12">
-                                <rect x="${roomX + 8}" y="${roomY + 8}" width="12" height="${roomH - 16}" rx="2" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+                            html += `<g opacity="0.25">
+                                <line x1="${roomX + 10}" y1="${roomY + 20}" x2="${roomX + roomW - 10}" y2="${roomY + 20}" stroke="#8a9aaa" stroke-width="4"/>
+                                <rect x="${roomX + 30}" y="${roomY + 14}" width="8" height="12" fill="#6a7a8a"/>
+                                <rect x="${roomX + 80}" y="${roomY + 14}" width="8" height="12" fill="#6a7a8a"/>
+                                <rect x="${roomX + 50}" y="${roomY + 18}" width="6" height="6" rx="1" fill="#cc6a3a"/>
                             </g>`;
                         }
                         if (dec.includes('trim')) {
-                            html += `<rect x="${roomX + 4}" y="${roomY + 4}" width="${roomW - 8}" height="${roomH - 8}" rx="4" fill="none" stroke="#d4a017" stroke-width="1" opacity="0.15"/>`;
-                            html += `<rect x="${roomX + 8}" y="${roomY + 8}" width="${roomW - 16}" height="${roomH - 16}" rx="3" fill="none" stroke="#d4a017" stroke-width="0.5" opacity="0.08"/>`;
+                            html += `<rect x="${roomX + 4}" y="${roomY + 4}" width="${roomW - 8}" height="${roomH - 8}" rx="4" fill="none" stroke="#d4a017" stroke-width="1.5" opacity="0.3"/>`;
+                            html += `<rect x="${roomX + 8}" y="${roomY + 8}" width="${roomW - 16}" height="${roomH - 16}" rx="3" fill="none" stroke="#d4a017" stroke-width="1" opacity="0.15"/>`;
                         }
                         if (dec.includes('pendant')) {
-                            html += `<g opacity="0.18">
+                            html += `<g opacity="0.35">
                                 <line x1="${roomX + roomW / 4}" y1="${roomY}" x2="${roomX + roomW / 4}" y2="${roomY + 40}" stroke="#7a6a5a" stroke-width="1"/>
-                                <circle cx="${roomX + roomW / 4}" cy="${roomY + 45}" r="5" fill="#d4a017"/>
-                                <circle cx="${roomX + roomW / 4}" cy="${roomY + 45}" r="3" fill="#f0d080" opacity="0.6"/>
+                                <circle cx="${roomX + roomW / 4}" cy="${roomY + 45}" r="6" fill="#d4a017"/>
+                                <circle cx="${roomX + roomW / 4}" cy="${roomY + 45}" r="3" fill="#f0d080" opacity="0.8"/>
                                 <line x1="${roomX + roomW * 3 / 4}" y1="${roomY}" x2="${roomX + roomW * 3 / 4}" y2="${roomY + 40}" stroke="#7a6a5a" stroke-width="1"/>
-                                <circle cx="${roomX + roomW * 3 / 4}" cy="${roomY + 45}" r="5" fill="#d4a017"/>
-                                <circle cx="${roomX + roomW * 3 / 4}" cy="${roomY + 45}" r="3" fill="#f0d080" opacity="0.6"/>
+                                <circle cx="${roomX + roomW * 3 / 4}" cy="${roomY + 45}" r="6" fill="#d4a017"/>
+                                <circle cx="${roomX + roomW * 3 / 4}" cy="${roomY + 45}" r="3" fill="#f0d080" opacity="0.8"/>
                             </g>`;
                         }
                         if (dec.includes('chandelier')) {
-                            html += `<g opacity="0.2">
+                            html += `<g opacity="0.35">
                                 <line x1="${roomX + roomW / 2}" y1="${roomY}" x2="${roomX + roomW / 2}" y2="${roomY + 20}" stroke="#d4a017" stroke-width="1.5"/>
                                 <rect x="${roomX + roomW / 2 - 20}" y="${roomY + 20}" width="40" height="4" rx="2" fill="#d4a017"/>
-                                <circle cx="${roomX + roomW / 2 - 14}" cy="${roomY + 28}" r="3" fill="#f0d080" opacity="0.5"/>
-                                <circle cx="${roomX + roomW / 2}" cy="${roomY + 28}" r="3" fill="#f0d080" opacity="0.5"/>
-                                <circle cx="${roomX + roomW / 2 + 14}" cy="${roomY + 28}" r="3" fill="#f0d080" opacity="0.5"/>
+                                <circle cx="${roomX + roomW / 2 - 14}" cy="${roomY + 28}" r="4" fill="#f0d080" opacity="0.6"/>
+                                <circle cx="${roomX + roomW / 2}" cy="${roomY + 28}" r="4" fill="#f0d080" opacity="0.6"/>
+                                <circle cx="${roomX + roomW / 2 + 14}" cy="${roomY + 28}" r="4" fill="#f0d080" opacity="0.6"/>
                             </g>`;
                         }
 

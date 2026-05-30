@@ -143,7 +143,7 @@ const BUILDING_VISUALS = {
         occupiedColor: '#e74c3c', freeColor: '#7a6a4a', floorLine: '#2a1a0a',
         glowColor: '#7a6a4a', fermBubble: '#4a6a8a', condBubble: '#4a6a6a',
         bottomBar: '#1a1a0a', bottomText: '#5a5a4a',
-        floorType: 'planks', decor: ['baseboard', 'door'],
+        floorType: 'planks', decor: [],
     },
     1: {
         wall: ['#1a1a2a','#0e0e1e'], floor: ['#2a1a0a','#1a0a00'], wallStroke: '#2a2a3a',
@@ -155,7 +155,7 @@ const BUILDING_VISUALS = {
         occupiedColor: '#e74c3c', freeColor: '#8a7a5a', floorLine: '#2a1a0a',
         glowColor: '#8a7a5a', fermBubble: '#5a8aaa', condBubble: '#5aaa7a',
         bottomBar: '#0e0e1a', bottomText: '#6a6a5a',
-        floorType: 'stone', decor: ['pipes', 'drain'],
+        floorType: 'stone', decor: ['lights'],
     },
     2: {
         wall: ['#2a3a5a','#1a2a4a'], floor: ['#3a2a1a','#2a1a0a'], wallStroke: '#3a4a6a',
@@ -191,7 +191,7 @@ const BUILDING_VISUALS = {
         occupiedColor: '#e74c3c', freeColor: '#c0a070', floorLine: '#5a3a2a',
         glowColor: '#f0d0a0', fermBubble: '#c09a6a', condBubble: '#6aaa6a',
         bottomBar: '#3a2a1a', bottomText: '#a09070',
-        floorType: 'herringbone', decor: ['columns', 'pendant'],
+        floorType: 'herringbone', decor: ['pendant'],
     },
     5: {
         wall: ['#4a5a6a','#3a4a5a'], floor: ['#5a6a7a','#4a5a6a'], wallStroke: '#6a7a8a',
@@ -215,7 +215,7 @@ const BUILDING_VISUALS = {
         occupiedColor: '#e74c3c', freeColor: '#6a8aaa', floorLine: '#8a9aaa',
         glowColor: '#80c0e0', fermBubble: '#80a8d0', condBubble: '#80c8a0',
         bottomBar: '#b0b8c0', bottomText: '#4a5a6a',
-        floorType: 'epoxy', decor: ['lights', 'columns'],
+        floorType: 'epoxy', decor: [],
     },
     7: {
         wall: ['#1a1a2e','#0a0a1e'], floor: ['#2a1a2a','#1a0a1a'], wallStroke: '#3a3a5a',
